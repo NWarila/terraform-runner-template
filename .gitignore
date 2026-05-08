@@ -1,0 +1,92 @@
+# Default-deny: every tracked file must be explicitly allowlisted below.
+# No wildcard allows. Adding a tracked file requires adding its exact path
+# here too — keeps the tracked surface auditable at a glance.
+**
+
+# ----- [ Repository self-management ] -------------------------------------------------------------
+
+!/.editorconfig
+!/.gitattributes
+!/.gitignore
+!/.markdownlint-cli2.jsonc
+!/.pre-commit-config.yaml
+!/.template-type
+!/.terraform-docs.yml
+!/.tflint.hcl
+!/Makefile
+
+# ----- [ Top-level documentation ] ----------------------------------------------------------------
+
+!/README.md
+!/LICENSE
+!/CHANGELOG.md
+
+# ----- [ Release automation ] ---------------------------------------------------------------------
+
+!/release-please-config.json
+!/.release-please-manifest.json
+
+# ----- [ GitHub configuration ] -------------------------------------------------------------------
+
+!/.github/
+!/.github/CODEOWNERS
+!/.github/PULL_REQUEST_TEMPLATE.md
+!/.github/renovate.json5
+!/.github/workflows/
+!/.github/workflows/canonical-baseline-sync.yaml
+!/.github/workflows/reusable-auto-merge.yaml
+!/.github/workflows/reusable-codeql.yaml
+!/.github/workflows/reusable-iac-security.yaml
+!/.github/workflows/reusable-org-adr-sync.yaml
+!/.github/workflows/reusable-release-evidence.yaml
+!/.github/workflows/reusable-release-please.yaml
+!/.github/workflows/reusable-scorecard.yaml
+!/.github/workflows/reusable-template-sync.yaml
+!/.github/workflows/reusable-terraform-validation.yaml
+!/.github/workflows/scorecard.yaml
+!/.github/workflows/self-ci.yaml
+
+# ----- [ Contract + sync manifests ] --------------------------------------------------------------
+
+!/contract/
+!/contract/runner-template-contract.yaml
+!/sync/
+!/sync/canonical-baseline.yaml
+!/sync/synced-files.yaml
+
+# ----- [ Documentation (Diátaxis) ] ---------------------------------------------------------------
+
+!/docs/
+!/docs/README.md
+!/docs/explanation/
+!/docs/explanation/architecture.md
+!/docs/explanation/testing-strategy.md
+!/docs/explanation/threat-model.md
+!/docs/reference/
+!/docs/reference/invariants.md
+!/docs/reference/release-gates.md
+!/docs/how-to/
+!/docs/how-to/develop-this-module.md
+!/docs/decision-records/
+!/docs/decision-records/README.md
+!/docs/decision-records/org/
+!/docs/decision-records/org/0001-use-architecture-decision-records.md
+!/docs/decision-records/org/0002-adopt-diataxis-documentation-framework.md
+!/docs/decision-records/org/0003-use-deny-all-gitignore-strategy.md
+!/docs/decision-records/org/0004-use-renovate-for-dependency-updates.md
+!/docs/decision-records/org/0005-pin-terraform-and-provider-versions-exactly.md
+!/docs/decision-records/repo/
+!/docs/decision-records/repo/README.md
+
+# ----- [ Tooling & policies ] ---------------------------------------------------------------------
+
+!/tools/
+!/tools/check_caller_workflows.py
+!/tools/check_docs_layout.py
+!/tools/check_template_contract.py
+!/tools/install_ci_tools.sh
+!/tools/seed_consumer.py
+
+!/policies/
+!/policies/opa/
+!/policies/opa/.gitkeep
