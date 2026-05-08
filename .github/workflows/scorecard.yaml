@@ -1,0 +1,28 @@
+name: Scorecard
+
+# Calls the reusable OpenSSF Scorecard workflow against this repository.
+# Same caller pattern every runner consumer adopts; this template eats its
+# own dogfood. Local-reference (./...) since this repo hosts the reusable.
+
+on:
+  branch_protection_rule:
+  schedule:
+    - cron: "17 6 * * 2"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: read-all
+
+concurrency:
+  group: scorecard
+  cancel-in-progress: false
+
+jobs:
+  analysis:
+    permissions:
+      security-events: write
+      id-token: write
+      actions: read
+      contents: read
+    uses: ./.github/workflows/reusable-scorecard.yaml

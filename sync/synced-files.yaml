@@ -1,0 +1,90 @@
+# Files propagated from terraform-template into every consumer repository.
+# Anything listed here is treated as authoritative on the template side:
+# consumer changes are reverted on the next sync PR.
+#
+# Schema:
+#   - path:    shorthand when source and target are the same and no
+#              substitutions are needed.
+#   - source:  path within terraform-template.
+#   - target:  path within the consumer repository.
+#   - mode:    "replace" (overwrite) or "create-if-missing" (seed only).
+#   - substitutions:  map of placeholder string -> value source. Currently
+#                     supported value sources:
+#                       TEMPLATE_REF — the SHA being synced.
+#
+# Workflow files (.github/workflows/*) cannot be synced.
+# The default GITHUB_TOKEN that the reusable sync workflow runs under cannot
+# create or update files inside .github/workflows/* — GitHub blocks this for
+# any token without the special `workflow` scope. Granting that scope
+# requires either a PAT (rejected by design — no shared cross-org secret) or
+# a GitHub App with `actions: write` (deferred). Consequently, consumers
+# maintain their own caller workflows (.github/workflows/pr-validation.yaml
+# and .github/workflows/template-sync.yaml) by hand, with Renovate carrying
+# the SHA pins forward.
+#
+# Only list files that are intended to be byte-identical (after substitution)
+# across every Terraform repository in the fleet. Files that need per-repo
+# customization (CODEOWNERS, .gitignore allowlists)
+# belong in the contract manifest as required-but-not-synced — the contract
+# validator enforces their presence; the consumer owns their content.
+
+version: "2"
+
+synced_files:
+  - path: .editorconfig
+    mode: replace
+    rationale: Editor consistency baseline.
+
+  - path: .gitattributes
+    mode: replace
+    rationale: Line-ending and export-ignore baseline.
+
+  - path: .terraform-docs.yml
+    mode: replace
+    rationale: terraform-docs configuration. Universal across all Terraform repos in the fleet.
+
+  - path: .tflint.hcl
+    mode: replace
+    rationale: TFLint configuration. Universal across all Terraform repos in the fleet.
+
+  - path: .pre-commit-config.yaml
+    mode: replace
+    rationale: Pre-commit hooks for local validation. Mirrors the contract gates.
+
+  - path: .markdownlint-cli2.jsonc
+    mode: replace
+    rationale: Markdown lint configuration. Same rules apply to every repo's docs.
+
+  - path: Makefile
+    mode: replace
+    rationale: |
+      Canonical local validation interface. The `ci` target runs every gate
+      that the reusable validation workflow exercises in CI. Universal
+      because the contract specifies the directory layout this Makefile
+      depends on (terraform/, policies/opa/, tools/, docs/).
+
+  - path: tools/check_docs_layout.py
+    mode: replace
+    rationale: |
+      Diátaxis docs layout enforcement. Every repo in the fleet should
+      structure docs the same way; this script is the mechanical check.
+
+  - path: .github/renovate.json5
+    mode: replace
+    rationale: |
+      Universal Renovate baseline (pin actions to SHA, exact-pin
+      Terraform/providers, track # renovate: annotations). Consumers with
+      legacy renovate.json should delete that file in the same PR that
+      lands the synced renovate.json5.
+
+# NOT synced from this template (intentionally):
+#   - .github/workflows/* — GITHUB_TOKEN cannot write workflow files.
+#     Consumers maintain caller workflows manually; Renovate updates SHAs.
+#   - SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, SUPPORT.md
+#     These are GitHub community health files. They live in
+#     nwarila/.github and nwarila-platform/.github and are inherited by
+#     every repo in those orgs automatically. Owning them here would
+#     create two sources of truth.
+#   - .gitignore, .github/CODEOWNERS
+#     These have a baseline shape but consumers extend them per-repo.
+#     The contract requires their presence; consumers own their content.
