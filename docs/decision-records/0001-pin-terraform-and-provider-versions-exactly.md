@@ -1,4 +1,4 @@
-# ADR-0005: Pin Terraform and Provider Versions Exactly
+# ADR-template/0001: Pin Terraform and Provider Versions Exactly
 
 | Field          | Value                                    |
 | -------------- | ---------------------------------------- |
@@ -13,7 +13,7 @@
 
 ## TL;DR
 
-Every repository under `NWarila` that contains Terraform configuration pins both the Terraform CLI version (via `terraform { required_version = "= X.Y.Z" }`) and every provider version in `required_providers` to an exact version using the `=` operator. Range constraints (`>=`, `~>`, etc.) are not used. Renovate keeps these exact pins current via `rangeStrategy: "pin"` configured in the shared org baseline at `NWarila/.github/.github/renovate.json5`. Consumers of repos that publish Terraform modules MUST run the exact pinned Terraform CLI version; consumers running anything else hit `terraform init` failure immediately rather than discovering compatibility issues partway through `apply`.
+Every repository derived from `NWarila/terraform-runner-template` that contains Terraform configuration pins both the Terraform CLI version (via `terraform { required_version = "= X.Y.Z" }`) and every provider version in `required_providers` to an exact version using the `=` operator. Range constraints (`>=`, `~>`, etc.) are not used. Renovate keeps these exact pins current via `rangeStrategy: "pin"` configured at the template-tier (this template's own `renovate.json5`, inherited by every consumer of this template). Consumers of repos that publish Terraform modules MUST run the exact pinned Terraform CLI version; consumers running anything else hit `terraform init` failure immediately rather than discovering compatibility issues partway through `apply`.
 
 ## Context and Problem Statement
 
@@ -32,14 +32,14 @@ Two camps exist in the wider Terraform community:
 
 2. **Exact pins** (`=`). The argument is reproducibility and security: every consumer runs the exact CLI version the author tested with; behavior is deterministic; supply-chain integrity is stronger.
 
-The `NWarila` portfolio sits squarely in the second context. Modules in this org are consumed almost exclusively by other repositories in the same org. The maintainer controls every published module and every consumer. Multi-module satisfiability across third-party authors is not a real concern here. What matters is:
+Repositories derived from this Terraform-runner template sit squarely in the second context. The Terraform configurations they manage are consumed almost exclusively by other repositories in the same `nwarila-platform` portfolio. The maintainer controls every published module and every consumer. Multi-module satisfiability across third-party authors is not a real concern here. What matters is:
 
 - Reproducibility: every consumer runs the exact Terraform CLI version we tested with
 - Security: known-good versions; no surprise behavior changes from a consumer using a newer CLI
 - Supply-chain consistency: the SHA-pin policy on GitHub Actions extends naturally to exact-pinning Terraform versions
 - Predictable failure modes: `terraform init` fails fast on version mismatch, not partway through `apply`
 
-The previous default ([ADR-0004](0004-use-renovate-for-dependency-updates.md) §Decision Outcome) suggested `rangeStrategy: "bump"` for child modules and `"pin"` for root modules. That distinction is suitable for the wider community but is unnecessarily permissive for this org's consumption model.
+The org-baseline ADR on Renovate ([ADR-0004 in nwarila-platform/.github](https://github.com/nwarila-platform/.github/blob/main/docs/decision-records/0004-use-renovate-for-dependency-updates.md)) intentionally does not set `terraform.rangeStrategy` — that's a stack-specific decision that belongs in the template tier. This ADR fills that gap for every consumer of the Terraform-runner template.
 
 ## Decision Drivers
 
@@ -68,11 +68,11 @@ In every repository that adopts this baseline:
 
 - The `terraform { }` block in `versions.tf` MUST set `required_version = "= X.Y.Z"` using a single exact version. Range operators (`>=`, `~>`, etc.) MUST NOT be used.
 - Every `required_providers` entry MUST set `version = "= X.Y.Z"` using a single exact version.
-- The shared org Renovate baseline at `NWarila/.github/.github/renovate.json5` sets `terraform.rangeStrategy: "pin"`. Every adopting repository inherits this via `extends: ["github>NWarila/.github"]` per [ADR-0004](0004-use-renovate-for-dependency-updates.md). Repo-local Renovate configs MUST NOT override this to `"bump"`, `"replace"`, or `"widen"` without a superseding repo-level ADR.
+- This Terraform-runner template's own `.github/renovate.json5` sets `terraform.rangeStrategy: "pin"`. Every consumer of this template inherits that setting via `extends: ["github>NWarila/terraform-runner-template"]`. Repo-local Renovate configs MUST NOT override this to `"bump"`, `"replace"`, or `"widen"` without a superseding repo-level ADR.
 - The README's "Provider Requirements" or equivalent table MUST display the exact pinned versions and explain that consumers must run that exact CLI version.
 - When a repository updates either the Terraform CLI or a provider version, the update MUST be tested against the pinned version before merging the Renovate PR. A `terraform test` suite that runs on every PR satisfies this requirement.
 
-This refines the rangeStrategy guidance in [ADR-0004](0004-use-renovate-for-dependency-updates.md) §Decision Outcome, which previously suggested `"bump"` for child modules and `"pin"` for root modules. ADR-0005 narrows that to a single org-wide policy: **always pin exactly**. ADR-0004's mention of `"bump"` is superseded by this ADR for the rangeStrategy choice; the rest of ADR-0004 (Renovate over Dependabot, shared baseline at `NWarila/.github`) remains in force.
+The org baseline ([ADR-0004 in nwarila-platform/.github](https://github.com/nwarila-platform/.github/blob/main/docs/decision-records/0004-use-renovate-for-dependency-updates.md)) deliberately leaves `terraform.rangeStrategy` unset because it is stack-specific. This template-tier ADR fills the gap for every Terraform-runner consumer with a single policy: **always pin exactly**.
 
 ## Pros and Cons of the Options
 
@@ -118,7 +118,7 @@ This refines the rangeStrategy guidance in [ADR-0004](0004-use-renovate-for-depe
 Adherence to this ADR is confirmed by the following mechanisms. The wording `MUST`, `SHOULD`, and `MAY` follows [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) conventions.
 
 1. **Constraint operator check.** Every `required_version` and `required_providers[].version` value MUST use the `=` exact operator. A CI script or `tflint` rule MAY assert this; the regex `^=\s*[0-9]+\.[0-9]+\.[0-9]+$` is sufficient for the exact-pin shape.
-2. **Renovate rangeStrategy check.** The shared org baseline at `NWarila/.github/.github/renovate.json5` MUST set `terraform.rangeStrategy: "pin"`. Repo-local overrides MAY narrow this for a specific manager but MUST NOT widen it without a superseding repo-level ADR. A CI script MAY assert this.
+2. **Renovate rangeStrategy check.** This Terraform-runner template's own `.github/renovate.json5` MUST set `terraform.rangeStrategy: "pin"`. Repo-local overrides MAY narrow this for a specific manager but MUST NOT widen it without a superseding repo-level ADR. A CI script MAY assert this.
 3. **README documentation.** Repositories that publish Terraform modules MUST document the exact pinned Terraform CLI version and provider versions in the README's prerequisites or provider requirements section, with an explicit statement that consumers must run those exact versions.
 4. **Test-before-bump rule.** A Renovate PR that bumps the Terraform CLI version or a pinned provider version SHOULD NOT be merged without the maintainer running the test suite against the new version. A CI workflow that runs `terraform test` on every PR satisfies this requirement automatically.
 5. **Editorial rule.** A relaxation of the exact-pin policy (e.g., adopting `~>` for a specific repo) is an architectural decision and MUST be recorded as a repository-level superseding ADR.
@@ -140,20 +140,20 @@ Adherence to this ADR is confirmed by the following mechanisms. The wording `MUS
 
 ### Neutral
 
-- The exact-pin policy applies only inside `NWarila`. Future external consumers (if any) inherit the strictness; if their context demands range constraints they fork or pin internally.
+- The exact-pin policy applies only to consumers of this Terraform-runner template. Future external consumers (if any) inherit the strictness; if their context demands range constraints they fork or pin internally.
 - Repositories that today have range constraints will be migrated to exact pins via the implementing PRs. The migration is a one-time editorial pass; ongoing maintenance is a single-line edit per Renovate PR.
 
 ## Assumptions
 
 This decision rests on the following assumptions. If any becomes false, this ADR should be revisited:
 
-1. The `NWarila` org continues to consume Terraform modules primarily from itself, not from third-party authors with conflicting version constraints.
+1. The `nwarila-platform` portfolio continues to consume Terraform modules primarily from itself, not from third-party authors with conflicting version constraints.
 2. Renovate's `rangeStrategy: "pin"` continues to behave as documented — converting ranges to exact pins on the next bump and bumping exact pins to newer exact versions thereafter.
-3. Consumers of `NWarila` Terraform modules are willing to accept the discipline of running the exact pinned CLI version.
+3. Consumers of Terraform modules built on this template are willing to accept the discipline of running the exact pinned CLI version.
 
 ## Supersedes
 
-None. This ADR refines [ADR-0004](0004-use-renovate-for-dependency-updates.md) §Decision Outcome's rangeStrategy guidance but does not supersede ADR-0004 in full; ADR-0004's choice of Renovate over Dependabot and the shared-baseline pattern remain in force.
+None. This ADR fills a gap intentionally left by the org-baseline [ADR-0004 (Renovate)](https://github.com/nwarila-platform/.github/blob/main/docs/decision-records/0004-use-renovate-for-dependency-updates.md), which deliberately does not set `terraform.rangeStrategy` because it is a stack-specific concern.
 
 ## Superseded by
 
@@ -165,12 +165,12 @@ Pending. The first implementing PR ships in `terraform-proxmox-iso-manager-frame
 
 ## Related ADRs
 
-- [ADR-0001](0001-use-architecture-decision-records.md) — establishes the format and dual-scope structure of decision records.
-- [ADR-0004](0004-use-renovate-for-dependency-updates.md) — establishes Renovate as the org's dependency-update tool. ADR-0005 refines ADR-0004's rangeStrategy guidance to "always pin exactly".
+- [ADR-0001 (org)](https://github.com/nwarila-platform/.github/blob/main/docs/decision-records/0001-use-architecture-decision-records.md) — establishes the ADR format and the three-tier scope structure (`org/`, `template/`, `repo/`). This ADR lives in the template tier per that structure.
+- [ADR-0004 (org)](https://github.com/nwarila-platform/.github/blob/main/docs/decision-records/0004-use-renovate-for-dependency-updates.md) — establishes Renovate as the org's dependency-update tool with a shared org baseline. This template-tier ADR refines the rangeStrategy choice for Terraform consumers, leaving the org baseline stack-agnostic.
 
 ## Compliance Notes
 
-This ADR strengthens the supply-chain posture by ensuring that every Terraform configuration consumed in `NWarila` runs against a known, tested set of CLI and provider versions.
+This ADR strengthens the supply-chain posture by ensuring that every Terraform configuration consumed in `nwarila-platform` runs against a known, tested set of CLI and provider versions.
 
 | Framework              | Control / Practice ID                                                | Potential Evidence Contribution                                                                                                |
 | ---------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
