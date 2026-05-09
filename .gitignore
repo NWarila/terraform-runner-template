@@ -46,6 +46,7 @@
 !/.github/workflows/reusable-scorecard.yaml
 !/.github/workflows/reusable-terraform-validation.yaml
 !/.github/workflows/scorecard.yaml
+!/.github/workflows/terraform-deploy.yaml
 !/.github/workflows/self-ci.yaml
 
 # ----- [ Contract manifest ] ----------------------------------------------------------------------
@@ -97,3 +98,25 @@
 !/policies/
 !/policies/opa/
 !/policies/opa/.gitkeep
+
+# ----- [ Runner data: public + private + fixtures ] -----------------------------------------------
+# Per the runner contract, data-only deployers carry repos/public/
+# (synced into source) and repos/private/ (typically fetched from S3
+# at deploy time). tests/fixtures/ holds the public-safe fallback
+# the runner's pr-validation overlays in CI when AWS isn't
+# available for the S3 fetch.
+!/repos/
+!/repos/public/
+!/repos/public/.gitkeep
+!/repos/public/sample-environments.tfvars
+!/repos/private/
+!/repos/private/.gitkeep
+!/tests/
+!/tests/fixtures/
+!/tests/fixtures/.gitkeep
+!/tests/fixtures/repos/
+!/tests/fixtures/repos/public/
+!/tests/fixtures/repos/public/.gitkeep
+!/tests/fixtures/repos/private/
+!/tests/fixtures/repos/private/.gitkeep
+!/tests/fixtures/repos/private/sample-private-environments.tfvars

@@ -1,0 +1,33 @@
+name: Terraform Deploy
+
+# Caller workflow that exercises this template's runner pattern by
+# being a working consumer of NWarila/terraform-framework-template.
+# Calls the framework's reusable-terraform-deploy.yaml with this
+# runner's repos/public/ data file and runs in plan-only mode (no
+# real apply) since this template doesn't have a deploy target —
+# its job is to demonstrate that the runner-↔-framework wiring
+# composes correctly end-to-end.
+#
+# Derivative runners typically gate `apply: ${{ github.ref == 'refs/heads/main' }}`
+# so plan runs on every PR and apply runs after merge.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-deploy-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: framework-deploy
+    uses: NWarila/terraform-framework-template/.github/workflows/reusable-terraform-deploy.yaml@03e544535d10a71645edca34257f0175d1f15960
+    with:
+      framework_ref: 03e544535d10a71645edca34257f0175d1f15960
+      tfvars_file: repos/public/sample-environments.tfvars
+      apply: false
