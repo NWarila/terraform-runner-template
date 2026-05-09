@@ -2,16 +2,24 @@
   // Schema for editor validation. Update only when intentionally adopting a new schema.
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
 
-  // Renovate config for nwarila/terraform-template and (after sync) every
-  // consumer. Universal across the fleet so that the same Renovate behavior
-  // applies in every Terraform repository under nwarila and nwarila-platform.
+  // Renovate config for NWarila/terraform-runner-template — the canonical
+  // baseline for every Terraform-runner consumer in the portfolio. This
+  // file is the single source of truth for Renovate behavior across every
+  // Terraform repo under nwarila-platform; consumers extend it via
+  // `extends: ["github>NWarila/terraform-runner-template"]` (see org
+  // ADR-0004 in nwarila-platform/.github for the per-template-baseline
+  // model).
   //
   // Rules in this file:
   //   - Pin third-party GitHub Actions to commit SHAs (matches the OPA
-  //     golden_terraform package's enforcement).
-  //   - Pin Terraform and provider versions exactly (org ADR 0005).
-  //   - Track explicit `# renovate:` annotations in workflow comments for
-  //     tool versions (Terraform CLI, TFLint, terraform-docs, OPA, zizmor).
+  //     golden_terraform package's enforcement and org ADR-0004's
+  //     SHA-pin retention check).
+  //   - Pin Terraform and provider versions exactly (template-tier
+  //     ADR-template/0001 in this repo at
+  //     docs/decision-records/0001-pin-terraform-and-provider-versions-exactly.md).
+  //   - Track explicit `# renovate:` annotations in workflow comments
+  //     for tool versions (Terraform CLI, TFLint, terraform-docs, OPA,
+  //     zizmor).
 
   "extends": [
     "config:recommended",
@@ -70,8 +78,12 @@
       "semanticCommitScope": "deps"
     },
     {
-      "matchDepNames": ["NWarila/terraform-template"],
-      "groupName": "terraform-template",
+      // Bumps to NWarila/terraform-runner-template itself (when consumers
+      // pin against this template's SHA in their drift-gate.yaml or
+      // workflow `uses:` references) are grouped and never automerged —
+      // the maintainer reviews them.
+      "matchDepNames": ["NWarila/terraform-runner-template"],
+      "groupName": "terraform-runner-template",
       "semanticCommitType": "chore",
       "semanticCommitScope": "deps",
       "automerge": false
