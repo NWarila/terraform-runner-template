@@ -11,8 +11,11 @@ What this template guarantees:
 - Terraform and provider versions are exact-pinned in consumed
   frameworks; the `pr-validation` runner mode invokes the framework's
   pinned versions, not the runner's preference.
-- Org-baseline ADRs cannot drift undetected; `org-adr-sync` runs on
-  every PR.
+- Org-baseline ADRs cannot drift undetected; the [`drift-gate`
+  workflow](../../.github/workflows/drift-gate.yaml) (calling
+  [`NWarila/drift-gate`](https://github.com/NWarila/drift-gate))
+  runs on every PR with byte-equality assertions and inline
+  annotations on drifted files.
 
 ## Out of scope
 

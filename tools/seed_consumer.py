@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Scaffold golden-template contract structure in a new consumer repo.
+"""DEPRECATED — scaffold contents reference retired workflows.
+
+This tool currently scaffolds `template-sync.yaml` and `org-adr-sync.yaml`
+caller workflows whose reusables were retired when this template adopted
+`NWarila/drift-gate`. New consumer scaffolds produced by this tool would
+fail their first PR. Rewrite needed before next use.
+
+Scaffold golden-template contract structure in a new consumer repo.
 
 Usage:
     cd /path/to/consumer/repo
