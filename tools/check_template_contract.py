@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify that a consumer repository conforms to the golden template contract.
 
-The contract is defined in `contract/golden-template-contract.yaml`. This
+The contract is defined in `contract/runner-template-contract.yaml`. This
 script walks the repository under inspection and emits one PASS/FAIL line per
 rule, exiting non-zero if any rule fails.
 
@@ -419,7 +419,7 @@ def main() -> int:
         type=Path,
         default=Path(__file__).resolve().parent.parent
         / "contract"
-        / "golden-template-contract.yaml",
+        / "runner-template-contract.yaml",
         help="Path to the contract manifest YAML.",
     )
     parser.add_argument(
