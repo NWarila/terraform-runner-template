@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "files": [
+    {
+      "source": "docs/decision-records/0001-pin-terraform-and-provider-versions-exactly.md",
+      "target": "docs/decision-records/template/0001-pin-terraform-and-provider-versions-exactly.md"
+    }
+  ]
+}
