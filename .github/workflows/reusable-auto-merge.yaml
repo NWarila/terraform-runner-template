@@ -6,7 +6,7 @@ name: Reusable Auto-Merge
 #
 # Trusted authors (hardcoded):
 #   - renovate[bot]
-#   - github-actions[bot]    (template-sync and release-please CLI use this)
+#   - github-actions[bot]    (release-please CLI uses this)
 #   - dependabot[bot]
 #
 # Additional authors can be added via the `extra_authors` input. Anything not

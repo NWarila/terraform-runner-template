@@ -17,7 +17,7 @@ the same tooling consumer runners use:
 ruff check tools/
 
 # Lint the workflows
-yamllint .github/workflows/ contract/ sync/
+yamllint .github/workflows/ contract/
 
 # Smoke-test the contract validator + seed_consumer
 python tools/check_template_contract.py --help
@@ -27,20 +27,22 @@ python tools/seed_consumer.py --help
 zizmor --persona regular .github/workflows/
 ```
 
-## Editing universal-layer files
+## Editing org-baseline-mirrored files
 
-Files listed in `sync/canonical-baseline.yaml` come from canonical
-(`terraform-template-template`). To change one of them:
+Org-baseline ADRs at `docs/decision-records/org/` are byte-mirrored from
+`nwarila-platform/.github`. Edits to those files would fail
+[`drift-gate.yaml`](../../.github/workflows/drift-gate.yaml) on the next
+PR. To change the content of an org-baseline ADR:
 
-1. Land the change in `terraform-template-template/main` first.
-2. Bump this template's `CANONICAL_REF` in
-   `.github/workflows/canonical-baseline-sync.yaml` (Renovate does this
-   automatically on schedule).
-3. The sync workflow opens a PR pulling the new content here. Merge it.
+1. Land the change in `nwarila-platform/.github/main` first.
+2. Bump the `source-ref` SHA in this template's
+   [`drift-gate.yaml`](../../.github/workflows/drift-gate.yaml) (Renovate
+   does this automatically as the canonical advances).
+3. Resync the mirrored content here in the same PR (copy the canonical
+   file to `docs/decision-records/org/...`).
 
-If you need a per-template-specific override of a universal file, REMOVE
-its entry from `sync/canonical-baseline.yaml` first; otherwise the next
-sync run reverts your local change.
+Drift-gate will catch any divergence between this template's mirrors
+and the canonical at the pinned `source-ref`.
 
 ## Editing type-specific files
 

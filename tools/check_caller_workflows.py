@@ -1,5 +1,20 @@
 #!/usr/bin/env python3
-"""Verify a consumer repository's caller workflows match the canonical shape.
+"""DEPRECATED — needs rewrite for the post-drift-gate architecture.
+
+This tool's expected-workflow set still references `template-sync.yaml`
+and `org-adr-sync.yaml`, both of which were retired when this template
+adopted `NWarila/drift-gate` for byte-equality enforcement. The
+`NWarila/terraform-template` repo this tool checks `uses:` lines
+against was renamed to `NWarila/terraform-runner-template`. Running
+this tool against a post-drift-gate consumer therefore produces false
+positives.
+
+Until rewritten, callers should rely on:
+  - `tools/check_template_contract.py` for required-file presence
+  - `drift-gate.yaml` for byte-equality of mirrored files
+  - The OPA `golden_terraform.rego` policy for SHA-pin enforcement
+
+Verify a consumer repository's caller workflows match the canonical shape.
 
 Each caller workflow on a consumer is a thin wrapper that delegates to a
 reusable workflow in NWarila/terraform-template (or, for `terraform-deploy`,
