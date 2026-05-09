@@ -4,6 +4,10 @@
     {
       "source": "docs/decision-records/0001-pin-terraform-and-provider-versions-exactly.md",
       "target": "docs/decision-records/template/0001-pin-terraform-and-provider-versions-exactly.md"
+    },
+    {
+      "source": "docs/decision-records/0002-mandate-s3-state-backend.md",
+      "target": "docs/decision-records/template/0002-mandate-s3-state-backend.md"
     }
   ]
 }

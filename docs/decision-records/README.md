@@ -23,6 +23,7 @@ ADRs are organized into three scopes per
 | #                                                                  | Title                                          | Status   | Date       | Summary                                                                                          |
 | ------------------------------------------------------------------ | ---------------------------------------------- | -------- | ---------- | ------------------------------------------------------------------------------------------------ |
 | [template/0001](0001-pin-terraform-and-provider-versions-exactly.md) | Pin Terraform and Provider Versions Exactly | Accepted | 2026-05-05 | Every consumer of this template uses `=` exact-version constraints for Terraform and providers. |
+| [template/0002](0002-mandate-s3-state-backend.md)                    | Mandate S3 as the State Backend | Accepted | 2026-05-09 | Every consumer uses `backend "s3"` with native `use_lockfile = true`, OIDC-only auth, encryption + versioning + access logging on the bucket. Replaces the implicit "consumer chooses" default. |
 
 ## Org-mirrored index
 
