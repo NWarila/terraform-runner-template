@@ -45,8 +45,11 @@ universal:
     rationale: Dependency update policy aligned with org baseline.
   - path: .github/workflows/pr-validation.yaml
     rationale: Calls the reusable Terraform validation workflow.
-  - path: .github/workflows/template-sync.yaml
-    rationale: Calls the reusable template sync workflow.
+  - path: .github/workflows/drift-gate.yaml
+    rationale: 'Calls NWarila/drift-gate as a SHA-pinned composite action. Verifies the
+      consumer mirrors the org-baseline files (and the type-template baseline files,
+      when applicable) byte-identically against canonical. Replaces the previous
+      org-adr-sync + template-sync mechanism with a single composable check.'
   - path: .github/workflows/security.yaml
     rationale: Calls the reusable IaC security workflow in strict mode.
   - path: .github/workflows/codeql.yaml
@@ -83,24 +86,8 @@ universal:
       '
   - path: .github/workflows/auto-merge.yaml
     rationale: 'Calls the reusable auto-merge workflow. Trusted-bot PRs (Renovate,
-
-      template-sync, release-please) auto-merge once required checks pass.
-
-      This is what makes the fleet weekly-click-merge-only.
-
-      '
-  - path: .github/workflows/org-adr-sync.yaml
-    rationale: 'Calls the reusable org-adr-sync workflow. Verifies that org-baseline
-
-      ADRs mirrored under docs/decision-records/org/ match their upstream
-
-      masters in <org>/.github byte-for-byte. Drift fails the workflow.
-
-      Auto-detects the upstream as ${{ github.repository_owner }}/.github;
-
-      gracefully no-ops when the upstream repository doesn''t exist.
-
-      '
+      release-please) auto-merge once required checks pass. This is what makes
+      the fleet weekly-click-merge-only.'
   required_documentation:
   - path: docs/README.md
   - path: docs/explanation/architecture.md
