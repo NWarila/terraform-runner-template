@@ -27,7 +27,7 @@ jobs:
     uses: NWarila/terraform-runner-template/.github/workflows/reusable-terraform-validation.yaml@<40-char-sha>
     with:
       mode: runner
-      framework_repo: NWarila/terraform-framework-example
+      framework_repo: NWarila/terraform-framework-template
       framework_ref: <pinned-framework-sha>
       overlay_paths: |
         repos/public/=>terraform/repos/public/
@@ -39,7 +39,7 @@ jobs:
 # .github/workflows/terraform-deploy.yaml
 jobs:
   deploy:
-    uses: NWarila/terraform-framework-example/.github/workflows/reusable-terraform-deploy.yaml@<40-char-sha>
+    uses: NWarila/terraform-framework-template/.github/workflows/reusable-terraform-deploy.yaml@<40-char-sha>
     with:
       framework_ref: <pinned-framework-sha>
       overlay_paths: |
