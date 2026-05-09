@@ -56,7 +56,7 @@ jobs:
         with:
           fetch-depth: 1
           persist-credentials: false
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v6.0.0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.12"
       - name: Install yamllint
@@ -71,7 +71,7 @@ jobs:
               comments: disable,
               truthy: {check-keys: false}
             }
-          }" .github/workflows/ contract/ sync/
+          }" .github/workflows/ contract/
 
   ruff:
     name: ruff
@@ -82,7 +82,7 @@ jobs:
         with:
           fetch-depth: 1
           persist-credentials: false
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v6.0.0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.12"
       - name: Install ruff
@@ -115,7 +115,7 @@ jobs:
         with:
           fetch-depth: 1
           persist-credentials: false
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v6.0.0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.12"
       - name: Install zizmor
@@ -133,7 +133,7 @@ jobs:
         with:
           fetch-depth: 1
           persist-credentials: false
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v6.0.0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.12"
       - name: Install PyYAML
@@ -158,29 +158,28 @@ jobs:
           assert 'workflow_pinning' in spec, 'missing workflow_pinning'
           print('runner-template contract manifest looks well-formed')
           "
-      - name: Sync manifest is well-formed
+      - name: Install drift-gate (manifest schema)
+        # renovate: datasource=github-tags depName=NWarila/drift-gate
+        run: >-
+          python -m pip install --no-cache-dir
+          'git+https://github.com/NWarila/drift-gate@d835ae411f1e55e25b2b6c079d5891e7345a043c'
+      - name: Template-tier baseline-manifest.json is well-formed
+        # Validates that this template's own template-tier manifest parses
+        # against drift-gate's stdlib schema and that every `source` resolves
+        # on disk. Catches a broken template manifest here, before downstream
+        # consumers' template-tier drift-gate runs fail against it.
         run: |
-          python -c "
-          import yaml
-          with open('sync/synced-files.yaml') as fh:
-              spec = yaml.safe_load(fh)
-          assert spec['version'] == '2', f'unexpected sync version: {spec.get(\"version\")}'
-          assert 'synced_files' in spec, 'missing synced_files'
-          for entry in spec['synced_files']:
-              assert ('path' in entry) or ('source' in entry and 'target' in entry), \
-                  f'malformed entry: {entry!r}'
-          print('sync manifest looks well-formed')
-          "
-      - name: Canonical baseline manifest is well-formed
-        run: |
-          python -c "
-          import yaml
-          with open('sync/canonical-baseline.yaml') as fh:
-              spec = yaml.safe_load(fh)
-          assert spec['version'] == '1', f'unexpected canonical-baseline version: {spec.get(\"version\")}'
-          assert 'baseline_files' in spec, 'missing baseline_files'
-          for entry in spec['baseline_files']:
-              assert ('path' in entry) or ('source' in entry and 'target' in entry), \
-                  f'malformed entry: {entry!r}'
-          print('canonical-baseline manifest looks well-formed')
-          "
+          python - <<'PY'
+          from pathlib import Path
+          from baseline.manifest import load_manifest
+
+          m = load_manifest(Path("baseline-manifest.json"))
+          print(f"template baseline manifest: version={m.version}, files={len(m.files)}")
+          missing = [f.source for f in m.files if not Path(f.source).is_file()]
+          if missing:
+              print("ERROR: template manifest entries reference sources missing on disk:")
+              for s in missing:
+                  print(f"  - {s}")
+              raise SystemExit(1)
+          print("all template-tier sources resolve on disk")
+          PY

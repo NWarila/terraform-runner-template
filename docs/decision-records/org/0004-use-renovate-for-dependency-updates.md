@@ -13,11 +13,11 @@
 
 ## TL;DR
 
-All `NWarila/*` repositories track dependency updates via [Renovate](https://docs.renovatebot.com/). Common settings — schedule, semantic-commit prefixes, dependency-dashboard, SHA-pin retention on GitHub Actions, PR concurrency caps — live in a single shared baseline at `NWarila/.github/.github/renovate.json5`. Every adopting repository's local `.github/renovate.json5` extends `github>NWarila/.github` and adds only the overrides specific to that repository's manager surface (e.g., `terraform.rangeStrategy: "bump"` for child modules, `"pin"` for root modules). Renovate replaces Dependabot at the org level because Dependabot does not update Terraform's `required_version` field and has incomplete coverage of pinned tool versions in adjacent tooling. The shared-baseline pattern keeps the policy DRY across the org while preserving per-repo override capability.
+All `nwarila-platform/*` repositories track dependency updates via [Renovate](https://docs.renovatebot.com/). Common settings — schedule, semantic-commit prefixes, dependency-dashboard, SHA-pin retention on GitHub Actions, PR concurrency caps — live in a single shared baseline at `nwarila-platform/.github/.github/renovate.json5`. Every adopting repository's local `.github/renovate.json5` extends `github>nwarila-platform/.github` and adds only the overrides specific to that repository's manager surface. Renovate replaces Dependabot at the org level because Dependabot does not update Terraform's `required_version` field and has incomplete coverage of pinned tool versions in adjacent tooling. The shared-baseline pattern keeps the policy DRY across the org while preserving per-repo override capability.
 
 ## Context and Problem Statement
 
-Repositories under the `NWarila` organization track several version-pin surfaces that need automated updates:
+Repositories under the `nwarila-platform` organization track several version-pin surfaces that need automated updates:
 
 - **GitHub Actions** referenced by full commit SHA in workflow files, per the org's SHA-pin policy.
 - **Terraform** version constraints — `required_version` on the `terraform` block, and provider versions in `required_providers`.
@@ -41,14 +41,14 @@ The following forces shaped this decision:
 3. **Conventional Commit emission.** Update PRs should emit Conventional Commit prefixes that release-please (where configured) categorises.
 4. **Cross-repo consistency.** Common settings must be uniform across repos. Per-repo configs that drift are a maintenance liability.
 5. **DRY (Inheritance over duplication).** Hand-copying the same settings into every new repo is error-prone. A shared baseline that consuming repos inherit reduces maintenance to one place. This aligns with the "Inheritance over duplication" principle in [ADR-0001 (org)](0001-use-architecture-decision-records.md).
-6. **Per-repo override capability.** Some settings (e.g., `terraform.rangeStrategy: "bump"` vs `"pin"`) are repo-specific. The shared baseline must accommodate per-repo overrides without forcing a one-size-fits-all default that is wrong for half the repos.
+6. **Per-repo override capability.** Some settings are repo-specific or stack-specific. The shared baseline must accommodate per-repo and per-template overrides without forcing a one-size-fits-all default that is wrong for half the repos.
 7. **Reasonable PR cadence.** Daily PR creation produces noise; weekly cadence aligns with most repository review windows.
 
 ## Considered Options
 
 1. **Stay on Dependabot org-wide.** Continue with per-repo `.github/dependabot.yml`, accepting the `required_version` gap and per-repo cadence drift.
 2. **Adopt Renovate per-repo with no shared baseline.** Each repo maintains its own `.github/renovate.json5` independently.
-3. **Adopt Renovate with a shared org baseline.** Common settings live in `NWarila/.github/.github/renovate.json5`; consuming repos extend `github>NWarila/.github` and override repo-specific concerns.
+3. **Adopt Renovate with a shared org baseline.** Common settings live in `nwarila-platform/.github/.github/renovate.json5`; consuming repos extend `github>nwarila-platform/.github` and override repo-specific concerns.
 4. **Mix Dependabot for legacy repos and Renovate for new repos.** Run both tools depending on repo age.
 5. **Hand-roll a scheduled GitHub Actions workflow that opens update PRs.** Custom maintenance pipeline.
 
@@ -56,7 +56,7 @@ The following forces shaped this decision:
 
 Chosen option: **Option 3, Renovate with a shared org baseline.**
 
-The baseline lives at `NWarila/.github/.github/renovate.json5` and configures:
+The baseline lives at `nwarila-platform/.github/.github/renovate.json5` and configures:
 
 - `extends: ["config:recommended"]` as the inherited Renovate baseline.
 - `schedule: ["before 6am on monday"]` (weekly), the org cadence.
@@ -66,12 +66,12 @@ The baseline lives at `NWarila/.github/.github/renovate.json5` and configures:
 - `github-actions.pinDigests: true` to preserve SHA-pin format and rewrite trailing tag comments.
 - A `packageRules` entry that maps `github-actions` updates to `ci(actions): ...` Conventional Commit prefixes.
 
+Stack-specific settings (e.g., `terraform.rangeStrategy`, `pip` constraint policies) are intentionally NOT set in the org baseline. Those are template-tier or repo-tier concerns and live in the corresponding type-template's `renovate.json5` (inherited by every consumer of that template) or in the consumer's own `renovate.json5`.
+
 Each adopting repository carries a minimal `.github/renovate.json5` that:
 
-- Inherits the baseline via `extends: ["github>NWarila/.github"]`.
-- Adds only the overrides that are genuinely repo-specific. The most common are:
-  - `terraform.rangeStrategy` — `"bump"` for child modules (so consumer-side compatibility is preserved), `"pin"` for root modules.
-  - Additional `packageRules` for managers the baseline does not cover (e.g., `terraform`, `pip`, `npm`).
+- Inherits the baseline via `extends: ["github>nwarila-platform/.github"]`.
+- Adds only the overrides that are genuinely repo-specific. Stack-wide overrides (e.g., Terraform-specific behavior) belong in the type-template's own `renovate.json5`, which the consumer also extends.
 
 The `.github/dependabot.yml` file MUST NOT exist in any adopting repository. Repositories that previously contained one MUST remove it as part of their Renovate migration PR.
 
@@ -100,13 +100,13 @@ Renovate enablement requires the Renovate GitHub App to be installed against eac
 - **Good, because** Renovate covers every update surface the org has now or is likely to grow into.
 - **Good, because** `pinDigests: true` preserves SHA-pin format on GitHub Actions bumps and rewrites trailing tag comments in place.
 - **Good, because** `semanticCommits` emits Conventional Commit prefixes that release-please categorises without per-PR rewriting.
-- **Good, because** the shared baseline at `NWarila/.github` keeps common settings uniform across the org. Changing a setting in one place updates every consuming repo on its next Renovate run.
-- **Good, because** consuming repos remain free to override repo-specific concerns (e.g., `terraform.rangeStrategy`) without re-declaring the entire config.
+- **Good, because** the shared baseline at `nwarila-platform/.github` keeps common settings uniform across the org. Changing a setting in one place updates every consuming repo on its next Renovate run.
+- **Good, because** consuming repos remain free to override repo-specific concerns without re-declaring the entire config.
 - **Good, because** the dependency-dashboard issue surfaces pending updates without flooding the PR list.
 - **Neutral, because** Renovate requires the GitHub App to be installed once per repository (or once per org).
 - **Bad, because** the Renovate GitHub App is a third-party dependency in the supply chain (managed by Mend); operational burden of compromise is real.
 - **Bad, because** the dependency-dashboard issue is opinionated; if not curated it can clutter the issue tracker.
-- **Bad, because** an outage or breaking change in the shared baseline propagates to every consuming repo at once. Mitigation: changes to `NWarila/.github/.github/renovate.json5` are reviewed in PR like any other org-baseline change.
+- **Bad, because** an outage or breaking change in the shared baseline propagates to every consuming repo at once. Mitigation: changes to `nwarila-platform/.github/.github/renovate.json5` are reviewed in PR like any other org-baseline change.
 
 ### Option 4: Mix Dependabot and Renovate
 
@@ -127,13 +127,13 @@ Renovate enablement requires the Renovate GitHub App to be installed against eac
 Adherence to this ADR is confirmed by the following mechanisms. The wording `MUST`, `SHOULD`, and `MAY` follows [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) conventions.
 
 1. **Tool-presence check.** Every adopting repository MUST contain `.github/renovate.json5`. A `.github/dependabot.yml` file MUST NOT exist; a CI script or `pre-commit` hook MAY assert its absence.
-2. **Inheritance check.** Every adopting repository's `.github/renovate.json5` MUST include `github>NWarila/.github` in its `extends` array, or document an explicit reason in a repo-specific superseding ADR for not doing so.
+2. **Inheritance check.** Every adopting repository's `.github/renovate.json5` MUST include `github>nwarila-platform/.github` in its `extends` array, or document an explicit reason in a repo-specific superseding ADR for not doing so.
 3. **SHA-pin retention check.** The shared baseline MUST set `github-actions.pinDigests: true`. A reviewer SHOULD reject a PR to the baseline that removes or disables this setting without a superseding ADR.
 4. **Schedule check.** The shared baseline MUST schedule weekly or less-frequent runs. Daily or more-frequent schedules would produce avoidable PR churn across the org.
-5. **Override discipline.** Repository-local overrides MUST be limited to repo-specific concerns. Settings that should apply org-wide MUST be added to the shared baseline rather than copy-pasted into every consuming repo.
+5. **Override discipline.** Repository-local overrides MUST be limited to repo-specific concerns. Settings that should apply org-wide MUST be added to the shared baseline rather than copy-pasted into every consuming repo. Settings that should apply to every consumer of a particular type-template (e.g., every Terraform consumer) belong in that type-template's own `renovate.json5`, not in the org baseline and not in each consumer.
 6. **Editorial rule.** A change of dependency-update tool (back to Dependabot, or to a third option) is itself an architectural decision and MUST be recorded as a superseding ADR.
 
-Enforcement tooling is recommended but not mandatory at acceptance time. A repository MAY add CI scripts that verify (1)–(3); the org-wide adoption pattern MAY be enforced by the same `org-adr-sync` workflow that mirrors org ADRs into consuming repos.
+Enforcement tooling is recommended but not mandatory at acceptance time. A repository MAY add CI scripts that verify (1)–(3); the org-wide adoption pattern MAY be enforced by the same drift-gate workflow that mirrors org ADRs into consuming repos.
 
 ## Consequences
 
@@ -150,14 +150,14 @@ Enforcement tooling is recommended but not mandatory at acceptance time. A repos
 
 - One additional GitHub App must be installed against the org (or per-repo).
 - Renovate's dependency-dashboard issue is opinionated and clutters the issue tracker if not curated.
-- The shared baseline is now a load-bearing artifact: an outage or breaking change at `NWarila/.github/.github/renovate.json5` propagates to every consuming repo on the next Renovate run.
+- The shared baseline is now a load-bearing artifact: an outage or breaking change at `nwarila-platform/.github/.github/renovate.json5` propagates to every consuming repo on the next Renovate run.
 - Release-notes fetching adds latency to PR creation (negligible in practice).
 
 ### Neutral
 
-- The `github>` extends syntax creates a runtime dependency on `NWarila/.github` being reachable when Renovate evaluates a consuming repo. In practice this is reliable; if it becomes unreliable, repositories MAY temporarily inline the baseline.
-- This ADR scopes the decision to the `NWarila` organization. If `NWarila/*` user-account repos adopt Renovate later, they will reference this ADR as the canonical pattern but with their own user-level shared baseline.
-- Repo-specific overrides remain permitted; this ADR is not a uniformity-at-all-costs mandate. The only constraint is that overrides MUST be repo-specific concerns.
+- The `github>` extends syntax creates a runtime dependency on `nwarila-platform/.github` being reachable when Renovate evaluates a consuming repo. In practice this is reliable; if it becomes unreliable, repositories MAY temporarily inline the baseline.
+- This ADR scopes the decision to the `nwarila-platform` organization. If `NWarila/*` user-account repos adopt Renovate later, they will reference this ADR as the canonical pattern but with their own user-level shared baseline.
+- Repo-specific overrides remain permitted; this ADR is not a uniformity-at-all-costs mandate. The only constraint is that overrides MUST be repo-specific concerns. Stack-wide concerns belong in the type-template tier per ADR-0001.
 
 ## Assumptions
 
@@ -170,7 +170,7 @@ This decision rests on the following assumptions. If any becomes false, this ADR
 
 ## Supersedes
 
-None — `.github/dependabot.yml` files in `NWarila/*` repos were single-ecosystem configurations with no prior ADR documenting their adoption. This ADR replaces that pattern as a new decision rather than as a formal supersession.
+None — `.github/dependabot.yml` files in `nwarila-platform/*` repos were single-ecosystem configurations with no prior ADR documenting their adoption. This ADR replaces that pattern as a new decision rather than as a formal supersession.
 
 ## Superseded by
 
@@ -178,13 +178,13 @@ None (current).
 
 ## Implementing PRs
 
-Pending. The first implementing PR ships in `terraform-proxmox-iso-manager-framework`, which migrates from `dependabot.yml` to the shared-baseline `.github/renovate.json5` pattern. Subsequent adopting repositories will be listed here.
+Pending. The org-baseline `.github/renovate.json5` file in `nwarila-platform/.github` is itself a follow-up implementation; this ADR captures the decision before the file lands. Subsequent adopting repositories' Renovate migration PRs will be listed here.
 
 ## Related ADRs
 
-- [ADR-0001](0001-use-architecture-decision-records.md) — establishes the format and dual-scope structure of decision records.
+- [ADR-0001](0001-use-architecture-decision-records.md) — establishes the format and three-tier scope structure of decision records.
 - [ADR-0003](0003-use-deny-all-gitignore-strategy.md) — establishes the deny-all `.gitignore` strategy. Renovate config files are explicitly allowlisted in adopting repositories per ADR-0003.
-- [ADR-0005](0005-pin-terraform-and-provider-versions-exactly.md) — refines this ADR's `rangeStrategy` guidance: instead of differentiating child vs root modules, all repos pin Terraform and provider versions exactly. The shared baseline at `NWarila/.github/.github/renovate.json5` accordingly sets `terraform.rangeStrategy: "pin"`.
+- [`NWarila/terraform-runner-template` ADR-template/0001](https://github.com/NWarila/terraform-runner-template/blob/main/docs/decision-records/0001-pin-terraform-and-provider-versions-exactly.md) — the template-tier decision pinning Terraform and provider versions exactly. The org baseline does not set `terraform.rangeStrategy`; the Terraform type-template sets `"pin"` per its own ADR.
 
 ## Compliance Notes
 
