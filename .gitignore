@@ -74,6 +74,7 @@
 !/docs/decision-records/
 !/docs/decision-records/README.md
 !/docs/decision-records/0001-pin-terraform-and-provider-versions-exactly.md
+!/docs/decision-records/0002-mandate-s3-state-backend.md
 !/docs/decision-records/org/
 !/docs/decision-records/org/.gitkeep
 !/docs/decision-records/org/0001-use-architecture-decision-records.md
