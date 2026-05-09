@@ -39,6 +39,6 @@ jobs:
         uses: NWarila/drift-gate@d835ae411f1e55e25b2b6c079d5891e7345a043c # main @ 2026-05-09
         with:
           source-repo: nwarila-platform/.github
-          source-ref: 41a19c378f15c42760dd6449d8a80d0f0858916a # main @ 2026-05-09
+          source-ref: f2ff593bb4b16555ce0968137f53cdf29b373336 # main @ 2026-05-09
           manifest: baseline-manifest.json
           check-name: org-baseline / verify
