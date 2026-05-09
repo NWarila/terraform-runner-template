@@ -7,9 +7,9 @@ PYTHON ?= python3
 # (`.github/workflows/self-ci.yaml`) runs the same set, plus a few
 # checks that depend on workflow-level credentials.
 #
-# Derivative runners produced from this template get their own
-# Makefile (scaffolded by `tools/seed_consumer.py --type runner`)
-# whose `ci` target invokes this template's
+# Derivative runners produced from this template inherit its file
+# tree via GitHub's "Use this template" feature; their own Makefile
+# `ci` target invokes this template's
 # `reusable-terraform-validation.yaml` against an assembled
 # framework-overlay tree.
 
