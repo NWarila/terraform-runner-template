@@ -89,11 +89,9 @@
 # ----- [ Tooling & policies ] ---------------------------------------------------------------------
 
 !/tools/
-!/tools/check_caller_workflows.py
 !/tools/check_docs_layout.py
 !/tools/check_template_contract.py
 !/tools/install_ci_tools.sh
-!/tools/seed_consumer.py
 
 !/policies/
 !/policies/opa/
