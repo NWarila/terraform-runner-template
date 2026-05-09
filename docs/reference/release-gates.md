@@ -8,14 +8,10 @@ PRs to `main` on this template must pass:
 - `ruff` (Python tools)
 - `markdownlint` (docs)
 - `zizmor` (workflow security)
-- `audit-tools-smoke-test` (tooling sanity + contract/sync manifests)
-- `Verify org ADR mirrors` (org-adr-sync)
+- `audit-tools-smoke-test` (tooling sanity + contract / baseline-manifest schemas)
+- `org-baseline / verify` (drift-gate against `nwarila-platform/.github` at pinned source-ref)
 - `Trivy (filesystem & secrets)`, `Gitleaks (secret scan)`, `zizmor (Actions security)` (security)
 - `analyze` (CodeQL)
 - `analysis` (Scorecard)
 
-All gates run via the workflows in `.github/workflows/`; the universal
-reusables (codeql, scorecard, security, auto-merge, org-adr-sync,
-release-please, release-evidence, template-sync) are synced from
-`terraform-template-template` via canonical-baseline-sync and must be
-SHA-pinned per the contract.
+All gates run via the workflows in `.github/workflows/`. The drift-gate workflow is SHA-pinned to [`NWarila/drift-gate`](https://github.com/NWarila/drift-gate); the other reusables (`reusable-codeql.yaml`, `reusable-scorecard.yaml`, `reusable-iac-security.yaml`, `reusable-auto-merge.yaml`, `reusable-release-please.yaml`, `reusable-release-evidence.yaml`, `reusable-terraform-validation.yaml`) live in this repo and are referenced by consumer runners via SHA-pinned `uses:` lines.
