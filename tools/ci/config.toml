@@ -1,0 +1,12 @@
+repo_role = "runner"
+artifact_root = ".tmp/ci/integration"
+default_case = "basic"
+framework_source = "../terraform-framework-template/terraform"
+tflint_config = ".tflint.hcl"
+
+[[cases]]
+name = "basic"
+overlay_dir = "fixtures/integration/basic"
+module_path = "modules/framework"
+tfvars_source = "repos/public/sample-environments.tfvars"
+test_var_file = true

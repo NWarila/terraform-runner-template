@@ -1,16 +1,12 @@
 name: Reusable Terraform Validation
 
-# Reusable workflow consumed by every Terraform repository derived from
+# Reusable workflow consumed by Terraform-runner repositories derived from
 # NWarila/terraform-runner-template. Sets up a pinned toolchain (Terraform, TFLint,
-# terraform-docs, OPA), runs the consuming repository's `make ci` target, and
-# enforces the golden template contract.
+# terraform-docs, OPA), runs validation against the assembled framework tree,
+# and enforces the golden template contract.
 #
-# Two modes
-# ---------
-# - mode: full (framework consumers — self-contained terraform modules)
-#     Validates the consumer's own terraform/ tree directly. `make ci` runs
-#     in the consumer root.
-#
+# Supported modes
+# ---------------
 # - mode: runner (data-only deployer consumers)
 #     Checks out the framework the runner consumes at `framework_ref`,
 #     overlays the runner's data paths onto the framework, then runs
@@ -21,6 +17,9 @@ name: Reusable Terraform Validation
 # - mode: contract-and-lint
 #     Skips `make ci` entirely. Used for transitioning consumers that don't
 #     yet have a complete validation surface.
+#
+# Framework-shaped validation belongs to framework templates, not this runner
+# template. This workflow rejects `mode: full` to keep ownership explicit.
 #
 # Consumers call this with `uses:` pinned to a 40-character commit SHA. Tool
 # versions are passed explicitly so each consumer can move forward
@@ -59,18 +58,17 @@ on:
         default: true
       mode:
         description: |
-          Validation depth. Three values:
-            full              — frameworks. Validates terraform/ in place.
-            runner            — runners. Checks out `framework_repo` at
+          Validation depth. Supported values:
+            runner            - runners. Checks out `framework_repo` at
                                 `framework_ref`, applies `overlay_paths`,
                                 then runs `make ci` against the assembled
                                 tree.
-            contract-and-lint — contract validator + caller workflow check
+            contract-and-lint - contract validator + caller workflow check
                                 + lints only. Skips `make ci`.
-          Default: full.
+          Default: runner.
         required: false
         type: string
-        default: full
+        default: runner
       lint_advisory:
         description: |
           When true, lint jobs (actionlint, shellcheck, yamllint, ruff,
@@ -124,6 +122,24 @@ jobs:
         shell: bash
 
     steps:
+      - name: Validate requested mode
+        env:
+          MODE: ${{ inputs.mode }}
+        run: |
+          set -euo pipefail
+          case "${MODE}" in
+            runner|contract-and-lint)
+              ;;
+            full)
+              echo "::error::mode=full is not supported by terraform-runner-template; use the framework template's validation reusable for framework-shaped repos."
+              exit 1
+              ;;
+            *)
+              echo "::error::unsupported validation mode '${MODE}' (expected runner or contract-and-lint)"
+              exit 1
+              ;;
+          esac
+
       - name: Check out consumer repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -218,14 +234,14 @@ jobs:
           done <<< "${OVERLAY_PATHS}"
 
       - name: Setup Terraform
-        if: ${{ inputs.mode == 'full' || inputs.mode == 'runner' }}
+        if: ${{ inputs.mode == 'runner' }}
         uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false
 
       - name: Install pinned CI tools
-        if: ${{ inputs.mode == 'full' || inputs.mode == 'runner' }}
+        if: ${{ inputs.mode == 'runner' }}
         env:
           TFLINT_VERSION: ${{ inputs.tflint_version }}
           TERRAFORM_DOCS_VERSION: ${{ inputs.terraform_docs_version }}
@@ -249,18 +265,14 @@ jobs:
           python ../template/tools/check_template_contract.py \
             --repo-root . \
             --contract ../template/contract/runner-template-contract.yaml \
-            --template-root ../template
+            --template-root ../template \
+            --type runner
 
       - name: Verify caller workflow conformance
         if: ${{ inputs.run_contract_check }}
         working-directory: consumer
         run: |
           python ../template/tools/check_caller_workflows.py --repo-root .
-
-      - name: Run consumer make ci (framework)
-        if: ${{ inputs.mode == 'full' }}
-        working-directory: consumer
-        run: make ci
 
       - name: Run framework make ci on assembled tree (runner)
         if: ${{ inputs.mode == 'runner' }}

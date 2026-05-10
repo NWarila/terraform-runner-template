@@ -11,7 +11,7 @@ This template repo's `self-ci.yaml` exercises every component:
 | Shell scripts | `shellcheck` | `tools/install_ci_tools.sh` shells safely. |
 | YAML data | `yamllint` | Workflow + contract + sync manifests are valid YAML. |
 | Python tools | `ruff` | `tools/*.py` lint clean. |
-| Python tools | `audit-tools-smoke-test` | Each tool's `--help` succeeds; the contract YAML and sync manifests load and have the expected keys. |
+| Python tools | `audit-tools-smoke-test` | Tool entry points import, the runner-template contract validates this repo as `template`, and the template scaffold manifest loads against drift-gate's schema. |
 | Markdown | `markdownlint` | Documentation lints clean. |
 
 Consumer runners exercise this template via their own `pr-validation.yaml`,

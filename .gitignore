@@ -10,15 +10,16 @@
 !/.gitignore
 !/.markdownlint-cli2.jsonc
 !/.pre-commit-config.yaml
-!/.template-type
-!/.terraform-docs.yml
-!/.tflint.hcl
 !/Makefile
 
 # ----- [ Top-level documentation ] ----------------------------------------------------------------
 
 !/README.md
 !/LICENSE
+!/CODE_OF_CONDUCT.md
+!/CONTRIBUTING.md
+!/SECURITY.md
+!/SUPPORT.md
 !/CHANGELOG.md
 
 # ----- [ Release automation ] ---------------------------------------------------------------------
@@ -38,6 +39,10 @@
 !/.github/renovate.json5
 !/.github/workflows/
 !/.github/workflows/drift-gate.yaml
+!/.github/workflows/auto-merge.yaml
+!/.github/workflows/codeql.yaml
+!/.github/workflows/release-evidence.yaml
+!/.github/workflows/release-please.yaml
 !/.github/workflows/reusable-auto-merge.yaml
 !/.github/workflows/reusable-codeql.yaml
 !/.github/workflows/reusable-iac-security.yaml
@@ -46,6 +51,7 @@
 !/.github/workflows/reusable-scorecard.yaml
 !/.github/workflows/reusable-terraform-validation.yaml
 !/.github/workflows/scorecard.yaml
+!/.github/workflows/security.yaml
 !/.github/workflows/terraform-deploy.yaml
 !/.github/workflows/self-ci.yaml
 
@@ -74,8 +80,6 @@
 !/docs/how-to/develop-this-module.md
 !/docs/decision-records/
 !/docs/decision-records/README.md
-!/docs/decision-records/0001-pin-terraform-and-provider-versions-exactly.md
-!/docs/decision-records/0002-mandate-s3-state-backend.md
 !/docs/decision-records/org/
 !/docs/decision-records/org/.gitkeep
 !/docs/decision-records/org/0001-use-architecture-decision-records.md
@@ -84,6 +88,8 @@
 !/docs/decision-records/org/0004-use-renovate-for-dependency-updates.md
 !/docs/decision-records/template/
 !/docs/decision-records/template/.gitkeep
+!/docs/decision-records/template/0001-pin-terraform-and-provider-versions-exactly.md
+!/docs/decision-records/template/0002-mandate-s3-state-backend.md
 !/docs/decision-records/repo/
 !/docs/decision-records/repo/.gitkeep
 !/docs/decision-records/repo/README.md
@@ -91,13 +97,20 @@
 # ----- [ Tooling & policies ] ---------------------------------------------------------------------
 
 !/tools/
+!/tools/build_opa_input.py
+!/tools/check_caller_workflows.py
 !/tools/check_docs_layout.py
 !/tools/check_template_contract.py
 !/tools/install_ci_tools.sh
+!/tools/ci/
+!/tools/ci/config.toml
+!/tools/ci/run_integration.py
 
 !/policies/
 !/policies/opa/
 !/policies/opa/.gitkeep
+!/policies/opa/golden_terraform.rego
+!/policies/opa/golden_terraform_test.rego
 
 # ----- [ Runner data: public + private + fixtures ] -----------------------------------------------
 # Per the runner contract, data-only deployers carry repos/public/
@@ -120,3 +133,13 @@
 !/tests/fixtures/repos/private/
 !/tests/fixtures/repos/private/.gitkeep
 !/tests/fixtures/repos/private/sample-private-environments.tfvars
+
+# ----- [ Integration fixtures ] -------------------------------------------------------------------
+!/fixtures/
+!/fixtures/integration/
+!/fixtures/integration/basic/
+!/fixtures/integration/basic/versions.tf
+!/fixtures/integration/basic/variables.tf
+!/fixtures/integration/basic/main.tf
+!/fixtures/integration/basic/tests/
+!/fixtures/integration/basic/tests/runner_consumes_framework.tftest.hcl

@@ -6,19 +6,43 @@ A *runner* is a data-only deployer: it owns an inventory of repository definitio
 
 This template provides the contract every runner must satisfy plus the canonical caller-workflow set.
 
+## Normalized repo interface
+
+This repo uses the same validation command surface as the Terraform framework template:
+
+| Command | Purpose |
+| --- | --- |
+| `make lint` | Repo-local static checks: Python tooling and workflow/contract YAML. |
+| `make policy` | OPA policy tests plus policy evaluation against real repo files. |
+| `make docs-check` | Diataxis/ADR documentation layout check. |
+| `make ci` | Repo-local quality gate. |
+| `make integration` | Ephemeral consumer workspace assembled from this runner fixture plus a framework checkout. |
+| `make verify` | Full local verification: `ci` plus `integration`. |
+
+Runner integration expects the framework template beside this repo by default:
+
+```sh
+make integration
+# or override the framework module path
+make integration FRAMEWORK_SOURCE=../terraform-framework-template/terraform
+```
+
+The shared CI harness lives in `tools/ci/`; the runner-specific fixture lives in `fixtures/integration/basic/`. That mirrors the framework repo's shape while preserving the rule that runners do not own a top-level `terraform/` directory.
+
 ## What this template provides
 
 | Surface | Mechanism | What it enforces |
 | --- | --- | --- |
 | Reusable validation | [`reusable-terraform-validation.yaml`](.github/workflows/reusable-terraform-validation.yaml) (`mode: runner`) | Checks out the framework at `framework_ref`, overlays runner data, runs `make ci` against the assembled tree. |
-| Drift gate | [`drift-gate.yaml`](.github/workflows/drift-gate.yaml) | Pinned [`NWarila/drift-gate`](https://github.com/NWarila/drift-gate) composite action verifies this template's mirrored copies of org-baseline files are byte-identical to canonical. Replaces the previous `org-adr-sync` + `template-sync` mechanisms with a single composable check. |
+| Drift gate | [`drift-gate.yaml`](.github/workflows/drift-gate.yaml) + [`baseline-manifest.json`](baseline-manifest.json) | Pinned [`NWarila/drift-gate`](https://github.com/NWarila/drift-gate) verifies org-baseline mirrors here and gives consumers a template-tier manifest for byte-identical runner scaffold files. |
 | Contract validator | [`tools/check_template_contract.py`](tools/check_template_contract.py) | Required files, paths, and content rules for runner repos. |
 | Contract manifest | [`contract/runner-template-contract.yaml`](contract/runner-template-contract.yaml) | Single machine-readable source of truth. |
 | Universal quality gates | Reusable workflows for codeql, scorecard, iac-security, auto-merge, release-please, release-evidence | Universal lint/security/release tooling consumers wire up via `uses:` lines pinned to this template's SHA. |
 
 ## How a consumer adopts this template
 
-Each consuming runner repository declares `.template-type=runner` and adds the canonical caller workflow set with `uses:` lines pinned to a 40-character SHA of this template:
+Each consuming runner repository inherits the standardized scaffold from this
+template, then pins the load-bearing caller workflows to explicit SHAs:
 
 ```yaml
 # .github/workflows/pr-validation.yaml
@@ -54,7 +78,7 @@ Renovate keeps both the `uses:` SHAs and the `framework_ref` inputs current. The
 This template participates in the three-tier ADR model formalised in [`nwarila-platform/.github` ADR-0001](docs/decision-records/org/0001-use-architecture-decision-records.md):
 
 - **Org tier** — ADRs apply to every repo in the portfolio regardless of stack. Mirrored at [`docs/decision-records/org/`](docs/decision-records/org/) byte-identical with [`nwarila-platform/.github`](https://github.com/nwarila-platform/.github). Drift-gated.
-- **Template tier** — ADRs apply to every Terraform-runner consumer derived from this template. Master copies live at [`docs/decision-records/`](docs/decision-records/); first ADR is [`template/0001-pin-terraform-and-provider-versions-exactly.md`](docs/decision-records/0001-pin-terraform-and-provider-versions-exactly.md).
+- **Template tier** — ADRs apply to every Terraform-runner consumer derived from this template. Master copies live at [`docs/decision-records/template/`](docs/decision-records/template/); first ADR is [`template/0001-pin-terraform-and-provider-versions-exactly.md`](docs/decision-records/template/0001-pin-terraform-and-provider-versions-exactly.md).
 - **Repo tier** — ADRs specific to one consumer repo, in that consumer's [`docs/decision-records/repo/`](docs/decision-records/repo/).
 
 ## Versioning

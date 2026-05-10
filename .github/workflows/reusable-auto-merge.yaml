@@ -24,12 +24,13 @@ name: Reusable Auto-Merge
 #     pull-requests: write
 #   jobs:
 #     auto-merge:
-#       uses: NWarila/terraform-template/.github/workflows/reusable-auto-merge.yaml@<sha>
+#       uses: NWarila/terraform-runner-template/.github/workflows/reusable-auto-merge.yaml@<sha>
 #
-# Why pull_request_target is safe here: this workflow never checks out the
-# PR's HEAD code. It only reads `github.event.pull_request.user.login` and
-# `github.event.pull_request.number` from the trigger payload, then calls
-# `gh pr merge --auto`. There is no untrusted-input-to-code path.
+# Why pull_request_target is safe here: authorization runs in a read-only job
+# first, and the write-token job is skipped unless the PR author is trusted.
+# The OPA policy also rejects checkout/PR-head references in this workflow and
+# in pull_request_target callers so future edits cannot quietly add PR-content
+# reads under the privileged token.
 #
 # Auto-merge waits for the repo's branch protection required checks to pass
 # before merging. If branch protection isn't configured, GitHub will not
@@ -61,13 +62,15 @@ permissions:
   pull-requests: read
 
 jobs:
-  enable-auto-merge:
-    name: Enable auto-merge for trusted bot
+  authorize-auto-merge:
+    name: Authorize trusted bot auto-merge
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
+      pull-requests: read
+    outputs:
+      trusted: ${{ steps.decide.outputs.trusted }}
     if: |
       github.event.pull_request.draft == false
     steps:
@@ -98,8 +101,17 @@ jobs:
             echo "trusted=false" >> "${GITHUB_OUTPUT}"
           fi
 
+  enable-auto-merge:
+    name: Enable auto-merge for trusted bot
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: authorize-auto-merge
+    permissions:
+      contents: write
+      pull-requests: write
+    if: needs.authorize-auto-merge.outputs.trusted == 'true'
+    steps:
       - name: Enable auto-merge
-        if: steps.decide.outputs.trusted == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}

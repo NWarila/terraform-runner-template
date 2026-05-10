@@ -19,9 +19,10 @@ ruff check tools/
 # Lint the workflows
 yamllint .github/workflows/ contract/
 
-# Smoke-test the contract validator + seed_consumer
+# Smoke-test audit tools and validate this repo against the template contract
 python tools/check_template_contract.py --help
-python tools/seed_consumer.py --help
+python tools/check_caller_workflows.py --help
+python tools/check_template_contract.py --repo-root . --contract contract/runner-template-contract.yaml --type template
 
 # Run zizmor against workflows
 zizmor --persona regular .github/workflows/
@@ -47,10 +48,10 @@ and the canonical at the pinned `source-ref`.
 ## Editing type-specific files
 
 The contract (`contract/runner-template-contract.yaml`), the runner-mode
-of `reusable-terraform-validation.yaml`, the seed scaffold in
-`tools/seed_consumer.py`'s `RUNNER_SEEDS`, and per-template docs are
-owned solely by this template. Changes land here and propagate to
-consumer runners via their own pin bumps (Renovate-managed).
+of `reusable-terraform-validation.yaml`, the seed data directories, the
+integration fixture, and per-template docs are owned solely by this
+template. Changes land here and propagate to consumer runners via their
+own pin bumps (Renovate-managed).
 
 ## Before opening a PR
 
