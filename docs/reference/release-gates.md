@@ -8,7 +8,7 @@ PRs to `main` on this template must pass:
 - `ruff` (Python tools)
 - `markdownlint` (docs)
 - `zizmor` (workflow security)
-- `audit-tools-smoke-test` (tooling sanity + contract / baseline-manifest schemas)
+- `audit-tools-smoke-test` (tooling sanity + template contract self-validation + template scaffold manifest schema)
 - `org-baseline / verify` (drift-gate against `nwarila-platform/.github` at pinned source-ref)
 - `Trivy (filesystem & secrets)`, `Gitleaks (secret scan)`, `zizmor (Actions security)` (security)
 - `analyze` (CodeQL)
