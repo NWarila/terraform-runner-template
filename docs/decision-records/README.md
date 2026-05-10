@@ -6,10 +6,11 @@ Terraform-runner template and every repository derived from it.
 ADRs are organized into three scopes per
 [org ADR-0001](https://github.com/nwarila-platform/.github/blob/main/docs/decision-records/0001-use-architecture-decision-records.md):
 
-- `docs/decision-records/` — **template-tier master copies.** Decisions that
-  apply to every repository derived from this Terraform-runner template (but
-  not necessarily to non-Terraform repos in the org). Mirrored byte-identical
-  into every consumer's `docs/decision-records/template/` via drift-gate.
+- `docs/decision-records/template/` — **template-tier master copies.**
+  Decisions that apply to every repository derived from this Terraform-runner
+  template (but not necessarily to non-Terraform repos in the org). Mirrored
+  byte-identical into every consumer's `docs/decision-records/template/` via
+  drift-gate.
 - `docs/decision-records/org/` — byte-identical mirrors of org-baseline ADRs
   from `nwarila-platform/.github`. Apply to every repo in the org regardless
   of stack.
@@ -22,8 +23,8 @@ ADRs are organized into three scopes per
 
 | #                                                                  | Title                                          | Status   | Date       | Summary                                                                                          |
 | ------------------------------------------------------------------ | ---------------------------------------------- | -------- | ---------- | ------------------------------------------------------------------------------------------------ |
-| [template/0001](0001-pin-terraform-and-provider-versions-exactly.md) | Pin Terraform and Provider Versions Exactly | Accepted | 2026-05-05 | Every consumer of this template uses `=` exact-version constraints for Terraform and providers. |
-| [template/0002](0002-mandate-s3-state-backend.md)                    | Mandate S3 as the State Backend | Accepted | 2026-05-09 | Every consumer uses `backend "s3"` with native `use_lockfile = true`, OIDC-only auth, encryption + versioning + access logging on the bucket. Replaces the implicit "consumer chooses" default. |
+| [template/0001](template/0001-pin-terraform-and-provider-versions-exactly.md) | Pin Terraform and Provider Versions Exactly | Accepted | 2026-05-05 | Every consumer of this template uses `=` exact-version constraints for Terraform and providers. |
+| [template/0002](template/0002-mandate-s3-state-backend.md)                    | Mandate S3 as the State Backend | Accepted | 2026-05-09 | Every consumer uses `backend "s3"` with native `use_lockfile = true`, OIDC-only auth, encryption + versioning + access logging on the bucket. Replaces the implicit "consumer chooses" default. |
 
 ## Org-mirrored index
 
@@ -51,9 +52,11 @@ against the canonical:
   [`.github/workflows/drift-gate.yaml`](../../.github/workflows/drift-gate.yaml).
 - For template-tier content: this repo IS the source of truth. The
   `baseline-manifest.json` at the root of this repo enumerates the
-  template-tier ADRs that derivative consumers must mirror.
+  standardized runner scaffold derivative consumers must mirror: shared
+  tooling, policy, reusable/caller workflows, layout sentinels, and
+  template-tier ADRs.
 
 When a consumer is created from this template, it inherits the
 `drift-gate.yaml` and the layout skeleton automatically. Each consumer adds a
 **second** drift-gate invocation pinned to this template repo so the
-template-tier ADRs are also enforced.
+template-tier scaffold is also enforced.

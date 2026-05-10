@@ -1,9 +1,9 @@
 # Runner Template Contract
 #
 # Machine-readable manifest for terraform-runner repos consuming
-# NWarila/terraform-runner-template. Only the `runner` type applies
-# in this template. The universal section is shared with every
-# other per-type template via cross-template sync from
+# NWarila/terraform-runner-template, plus the template repo's own
+# self-validation shape (`template`). The universal section is shared
+# with every other per-type template via cross-template sync from
 # NWarila/terraform-template-template (canonical).
 #
 # Rule philosophy:
@@ -20,6 +20,14 @@ universal:
     rationale: Entry point; must describe usage and quality controls.
   - path: LICENSE
     rationale: Repository license is non-optional.
+  - path: CODE_OF_CONDUCT.md
+    rationale: Local mirror of the org-owned code of conduct; drift-gated against nwarila-platform/.github.
+  - path: CONTRIBUTING.md
+    rationale: Local mirror of the org-owned contribution guide; drift-gated against nwarila-platform/.github.
+  - path: SECURITY.md
+    rationale: Local mirror of the org-owned security policy; drift-gated against nwarila-platform/.github.
+  - path: SUPPORT.md
+    rationale: Local mirror of the org-owned support policy; drift-gated against nwarila-platform/.github.
   - path: Makefile
     rationale: Canonical local validation interface; CI calls `make ci`.
   - path: .editorconfig
@@ -44,6 +52,7 @@ universal:
   - path: .github/renovate.json5
     rationale: Dependency update policy aligned with org baseline.
   - path: .github/workflows/pr-validation.yaml
+    applies_to: [runner]
     rationale: Calls the reusable Terraform validation workflow.
   - path: .github/workflows/drift-gate.yaml
     rationale: 'Calls NWarila/drift-gate as a SHA-pinned composite action. Verifies the
@@ -51,8 +60,10 @@ universal:
       when applicable) byte-identically against canonical. Replaces the previous
       org-adr-sync + template-sync mechanism with a single composable check.'
   - path: .github/workflows/security.yaml
+    applies_to: [runner]
     rationale: Calls the reusable IaC security workflow in strict mode.
   - path: .github/workflows/codeql.yaml
+    applies_to: [runner]
     rationale: Calls the reusable CodeQL workflow for GitHub Actions analysis.
   - path: .github/workflows/scorecard.yaml
     rationale: 'Calls the reusable OpenSSF Scorecard workflow. Provides automated
@@ -65,6 +76,7 @@ universal:
 
       '
   - path: .github/workflows/release-please.yaml
+    applies_to: [runner]
     rationale: 'Calls the reusable release-please workflow. Every consumer ships
 
       versioned releases on Conventional Commits; manual tagging is
@@ -73,6 +85,7 @@ universal:
 
       '
   - path: .github/workflows/release-evidence.yaml
+    applies_to: [runner]
     rationale: 'Calls the reusable release-evidence workflow. Every release gets
 
       a uniform evidence bundle (terraform fmt/init/validate/test JSON
@@ -85,6 +98,7 @@ universal:
 
       '
   - path: .github/workflows/auto-merge.yaml
+    applies_to: [runner]
     rationale: 'Calls the reusable auto-merge workflow. Trusted-bot PRs (Renovate,
       release-please) auto-merge once required checks pass. This is what makes
       the fleet weekly-click-merge-only.'
@@ -124,6 +138,19 @@ types:
         actual `terraform apply` workflow; pr-validation is plan-only.
 
         '
+    - path: policies/opa/golden_terraform.rego
+      rationale: OPA policy enforcing workflow pinning and Terraform exact pins.
+    - path: policies/opa/golden_terraform_test.rego
+      rationale: Unit tests for the OPA policy's pass/fail behavior.
+    - path: tools/build_opa_input.py
+      rationale: Builds real-repo OPA input for `make opa-policy`.
+    - path: tools/ci/config.toml
+      rationale: Normalized CI harness config shared across Terraform repo types.
+    - path: tools/ci/run_integration.py
+      rationale: Builds and verifies the ephemeral integration workspace used by `make integration`.
+    - path: fixtures/integration/basic/
+      rationale: Runner consumer fixture proving this repo can compose with a framework checkout.
+      type: directory
     - path: tests/fixtures/
       rationale: 'Public-safe fixtures used by pr-validation when the production
 
@@ -134,6 +161,71 @@ types:
         input on every run.
 
         '
+      type: directory
+  template:
+    rationale: 'Self-validation shape for this type-template repository. It owns
+      reusable workflows, contract tooling, drift-gate metadata, and the seed
+      runner scaffold that downstream runner consumers inherit.'
+    required_paths:
+    - path: baseline-manifest.json
+      rationale: Template-tier drift-gate manifest consumed by downstream runners.
+    - path: contract/runner-template-contract.yaml
+      rationale: Machine-readable runner/template contract manifest.
+    - path: .github/workflows/self-ci.yaml
+      rationale: Self-validation workflow for this template repository.
+    - path: .github/workflows/auto-merge.yaml
+      rationale: Canonical trusted-bot auto-merge caller inherited by runner repos.
+    - path: .github/workflows/codeql.yaml
+      rationale: Canonical CodeQL caller inherited by runner repos.
+    - path: .github/workflows/release-evidence.yaml
+      rationale: Canonical release evidence caller inherited by runner repos.
+    - path: .github/workflows/release-please.yaml
+      rationale: Canonical release-please caller inherited by runner repos.
+    - path: .github/workflows/reusable-terraform-validation.yaml
+      rationale: Runner-mode reusable validation workflow consumed by runner repos.
+    - path: .github/workflows/reusable-codeql.yaml
+      rationale: Reusable CodeQL workflow consumed by runner repos.
+    - path: .github/workflows/reusable-iac-security.yaml
+      rationale: Reusable IaC security workflow consumed by runner repos.
+    - path: .github/workflows/reusable-scorecard.yaml
+      rationale: Reusable OpenSSF Scorecard workflow consumed by runner repos.
+    - path: .github/workflows/reusable-release-please.yaml
+      rationale: Reusable release-please workflow consumed by runner repos.
+    - path: .github/workflows/reusable-release-evidence.yaml
+      rationale: Reusable release evidence workflow consumed by runner repos.
+    - path: .github/workflows/reusable-auto-merge.yaml
+      rationale: Reusable trusted-bot auto-merge workflow consumed by runner repos.
+    - path: .github/workflows/security.yaml
+      rationale: Canonical IaC security caller inherited by runner repos.
+    - path: .github/workflows/terraform-deploy.yaml
+      rationale: Reference deploy caller proving the runner/framework wiring.
+    - path: tools/check_template_contract.py
+      rationale: Contract validator used by consumers and self-CI.
+    - path: tools/check_caller_workflows.py
+      rationale: Caller-workflow validator used by reusable validation.
+    - path: tools/build_opa_input.py
+      rationale: Builds real-repo OPA input for `make opa-policy`.
+    - path: tools/ci/config.toml
+      rationale: Normalized CI harness config shared across Terraform repo types.
+    - path: tools/ci/run_integration.py
+      rationale: Builds and verifies the ephemeral integration workspace used by `make integration`.
+    - path: tools/install_ci_tools.sh
+      rationale: Pinned CI tool installer used by reusable validation.
+    - path: policies/opa/golden_terraform.rego
+      rationale: OPA policy enforcing workflow pinning for this template.
+    - path: policies/opa/golden_terraform_test.rego
+      rationale: Unit tests for the OPA policy's pass/fail behavior.
+    - path: repos/public/
+      rationale: Seed public runner data directory inherited by consumers.
+      type: directory
+    - path: repos/private/
+      rationale: Seed private runner data directory inherited by consumers.
+      type: directory
+    - path: tests/fixtures/
+      rationale: Seed public-safe fixture directory inherited by consumers.
+      type: directory
+    - path: fixtures/integration/basic/
+      rationale: Seed runner integration fixture proving framework composition.
       type: directory
 workflow_pinning:
   enforce_sha_pin: true

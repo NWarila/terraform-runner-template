@@ -16,7 +16,7 @@
   //     SHA-pin retention check).
   //   - Pin Terraform and provider versions exactly (template-tier
   //     ADR-template/0001 in this repo at
-  //     docs/decision-records/0001-pin-terraform-and-provider-versions-exactly.md).
+  //     docs/decision-records/template/0001-pin-terraform-and-provider-versions-exactly.md).
   //   - Track explicit `# renovate:` annotations in workflow comments
   //     for tool versions (Terraform CLI, TFLint, terraform-docs, OPA,
   //     zizmor).

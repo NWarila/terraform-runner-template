@@ -1,11 +1,10 @@
 name: Drift Gate
 
 # Verifies that this repo's mirrored copies of the org-baseline files
-# (currently the org ADRs under docs/decision-records/org/ plus the
-# layout skeleton .gitkeeps under docs/) are byte-identical to
-# nwarila-platform/.github at a SHA-pinned revision. Fails the PR when
-# they drift, with per-file annotations on the offending files in the
-# "Files changed" view.
+# (community-health policy docs, org ADRs, and layout skeleton
+# .gitkeeps) are byte-identical to nwarila-platform/.github at a
+# SHA-pinned revision. Fails the PR when they drift, with per-file
+# annotations on the offending files in the "Files changed" view.
 #
 # This template repo is itself a consumer of the org baseline and must
 # pass the same gate as every other consumer. When repos are created
@@ -13,7 +12,9 @@ name: Drift Gate
 # inherit this workflow and immediately benefit from the gate. Each
 # Terraform-consumer derived from this template will, when ready, add a
 # SECOND drift-gate invocation pinned at this template repo to enforce
-# template-tier ADRs (see baseline-manifest.json in this repo).
+# this template's standardized runner scaffold: tooling, policies,
+# reusable/caller workflows, layout sentinels, and template-tier ADRs
+# (see baseline-manifest.json in this repo).
 
 on:
   pull_request:

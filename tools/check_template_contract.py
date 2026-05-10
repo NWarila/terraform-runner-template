@@ -7,12 +7,13 @@ rule, exiting non-zero if any rule fails.
 
 The contract has two layers:
   - Universal requirements (apply to every consumer regardless of type).
-  - Type-specific requirements: `framework` (self-contained module) or
-    `runner` (data-only deployer that consumes a framework at runtime).
+  - Type-specific requirements: `framework` (self-contained module),
+    `runner` (data-only deployer that consumes a framework at runtime), or
+    `template` (this type-template repository validating itself).
 
 Repo type is determined in this order:
   1. --type CLI flag.
-  2. `.template-type` file in the repo root containing "framework" or "runner".
+  2. Template-repo structural inference.
   3. Inference: terraform/versions.tf present -> framework; repos/public/ or
      repos/private/ present -> runner.
 
@@ -21,7 +22,8 @@ loudly. Type ambiguity is a contract failure.
 
 Usage:
     check_template_contract.py [--repo-root PATH] [--contract PATH]
-                               [--template-root PATH] [--type framework|runner]
+                               [--template-root PATH]
+                               [--type framework|runner|template]
 """
 
 from __future__ import annotations
@@ -42,7 +44,7 @@ except ImportError:
 
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
-USES_LINE_RE = re.compile(r"^\s*uses:\s*([^\s#]+)")
+USES_LINE_RE = re.compile(r"^\s*(?:-\s*)?uses:\s*([^\s#]+)")
 REQUIRED_VERSION_RE = re.compile(
     r'^\s*required_version\s*=\s*"=\s*[0-9]+\.[0-9]+\.[0-9]+"\s*(?:#.*|//.*)?$',
     re.MULTILINE,
@@ -51,7 +53,7 @@ EXACT_PROVIDER_VERSION_RE = re.compile(r"^=\s*[0-9]+\.[0-9]+\.[0-9]+$")
 PROVIDER_START_RE = re.compile(r"^\s*([A-Za-z0-9_-]+)\s*=\s*\{")
 VERSION_ATTR_RE = re.compile(r'^\s*version\s*=\s*"([^"]+)"\s*(?:#.*|//.*)?$')
 
-VALID_TYPES = ("framework", "runner")
+VALID_TYPES = ("framework", "runner", "template")
 
 
 @dataclass
@@ -92,6 +94,28 @@ def check_path(repo_root: Path, entry: dict) -> RuleResult:
         passed=ok,
         detail="" if ok else f"missing {'directory' if expected_dir else 'file'}",
     )
+
+
+def entry_applies(entry: dict, repo_type: str) -> bool:
+    applies_to = entry.get("applies_to")
+    if applies_to is not None:
+        if isinstance(applies_to, str):
+            applies = {applies_to}
+        else:
+            applies = set(applies_to)
+        if repo_type not in applies:
+            return False
+
+    except_types = entry.get("except_types")
+    if except_types is not None:
+        if isinstance(except_types, str):
+            excluded = {except_types}
+        else:
+            excluded = set(except_types)
+        if repo_type in excluded:
+            return False
+
+    return True
 
 
 def check_content_rule(repo_root: Path, rule: dict) -> RuleResult:
@@ -386,12 +410,18 @@ def detect_repo_type(repo_root: Path, cli_type: str | None) -> tuple[str | None,
             return None, f"--type {cli_type!r} is not one of {VALID_TYPES}"
         return cli_type, "--type CLI flag"
 
-    type_file = repo_root / ".template-type"
-    if type_file.is_file():
-        declared = type_file.read_text(encoding="utf-8").strip()
-        if declared not in VALID_TYPES:
-            return None, f".template-type contains {declared!r} (expected one of {VALID_TYPES})"
-        return declared, ".template-type file"
+    if (
+        (repo_root / "contract" / "runner-template-contract.yaml").is_file()
+        and (repo_root / "tools" / "check_template_contract.py").is_file()
+        and (repo_root / ".github" / "workflows" / "self-ci.yaml").is_file()
+        and (
+            repo_root
+            / ".github"
+            / "workflows"
+            / "reusable-terraform-validation.yaml"
+        ).is_file()
+    ):
+        return "template", "inferred from template contract/tooling"
 
     has_terraform = (repo_root / "terraform" / "versions.tf").is_file()
     has_runner_dirs = (repo_root / "repos" / "public").is_dir() or (
@@ -437,7 +467,7 @@ def main() -> int:
         default=None,
         help=(
             "Override repo type detection. By default the validator reads "
-            ".template-type or infers from repo layout."
+            "the repo layout."
         ),
     )
     args = parser.parse_args()
@@ -453,8 +483,8 @@ def main() -> int:
     if repo_type is None:
         sys.stderr.write(f"error: cannot determine repo type ({source}).\n")
         sys.stderr.write(
-            "  pass --type framework or --type runner, or create a "
-            ".template-type file with one of those values.\n"
+            "  pass --type framework, --type runner, or --type template, "
+            "or use a recognizable framework, runner, or template layout.\n"
         )
         return 2
     print(f"repo type: {repo_type} ({source})")
@@ -466,15 +496,25 @@ def main() -> int:
     results: list[RuleResult] = []
 
     for entry in universal.get("required_root_files", []):
+        if not entry_applies(entry, repo_type):
+            continue
         results.append(check_path(repo_root, entry))
     for entry in universal.get("required_github_files", []):
+        if not entry_applies(entry, repo_type):
+            continue
         results.append(check_path(repo_root, entry))
     for entry in universal.get("required_documentation", []):
+        if not entry_applies(entry, repo_type):
+            continue
         results.append(check_path(repo_root, entry))
 
     for entry in type_block.get("required_paths", []):
+        if not entry_applies(entry, repo_type):
+            continue
         results.append(check_path(repo_root, entry))
     for rule in type_block.get("content_rules", []):
+        if not entry_applies(rule, repo_type):
+            continue
         results.append(check_content_rule(repo_root, rule))
 
     if repo_type == "framework":

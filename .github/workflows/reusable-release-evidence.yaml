@@ -1,7 +1,7 @@
 name: Reusable Release Evidence
 
 # Generates and attaches a uniform evidence bundle to every release in every
-# consumer of NWarila/terraform-template. The bundle proves the release
+# consumer of NWarila/terraform-runner-template. The bundle proves the release
 # passed every gate the contract enforces, and (for frameworks) captures
 # the actual terraform fmt/validate/test outputs at the released SHA.
 #
@@ -9,7 +9,7 @@ name: Reusable Release Evidence
 # -------------
 # release-please publishes the GitHub release using GITHUB_TOKEN, and
 # GITHUB_TOKEN-driven events do not cascade to other workflows. The
-# release-please reusable explicitly dispatches `release-evidence.yml`
+# release-please reusable explicitly dispatches `release-evidence.yaml`
 # via `gh workflow run` (which IS exempt from the cascade restriction)
 # whenever a release is created. Consumers therefore add this caller
 # workflow with a `workflow_dispatch` trigger plus a `release: published`
@@ -22,7 +22,8 @@ name: Reusable Release Evidence
 #             reference and the docs-layout check.
 # runner    — captures the `repos/` inventory plus the pinned
 #             framework_ref at the released SHA. No Terraform run.
-# template  — exempt (the template repo has no release-evidence caller).
+# template  — runner-shaped for evidence; captures the seed repos/
+#             inventory and reference framework pin.
 #
 # Caller pattern (every consumer):
 #   name: Release Evidence
@@ -34,7 +35,7 @@ name: Reusable Release Evidence
 #     contents: write
 #   jobs:
 #     evidence:
-#       uses: NWarila/terraform-template/.github/workflows/reusable-release-evidence.yaml@<sha>
+#       uses: NWarila/terraform-runner-template/.github/workflows/reusable-release-evidence.yaml@<sha>
 #       with:
 #         terraform_version: "1.15.1"
 
@@ -72,14 +73,12 @@ jobs:
         id: type
         run: |
           set -euo pipefail
-          if [ -f .template-type ]; then
-            t="$(tr -d '[:space:]' < .template-type)"
-          elif [ -f terraform/versions.tf ]; then
+          if [ -f terraform/versions.tf ]; then
             t="framework"
           elif [ -d repos/public ] || [ -d repos/private ]; then
             t="runner"
           else
-            echo "::error::cannot determine repo type (no .template-type, terraform/versions.tf, or repos/*)"
+            echo "::error::cannot determine repo type (no terraform/versions.tf or repos/*)"
             exit 1
           fi
           case "$t" in

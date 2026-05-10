@@ -210,7 +210,7 @@ Pending. Each type-template's `.github/renovate.json5` is the source of truth fo
 
 - [ADR-0001](0001-use-architecture-decision-records.md) — establishes the format and three-tier scope structure of decision records. The per-template-baseline pattern in this ADR mirrors that three-tier model: stack-level concerns live at the template tier.
 - [ADR-0003](0003-use-deny-all-gitignore-strategy.md) — establishes the deny-all `.gitignore` strategy. Renovate config files are explicitly allowlisted in adopting repositories per ADR-0003.
-- [`NWarila/terraform-runner-template` ADR-template/0001](https://github.com/NWarila/terraform-runner-template/blob/main/docs/decision-records/0001-pin-terraform-and-provider-versions-exactly.md) — the template-tier decision pinning Terraform and provider versions exactly. The Terraform-runner template's `renovate.json5` sets `terraform.rangeStrategy: "pin"` per that ADR. Per-template baselines mean each stack records its own analogous decisions in its own ADRs.
+- [`NWarila/terraform-runner-template` ADR-template/0001](https://github.com/NWarila/terraform-runner-template/blob/main/docs/decision-records/template/0001-pin-terraform-and-provider-versions-exactly.md) — the template-tier decision pinning Terraform and provider versions exactly. The Terraform-runner template's `renovate.json5` sets `terraform.rangeStrategy: "pin"` per that ADR. Per-template baselines mean each stack records its own analogous decisions in its own ADRs.
 
 ## Compliance Notes
 

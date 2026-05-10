@@ -19,7 +19,7 @@ name: Reusable Release Please
 #     issues: write
 #   jobs:
 #     release:
-#       uses: NWarila/terraform-template/.github/workflows/reusable-release-please.yaml@<sha>
+#       uses: NWarila/terraform-runner-template/.github/workflows/reusable-release-please.yaml@<sha>
 
 on:
   workflow_call:
@@ -71,7 +71,7 @@ jobs:
         env:
           # release-please publishes the release using GITHUB_TOKEN, and
           # GITHUB_TOKEN-driven events do not cascade to other workflows.
-          # Dispatching release-evidence.yml explicitly via the gh CLI is
+          # Dispatching release-evidence.yaml explicitly via the gh CLI is
           # exempt from that cascade restriction. Every consumer has the
           # release-evidence.yaml caller per the universal contract.
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

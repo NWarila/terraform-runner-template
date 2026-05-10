@@ -25,7 +25,7 @@ name: Reusable OpenSSF Scorecard
 #         id-token: write
 #         actions: read
 #         contents: read
-#       uses: NWarila/terraform-template/.github/workflows/reusable-scorecard.yaml@<40-char-sha>
+#       uses: NWarila/terraform-runner-template/.github/workflows/reusable-scorecard.yaml@<40-char-sha>
 #
 # Behavior on private repositories:
 #   - Some Scorecard checks (branch protection, signed releases) require
