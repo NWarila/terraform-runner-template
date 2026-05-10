@@ -1,9 +1,9 @@
 name: Reusable Terraform Validation
 
 # Reusable workflow consumed by Terraform-runner repositories derived from
-# NWarila/terraform-runner-template. Sets up a pinned toolchain (Terraform, TFLint,
-# terraform-docs, OPA), runs validation against the assembled framework tree,
-# and enforces the golden template contract.
+# NWarila/terraform-runner-template. Sets up the pinned Terraform version and
+# the helper tools needed by the assembled framework tree, runs validation, and
+# enforces the golden template contract.
 #
 # Supported modes
 # ---------------
@@ -21,27 +21,13 @@ name: Reusable Terraform Validation
 # Framework-shaped validation belongs to framework templates, not this runner
 # template. This workflow rejects `mode: full` to keep ownership explicit.
 #
-# Consumers call this with `uses:` pinned to a 40-character commit SHA. Tool
-# versions are passed explicitly so each consumer can move forward
-# independently with Renovate's help.
+# Consumers call this with `uses:` pinned to a 40-character commit SHA.
 
 on:
   workflow_call:
     inputs:
       terraform_version:
         description: Exact Terraform version (e.g. "1.15.1").
-        required: true
-        type: string
-      tflint_version:
-        description: Exact TFLint version (e.g. "0.59.1").
-        required: true
-        type: string
-      terraform_docs_version:
-        description: Exact terraform-docs version (e.g. "0.20.0").
-        required: true
-        type: string
-      opa_version:
-        description: Exact OPA version (e.g. "1.10.0").
         required: true
         type: string
       template_ref:
@@ -243,9 +229,12 @@ jobs:
       - name: Install pinned CI tools
         if: ${{ inputs.mode == 'runner' }}
         env:
-          TFLINT_VERSION: ${{ inputs.tflint_version }}
-          TERRAFORM_DOCS_VERSION: ${{ inputs.terraform_docs_version }}
-          OPA_VERSION: ${{ inputs.opa_version }}
+          # renovate: datasource=github-releases depName=terraform-linters/tflint
+          TFLINT_VERSION: "0.62.0"
+          # renovate: datasource=github-releases depName=terraform-docs/terraform-docs
+          TERRAFORM_DOCS_VERSION: "0.23.0"
+          # renovate: datasource=github-releases depName=open-policy-agent/opa
+          OPA_VERSION: "1.10.0"
         run: bash template/tools/install_ci_tools.sh
 
       - name: Setup Python for contract validator
