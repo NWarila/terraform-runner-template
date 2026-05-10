@@ -136,7 +136,10 @@ def run_terraform_gates(repo_root: Path, workspace: Path, config: dict, case: di
     run([terraform, f"-chdir={workspace}", "validate"])
 
     if case.get("tflint", False):
-        tflint_config = (repo_root / config.get("tflint_config", ".tflint.hcl")).resolve()
+        configured_tflint = config.get("tflint_config")
+        if not configured_tflint:
+            raise SystemExit("case enabled tflint but tflint_config is not set")
+        tflint_config = (repo_root / configured_tflint).resolve()
         run([tflint, "--init", "--config", str(tflint_config)])
         run([tflint, "--config", str(tflint_config), "--chdir", str(workspace)])
 

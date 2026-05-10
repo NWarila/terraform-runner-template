@@ -2,7 +2,6 @@ repo_role = "runner"
 artifact_root = ".tmp/ci/integration"
 default_case = "basic"
 framework_source = "../terraform-framework-template/terraform"
-tflint_config = ".tflint.hcl"
 
 [[cases]]
 name = "basic"

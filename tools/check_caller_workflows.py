@@ -37,12 +37,7 @@ RUNNER_VALIDATION_WORKFLOW = ".github/workflows/reusable-terraform-validation.ya
 FRAMEWORK_DEPLOY_WORKFLOW = ".github/workflows/reusable-terraform-deploy.yaml"
 
 VALID_MODES = {"runner", "contract-and-lint"}
-TOOL_VERSION_INPUTS = (
-    "terraform_version",
-    "tflint_version",
-    "terraform_docs_version",
-    "opa_version",
-)
+TOOL_VERSION_INPUTS = ("terraform_version",)
 SAFE_OVERLAY_SOURCES = (
     "repos/public",
     "repos/private",
