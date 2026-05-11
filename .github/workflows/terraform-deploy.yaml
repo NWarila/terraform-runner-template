@@ -1,18 +1,14 @@
 name: Terraform Deploy
 
-# Caller workflow that exercises this template's runner pattern by
-# being a working consumer of NWarila/terraform-framework-template.
-# Calls the framework's reusable-terraform-deploy.yaml with this
-# runner's repos/public/ data file and runs in plan-only mode (no
-# real apply) since this template doesn't have a deploy target —
-# its job is to demonstrate that the runner-↔-framework wiring
-# composes correctly end-to-end.
-#
-# Derivative runners typically gate `apply: ${{ github.ref == 'refs/heads/main' }}`
-# so plan runs on every PR and apply runs after merge.
+# Golden runner deploy example. Pull requests run a plan-only local-backend
+# validation so contributors do not need AWS access. Trusted main/manual runs
+# assume AWS via OIDC, initialize the framework with an S3 backend, apply the
+# saved plan, and verify that the remote state object exists and is encrypted.
 
 on:
   pull_request:
+    branches: [main]
+  push:
     branches: [main]
   workflow_dispatch:
 
@@ -21,17 +17,43 @@ permissions:
 
 concurrency:
   group: terraform-deploy-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  deploy:
-    name: framework-deploy
-    uses: NWarila/terraform-framework-template/.github/workflows/reusable-terraform-deploy.yaml@8c49f833b1b43716cc8d23ff059662701e027e16
+  plan:
+    name: framework-plan
+    if: ${{ github.event_name == 'pull_request' }}
+    uses: NWarila/terraform-framework-template/.github/workflows/reusable-terraform-deploy.yaml@24deab9db40fbf22a8e7a0c61d7110098c0a1397
     with:
       # renovate: depName=NWarila/terraform-framework-template packageName=https://github.com/NWarila/terraform-framework-template currentValue=main
-      framework_ref: 8c49f833b1b43716cc8d23ff059662701e027e16
+      framework_ref: 24deab9db40fbf22a8e7a0c61d7110098c0a1397
       overlay_paths: |
         repos/public => terraform/repos/public
         repos/private => terraform/repos/private
       tfvars_file: repos/public/sample-environments.tfvars
+      backend_mode: local
       apply: false
+
+  deploy:
+    name: framework-deploy
+    if: ${{ github.event_name != 'pull_request' }}
+    permissions:
+      contents: read
+      id-token: write
+    uses: NWarila/terraform-framework-template/.github/workflows/reusable-terraform-deploy.yaml@24deab9db40fbf22a8e7a0c61d7110098c0a1397
+    with:
+      # renovate: depName=NWarila/terraform-framework-template packageName=https://github.com/NWarila/terraform-framework-template currentValue=main
+      framework_ref: 24deab9db40fbf22a8e7a0c61d7110098c0a1397
+      overlay_paths: |
+        repos/public => terraform/repos/public
+        repos/private => terraform/repos/private
+      tfvars_file: repos/public/sample-environments.tfvars
+      backend_mode: s3
+      backend_key_prefix: nwarila-platform/terraform-runner-template
+      upload_plan_artifact: false
+      apply: true
+    secrets:
+      aws_role_arn: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+      aws_region: ${{ secrets.AWS_REGION }}
+      backend_bucket: ${{ secrets.TF_BACKEND_BUCKET }}
+      backend_key_prefix: ${{ secrets.TF_BACKEND_KEY_PREFIX }}

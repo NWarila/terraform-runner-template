@@ -412,18 +412,20 @@ regions, and state-key layout in workflow metadata:
 
 `TF_BACKEND_BUCKET` is the bare S3 bucket name, not an ARN or `s3://` URI.
 
-The template's `live-s3-backend-smoke.yaml` workflow uses those secrets to
-initialize a minimal Terraform module against:
+The template's `terraform-deploy.yaml` workflow uses those secrets on trusted
+`main` or manual runs to call the framework deploy reusable against:
 
 ```text
 s3://${TF_BACKEND_BUCKET}/${TF_BACKEND_KEY_PREFIX}/terraform.tfstate
 ```
 
-It runs only after merge to `main` or by manual dispatch. A successful run proves
-that GitHub OIDC, the AWS role trust, S3 backend configuration, native locking,
-state-object writes, and server-side encryption all work together.
-For lower-sensitivity consumer repositories, the workflow also accepts
-same-named repository variables as a fallback.
+Pull requests run plan-only validation against the local backend, so fork and PR
+validation stays deterministic and credential-free. Trusted deploy runs assume
+AWS via OIDC, initialize the S3 backend, apply the saved plan, and verify the
+state object with `aws s3api head-object`.
+
+For lower-sensitivity consumer repositories, the reusable deploy workflow also
+accepts same-named repository variables as a fallback.
 
 Do not store static AWS access keys in repository or environment secrets.
 
@@ -443,6 +445,6 @@ Do not store static AWS access keys in repository or environment secrets.
 - [ ] Framework-specific permissions are reviewed separately.
 - [ ] GitHub workflow has `id-token: write` and `contents: read`.
 - [ ] Workflow uses SHA-pinned `aws-actions/configure-aws-credentials`.
-- [ ] `live-s3-backend-smoke.yaml` succeeds on `main` and verifies the state
-      object with `aws s3api head-object`.
+- [ ] `terraform-deploy.yaml` succeeds on `main`, applies through the S3 backend,
+      and verifies the state object with `aws s3api head-object`.
 - [ ] No static AWS access keys exist in workflow YAML or repo secrets.

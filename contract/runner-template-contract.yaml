@@ -172,8 +172,6 @@ types:
       rationale: Canonical IaC security caller inherited by runner repos.
     - path: .github/workflows/terraform-deploy.yaml
       rationale: Reference deploy caller proving the runner/framework wiring.
-    - path: .github/workflows/live-s3-backend-smoke.yaml
-      rationale: Post-merge/manual OIDC and S3 backend smoke proving live state writes.
     - path: tools/check_template_contract.py
       rationale: Contract validator used by consumers and self-CI.
     - path: tools/check_caller_workflows.py

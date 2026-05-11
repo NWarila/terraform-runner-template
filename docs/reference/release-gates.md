@@ -17,9 +17,9 @@ PRs to `main` on this template must pass:
 All gates run via the workflows in `.github/workflows/`. The drift-gate workflow is SHA-pinned to [`NWarila/drift-gate`](https://github.com/NWarila/drift-gate); required consumer validation and security flow through `pr-validation.yaml`, `terraform-deploy.yaml`, and `security.yaml`. Release automation lives behind optional `release.yaml`.
 
 Before tagging a runner-template release that changes deploy or backend wiring,
-`Live S3 Backend Smoke` must also succeed on `main` or via manual dispatch. It
-is intentionally post-merge because it assumes the AWS OIDC role and writes the
-template's real S3 state object.
+`Terraform Deploy` must also succeed on `main` or via manual dispatch in its S3
+backend mode. This is intentionally post-merge because it assumes the AWS OIDC
+role, applies the saved plan, and writes the template's real S3 state object.
 
 Release evidence, when enabled, uploads the evidence bundle and SPDX SBOM as
 release assets and emits GitHub artifact attestations for bundle provenance and
