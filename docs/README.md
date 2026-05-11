@@ -1,11 +1,10 @@
 # Documentation
 
-Documentation for this template follows the [Diátaxis framework](https://diataxis.fr/)
-per [org ADR-0002](decision-records/org/0002-adopt-diataxis-documentation-framework.md).
+Documentation for this template follows the [Diátaxis framework](https://diataxis.fr/).
 
 | Quadrant     | Path                  | Purpose                              |
 | ------------ | --------------------- | ------------------------------------ |
 | Explanation  | `explanation/`        | Architecture, threat model, testing  |
 | Reference    | `reference/`          | Invariants, release gates, mirroring, AWS bootstrap requirements |
 | How-to       | `how-to/`             | Task-oriented guides                 |
-| Decisions    | `decision-records/`   | ADRs (org-mirrored + repo-specific)  |
+| Decisions    | `decision-records/`   | ADRs (org-mirrored + template-tier + repo-specific) |

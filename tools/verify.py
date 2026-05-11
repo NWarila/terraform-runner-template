@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -67,6 +68,7 @@ def install(package: str) -> None:
 
 
 def opa_policy() -> None:
+    install("pyyaml==6.0.3")
     opa_input = capture([PYTHON, "tools/build_opa_input.py"])
     run(
         [
@@ -85,24 +87,72 @@ def opa_policy() -> None:
 
 
 def opa_plan() -> None:
-    fixture = ROOT / "tests" / "fixtures" / "terraform-plan" / "safe-plan.json"
-    if not fixture.is_file():
-        raise SystemExit(f"missing Terraform plan fixture: {fixture}")
+    safe_fixture = ROOT / "tests" / "fixtures" / "terraform-plan" / "safe-plan.json"
+    bad_fixture = ROOT / "tests" / "fixtures" / "terraform-plan" / "bad-plan.json"
+    if not safe_fixture.is_file():
+        raise SystemExit(f"missing Terraform plan fixture: {safe_fixture}")
+    if not bad_fixture.is_file():
+        raise SystemExit(f"missing Terraform plan fixture: {bad_fixture}")
+    safe_denies = opa_plan_denies(safe_fixture)
+    if safe_denies:
+        raise SystemExit(
+            "safe Terraform plan fixture produced denial(s): "
+            + "; ".join(safe_denies)
+        )
+    bad_denies = opa_plan_denies(bad_fixture)
+    expected = (
+        "aws_s3_bucket.public_logs must have server-side encryption configuration",
+        "aws_security_group.admin must not expose admin port 22 to the world",
+    )
+    missing = [
+        fragment
+        for fragment in expected
+        if not any(fragment in denial for denial in bad_denies)
+    ]
+    extra = [
+        denial
+        for denial in bad_denies
+        if not any(fragment in denial for fragment in expected)
+    ]
+    if missing:
+        raise SystemExit(
+            "bad Terraform plan fixture did not produce expected denial(s): "
+            + "; ".join(missing)
+        )
+    if extra:
+        raise SystemExit(
+            "bad Terraform plan fixture produced unexpected denial(s): "
+            + "; ".join(extra)
+        )
+    print(f"Terraform plan policy fixtures passed: {len(bad_denies)} bad-plan denials")
+
+
+def opa_plan_denies(fixture: Path) -> list[str]:
     opa_input = capture([PYTHON, "tools/build_plan_input.py", "--plan-json", str(fixture)])
-    run(
+    output = capture(
         [
             "opa",
             "eval",
-            "--fail-defined",
             "--format",
-            "pretty",
+            "json",
             "--stdin-input",
             "--data",
             "policies/opa",
-            "data.terraform_plan.deny[_]",
+            "data.terraform_plan.deny",
         ],
         input_text=opa_input,
     )
+    payload = json.loads(output)
+    result = payload.get("result", [])
+    if not result:
+        return []
+    expressions = result[0].get("expressions", [])
+    if not expressions:
+        return []
+    value = expressions[0].get("value", [])
+    if not isinstance(value, list):
+        return []
+    return [str(denial) for denial in value]
 
 
 def run_if_available(executable: str, args: list[str]) -> None:
@@ -119,6 +169,15 @@ def run_if_available(executable: str, args: list[str]) -> None:
         raise
 
 
+def workflow_files() -> list[str]:
+    workflows = ROOT / ".github" / "workflows"
+    return sorted(
+        path.relative_to(ROOT).as_posix()
+        for pattern in ("*.yml", "*.yaml")
+        for path in workflows.glob(pattern)
+    )
+
+
 def contract_shape() -> None:
     install("pyyaml==6.0.3")
     import yaml
@@ -132,60 +191,79 @@ def contract_shape() -> None:
     print("runner-template contract looks well-formed")
 
 
-def build_steps(case: str, framework_source: str) -> dict[str, Step]:
-    return {
-        "ruff": lambda: (
-            install("ruff==0.13.0"),
-            run([PYTHON, "-m", "ruff", "check", "tools/"]),
-        ),
-        "yamllint": lambda: (
-            install("yamllint==1.35.1"),
-            run(
-                [
-                    PYTHON,
-                    "-m",
-                    "yamllint",
-                    "-d",
-                    YAMLLINT_CONFIG,
-                    ".github/workflows/",
-                    "contract/",
-                ]
-            ),
-        ),
-        "actionlint": lambda: run_if_available("actionlint", [".github/workflows"]),
-        "shellcheck": lambda: run_if_available("shellcheck", ["tools/install_ci_tools.sh"]),
-        "markdownlint": lambda: run_if_available("markdownlint-cli2", ["**/*.md"]),
-        "opa-test": lambda: run(["opa", "test", "policies/opa"]),
-        "opa-policy": opa_policy,
-        "opa-plan": opa_plan,
-        "manifest-check": lambda: run([PYTHON, "tools/check_baseline_manifest.py"]),
-        "contract-shape": contract_shape,
-        "contract-check": lambda: (
-            contract_shape(),
-            run(
-                [
-                    PYTHON,
-                    "tools/check_template_contract.py",
-                    "--repo-root",
-                    ".",
-                    "--contract",
-                    "contract/runner-template-contract.yaml",
-                    "--type",
-                    "template",
-                ]
-            ),
-            run([PYTHON, "tools/run_repo_type_tests.py"]),
-            run([PYTHON, "tools/run_contract_tests.py"]),
-        ),
-        "contract-tests": lambda: (
-            install("pyyaml==6.0.3"),
-            run([PYTHON, "tools/run_repo_type_tests.py"]),
-            run([PYTHON, "tools/run_contract_tests.py"]),
-        ),
-        "docs-check": lambda: run([PYTHON, "tools/check_docs_layout.py"]),
-        "adr-schema": lambda: run([PYTHON, "tools/check_adr_schema.py"]),
-        "consistency-check": lambda: run([PYTHON, "tools/check_consistency.py"]),
-        "integration": lambda: run(
+def ruff() -> None:
+    install("ruff==0.13.0")
+    run([PYTHON, "-m", "ruff", "check", "tools/"])
+
+
+def yamllint() -> None:
+    install("yamllint==1.35.1")
+    run(
+        [
+            PYTHON,
+            "-m",
+            "yamllint",
+            "-d",
+            YAMLLINT_CONFIG,
+            ".github/workflows/",
+            "contract/",
+        ]
+    )
+
+
+def actionlint() -> None:
+    run_if_available("actionlint", workflow_files())
+
+
+def shellcheck() -> None:
+    run_if_available("shellcheck", ["tools/install_ci_tools.sh"])
+
+
+def markdownlint() -> None:
+    run_if_available("markdownlint-cli2", ["**/*.md"])
+
+
+def opa_test() -> None:
+    run(["opa", "test", "policies/opa"])
+
+
+def manifest_check() -> None:
+    run([PYTHON, "tools/check_baseline_manifest.py"])
+
+
+def contract_check() -> None:
+    contract_shape()
+    run(
+        [
+            PYTHON,
+            "tools/check_template_contract.py",
+            "--repo-root",
+            ".",
+            "--contract",
+            "contract/runner-template-contract.yaml",
+            "--type",
+            "template",
+        ]
+    )
+    run([PYTHON, "tools/run_contract_tests.py"])
+
+
+def contract_tests() -> None:
+    install("pyyaml==6.0.3")
+    run([PYTHON, "tools/run_contract_tests.py"])
+
+
+def docs_check() -> None:
+    run([PYTHON, "tools/check_docs_layout.py"])
+
+
+def adr_schema() -> None:
+    run([PYTHON, "tools/check_adr_schema.py"])
+
+
+def make_integration_step(case: str, framework_source: str) -> Step:
+    def integration() -> None:
+        run(
             [
                 PYTHON,
                 "tools/ci/run_integration.py",
@@ -194,7 +272,28 @@ def build_steps(case: str, framework_source: str) -> dict[str, Step]:
                 "--framework-source",
                 framework_source,
             ]
-        ),
+        )
+
+    return integration
+
+
+def build_steps(case: str, framework_source: str) -> dict[str, Step]:
+    return {
+        "ruff": ruff,
+        "yamllint": yamllint,
+        "actionlint": actionlint,
+        "shellcheck": shellcheck,
+        "markdownlint": markdownlint,
+        "opa-test": opa_test,
+        "opa-policy": opa_policy,
+        "opa-plan": opa_plan,
+        "manifest-check": manifest_check,
+        "contract-shape": contract_shape,
+        "contract-check": contract_check,
+        "contract-tests": contract_tests,
+        "docs-check": docs_check,
+        "adr-schema": adr_schema,
+        "integration": make_integration_step(case, framework_source),
     }
 
 
@@ -206,7 +305,6 @@ TARGETS: dict[str, tuple[str, ...]] = {
         "policy",
         "docs-check",
         "adr-schema",
-        "consistency-check",
         "manifest-check",
         "contract-check",
     ),

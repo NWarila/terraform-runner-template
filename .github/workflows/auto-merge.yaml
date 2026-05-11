@@ -5,7 +5,7 @@ name: Auto-Merge
 # narrow, reviewable purpose.
 
 on:
-  # zizmor: ignore[dangerous-triggers] ADR-0004 + OPA; no PR checkout.
+  # zizmor: ignore[dangerous-triggers] ADR-template/0004 + OPA; no PR checkout.
   pull_request_target:
     types: [opened, reopened, synchronize, ready_for_review, labeled]
 

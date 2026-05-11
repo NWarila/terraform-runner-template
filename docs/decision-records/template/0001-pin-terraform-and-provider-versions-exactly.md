@@ -6,8 +6,8 @@
 | Date           | 2026-05-05                               |
 | Authors        | Nick Warila (@NWarila)                   |
 | Decision-maker | Nick Warila (sole portfolio maintainer)  |
-| Consulted      | None.                                    |
-| Informed       | None.                                    |
+| Consulted      | Org ADR-0004 Renovate baseline guidance. |
+| Informed       | Terraform-runner consumers via template docs. |
 | Reversibility  | Medium                                   |
 | Review-by      | N/A (Accepted)                           |
 
@@ -161,19 +161,15 @@ None (current).
 
 ## Implementing PRs
 
-Pending. The first implementing PR ships in `terraform-proxmox-iso-manager-framework`, which migrates `terraform/versions.tf` from `required_version = ">= 1.9"` to `= 1.9.8` and from `version = ">= 0.98.1"` to `= 0.98.1`, simplifies `.github/renovate.json5` to inherit the org baseline (which now sets `terraform.rangeStrategy: "pin"`), and adds `terraform test` coverage to enforce the test-before-bump rule.
+- [#7](https://github.com/NWarila/terraform-runner-template/issues/7) / [`323a350`](https://github.com/NWarila/terraform-runner-template/commit/323a350f3df77af48e413a32d68b45633c40ba89) scaffolded the runner pattern that consumes exact-pinned framework SHAs.
+- [`7400021`](https://github.com/NWarila/terraform-runner-template/commit/7400021e15fad6a47c1afdaf904e4dcf0d5f6eb0) added contract and policy gates that keep runner callers pinned to immutable template and framework refs.
+- Framework-specific provider migrations still land in each framework repository; a real framework that relaxes exact pins needs its own repo-tier superseding ADR.
 
 ## Related ADRs
 
 - [ADR-0001 (org)](https://github.com/nwarila-platform/.github/blob/main/docs/decision-records/0001-use-architecture-decision-records.md) — establishes the ADR format and the three-tier scope structure (`org/`, `template/`, `repo/`). This ADR lives in the template tier per that structure.
-- [ADR-0004 (org)](https://github.com/nwarila-platform/.github/blob/main/docs/decision-records/0004-use-renovate-for-dependency-updates.md) — establishes Renovate as the org's dependency-update tool with a shared org baseline. This template-tier ADR refines the rangeStrategy choice for Terraform consumers, leaving the org baseline stack-agnostic.
+- [ADR-0004 (org)](https://github.com/nwarila-platform/.github/blob/main/docs/decision-records/0004-use-renovate-for-dependency-updates.md) — establishes Renovate as the org's dependency-update tool using per-template baselines. This template-tier ADR records the Terraform runner rangeStrategy choice for consumers of this template.
 
 ## Compliance Notes
 
-This ADR strengthens the supply-chain posture by ensuring that every Terraform configuration consumed in `nwarila-platform` runs against a known, tested set of CLI and provider versions.
-
-| Framework              | Control / Practice ID                                                | Potential Evidence Contribution                                                                                                |
-| ---------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| NIST SP 800-53 Rev. 5  | CM-2 (Baseline Configuration)                                        | Exact-pinned Terraform and provider versions are part of the baseline configuration of every infrastructure deployment.       |
-| NIST SP 800-53 Rev. 5  | SI-7 (Software, Firmware, and Information Integrity)                 | Exact pins reduce the surface for unintentional or malicious version changes between author-tested and consumer-deployed.     |
-| NIST SP 800-218 (SSDF) | PS.2 (Provide a Mechanism for Verifying Software Release Integrity)  | Combined with SHA-pinned Actions, exact-pinned Terraform contributes to release-integrity verification across the toolchain.  |
+None.

@@ -32,6 +32,10 @@ for runners that only deploy inventory.
 Reusable workflows, OPA policy tests, generated contract fixtures, and contract
 tooling are template-maintainer machinery. They are valuable portfolio signal,
 but new runner repos should only touch them when changing the baseline itself.
+Template-only self-validation workflows such as `ci.yaml` are not byte-mirrored
+into consumers. The normal `terraform-deploy.yaml` caller is mirrored because it
+is the regular runner deploy example: PRs plan locally, while trusted main/manual
+runs prove the S3 backend against the repo's actual state key.
 
 ## New Runner Checklist
 
