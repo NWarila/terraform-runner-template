@@ -30,6 +30,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from dataclasses import dataclass
@@ -361,17 +362,44 @@ def check_sync_drift(
     repo_root: Path, template_root: Path, manifest: Path
 ) -> list[RuleResult]:
     """Verify that synced files in the consumer match the template byte-for-byte."""
-    if not manifest.is_file():
-        return [
-            RuleResult(
-                name="sync_drift",
-                passed=False,
-                detail=f"sync manifest not found at {manifest}",
-            )
-        ]
-    spec = yaml.safe_load(manifest.read_text(encoding="utf-8"))
+    if manifest.is_file():
+        spec = yaml.safe_load(manifest.read_text(encoding="utf-8"))
+        entries = spec.get("synced_files", [])
+    else:
+        baseline = template_root / "baseline-manifest.json"
+        if not baseline.is_file():
+            return [
+                RuleResult(
+                    name="sync_drift",
+                    passed=False,
+                    detail=(
+                        f"sync manifest not found at {manifest} and "
+                        f"baseline manifest not found at {baseline}"
+                    ),
+                )
+            ]
+        try:
+            spec = json.loads(baseline.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            return [
+                RuleResult(
+                    name="sync_drift",
+                    passed=False,
+                    detail=f"baseline manifest is not valid JSON: {exc}",
+                )
+            ]
+        entries = spec.get("files", [])
+        if spec.get("version") != "1" or not isinstance(entries, list):
+            return [
+                RuleResult(
+                    name="sync_drift",
+                    passed=False,
+                    detail="baseline manifest must use version 1 with a files list",
+                )
+            ]
+
     results: list[RuleResult] = []
-    for entry in spec.get("synced_files", []):
+    for entry in entries:
         if "path" in entry:
             source_rel = target_rel = entry["path"]
         elif "source" in entry and "target" in entry:

@@ -128,13 +128,9 @@ types:
       type: directory
     content_rules:
     - file: .github/workflows/terraform-deploy.yaml
-      pattern: aws-actions/configure-aws-credentials@[0-9a-f]{40}
+      pattern: 'NWarila/terraform-framework-template/.github/workflows/reusable-terraform-deploy.yaml@[0-9a-f]{40}'
       must_match: true
-      rationale: Deploy callers must assume cloud credentials through a SHA-pinned OIDC action.
-    - file: .github/workflows/terraform-deploy.yaml
-      pattern: 'role-to-assume\s*:'
-      must_match: true
-      rationale: Deploy callers must name an assumed role instead of relying on ambient credentials.
+      rationale: Deploy callers must delegate to the SHA-pinned framework reusable deploy workflow.
     - file: .github/workflows/terraform-deploy.yaml
       pattern: AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY
       must_match: false

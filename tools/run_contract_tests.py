@@ -27,9 +27,9 @@ EXPECTED_BAD_FAILURES: dict[str, tuple[str, ...]] = {
 }
 
 EXPECTED_BAD_CONTRACT_FAILURES: dict[str, tuple[str, ...]] = {
-    "bad-deploy-missing-oidc": (
+    "bad-deploy-missing-framework-reusable": (
         "content:.github/workflows/terraform-deploy.yaml:"
-        "aws-actions/configure-aws-credentials@[0-9a-f]{40}",
+        "NWarila/terraform-framework-template/.github/workflows/reusable-terraform-deploy.yaml@[0-9a-f]{40}",
     ),
 }
 

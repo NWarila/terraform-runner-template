@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   deploy:
-    uses: NWarila/terraform-framework-template/.github/workflows/reusable-terraform-deploy.yaml@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    uses: NWarila/mock-framework-template/.github/workflows/reusable-terraform-deploy.yaml@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
     with:
       framework_ref: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
       overlay_paths: |
