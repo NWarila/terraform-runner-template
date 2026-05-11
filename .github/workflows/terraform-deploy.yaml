@@ -1,13 +1,11 @@
 name: Terraform Deploy
 
-# Golden runner deploy example. Pull requests run a plan-only local-backend
-# validation so contributors do not need AWS access. Trusted main/manual runs
-# assume AWS via OIDC, initialize the framework with an S3 backend, apply the
-# saved plan, and verify that the remote state object exists and is encrypted.
+# Golden runner deploy example. Pull requests validate through pr-validation.yaml.
+# Trusted main/manual runs assume AWS via OIDC, initialize the framework with an
+# S3 backend, apply the saved plan, and verify that the remote state object
+# exists and is encrypted.
 
 on:
-  pull_request:
-    branches: [main]
   push:
     branches: [main]
   workflow_dispatch:
@@ -16,27 +14,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: terraform-deploy-${{ github.event.pull_request.number || github.ref }}
+  group: terraform-deploy-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  plan:
-    name: framework-plan
-    if: ${{ github.event_name == 'pull_request' }}
-    uses: NWarila/terraform-framework-template/.github/workflows/reusable-terraform-deploy.yaml@24deab9db40fbf22a8e7a0c61d7110098c0a1397
-    with:
-      # renovate: depName=NWarila/terraform-framework-template packageName=https://github.com/NWarila/terraform-framework-template currentValue=main
-      framework_ref: 24deab9db40fbf22a8e7a0c61d7110098c0a1397
-      overlay_paths: |
-        repos/public => terraform/repos/public
-        repos/private => terraform/repos/private
-      tfvars_file: repos/public/sample-environments.tfvars
-      backend_mode: local
-      apply: false
-
   deploy:
     name: framework-deploy
-    if: ${{ github.event_name != 'pull_request' }}
     permissions:
       contents: read
       id-token: write
