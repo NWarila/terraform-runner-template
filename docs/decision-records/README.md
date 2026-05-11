@@ -24,7 +24,9 @@ ADRs are organized into three scopes per
 | #                                                                  | Title                                          | Status   | Date       | Summary                                                                                          |
 | ------------------------------------------------------------------ | ---------------------------------------------- | -------- | ---------- | ------------------------------------------------------------------------------------------------ |
 | [template/0001](template/0001-pin-terraform-and-provider-versions-exactly.md) | Pin Terraform and Provider Versions Exactly | Accepted | 2026-05-05 | Every consumer of this template uses `=` exact-version constraints for Terraform and providers. |
-| [template/0002](template/0002-mandate-s3-state-backend.md)                    | Mandate S3 as the State Backend | Accepted | 2026-05-09 | Every consumer uses `backend "s3"` with native `use_lockfile = true`, OIDC-only auth, encryption + versioning + access logging on the bucket. Replaces the implicit "consumer chooses" default. |
+| [template/0002](template/0002-mandate-s3-state-backend.md)                    | Mandate S3 as the State Backend | Proposed | 2026-05-09 | Intended S3 backend, native locking, OIDC-only auth, encryption, versioning, and access logging policy; not Accepted until enforcement lands. |
+| [template/0003](template/0003-use-anti-symmetric-repo-type-inference.md)      | Use Anti-Symmetric Repo-Type Inference | Accepted | 2026-05-11 | Ambiguous repo shapes fail unless the caller passes an explicit `--type` override. |
+| [template/0004](template/0004-isolate-pull-request-target-triggers.md)        | Isolate Pull Request Target Triggers | Accepted | 2026-05-11 | `pull_request_target` stays isolated to trusted-bot auto-merge and is forbidden from release publishing. |
 
 ## Org-mirrored index
 

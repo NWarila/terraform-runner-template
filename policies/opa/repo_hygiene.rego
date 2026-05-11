@@ -1,16 +1,15 @@
-# golden_terraform — universal stack-agnostic Terraform-quality policy.
+# repo_hygiene - repository hygiene policy for Terraform-family repos.
 #
-# Encodes invariants that apply to every Terraform repository in the
-# portfolio regardless of stack: workflow `uses:` SHA-pinning, exact
-# `required_version` pin in versions.tf, and exact `=` operator on
-# every provider version. Rejects the pessimistic `~>` operator and
-# unbounded `>=` constraints.
+# Encodes repository-level invariants that are visible from source files:
+# workflow `uses:` SHA-pinning, privileged-trigger boundaries, exact
+# `required_version` pins in versions.tf, and exact `=` operator on provider
+# versions. Terraform plan-aware policy belongs in a separate package.
 #
 # Rules trace to:
 #   - org ADR-0003 (deny-all .gitignore) requires explicit allowlist
 #     discipline; the SHA-pin rules here ensure workflow refs share
 #     the same explicit-allowlist character.
-#   - template-tier ADR-template/0001 in NWarila/terraform-runner-template
+#   - template-tier ADR-template/0001 in the owning Terraform template
 #     ("Pin Terraform and Provider Versions Exactly") mandates the
 #     exact-pin rules below for every Terraform-runner consumer.
 #   - org ADR-0004 §"SHA-pin retention check" requires
@@ -28,7 +27,7 @@
 #     "files": { "<path>": "<contents>" }  # includes workflow files
 #   }
 
-package golden_terraform
+package repo_hygiene
 
 import rego.v1
 
@@ -65,6 +64,10 @@ unsafe_pr_target_ref_fragments := {
 	"git checkout",
 	"git fetch",
 	"git switch",
+}
+
+pull_request_target_allowed_workflows := {
+	".github/workflows/auto-merge.yaml",
 }
 
 # endregion --- [ Regex constants ] -------------------------------------------------------- #
@@ -164,6 +167,12 @@ deny contains msg if {
 # region ------ [ Deny rules: pull_request_target guard ] ---------------------------------- #
 
 deny contains msg if {
+	has_pull_request_target_trigger(path)
+	not pull_request_target_allowed_workflows[path]
+	msg := sprintf("%s must not use pull_request_target; only auto-merge.yaml is allowed to run in that context", [path])
+}
+
+deny contains msg if {
 	some path
 	_ := input.files[path]
 	protected_pull_request_target_workflow(path)
@@ -177,6 +186,24 @@ deny contains msg if {
 		"%s:%d - pull_request_target auto-merge guard forbids PR-controlled content reads: %s",
 		[path, line_no, fragment],
 	)
+}
+
+deny contains msg if {
+	content := input.files[".github/workflows/reusable-auto-merge.yaml"]
+	contains(lower(content), "extra_authors")
+	msg := ".github/workflows/reusable-auto-merge.yaml must not expose extra_authors; auto-merge principals are a closed trust list"
+}
+
+deny contains msg if {
+	content := input.files[".github/workflows/reusable-auto-merge.yaml"]
+	contains(lower(content), "github-actions[bot]")
+	msg := ".github/workflows/reusable-auto-merge.yaml must not trust github-actions[bot]; release PRs require human review"
+}
+
+deny contains msg if {
+	content := input.files[".github/workflows/reusable-auto-merge.yaml"]
+	not contains(content, "declare -a trusted_authors=(")
+	msg := ".github/workflows/reusable-auto-merge.yaml must declare trusted authors as a bash array"
 }
 
 # endregion --- [ Deny rules: pull_request_target guard ] ---------------------------------- #

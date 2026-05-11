@@ -129,19 +129,10 @@ def should_ignore_name(name: str) -> bool:
 
 def run_terraform_gates(repo_root: Path, workspace: Path, config: dict, case: dict) -> None:
     terraform = os.environ.get("TERRAFORM", "terraform")
-    tflint = os.environ.get("TFLINT", "tflint")
 
     run([terraform, f"-chdir={workspace}", "fmt", "-check", "-recursive"])
     run([terraform, f"-chdir={workspace}", "init", "-backend=false", "-input=false"])
     run([terraform, f"-chdir={workspace}", "validate"])
-
-    if case.get("tflint", False):
-        configured_tflint = config.get("tflint_config")
-        if not configured_tflint:
-            raise SystemExit("case enabled tflint but tflint_config is not set")
-        tflint_config = (repo_root / configured_tflint).resolve()
-        run([tflint, "--init", "--config", str(tflint_config)])
-        run([tflint, "--config", str(tflint_config), "--chdir", str(workspace)])
 
     plan_args = [terraform, f"-chdir={workspace}", "plan", "-input=false", "-out=.ci-plan.tfplan"]
     if (workspace / "terraform.tfvars").is_file():

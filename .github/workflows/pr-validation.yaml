@@ -1,0 +1,36 @@
+name: PR Validation
+
+# Working reference caller for runner-mode validation. It proves the
+# template reusable can check out the framework at a fixed SHA, overlay
+# runner-owned data, and run the assembled framework gate.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: runner validation
+    uses: NWarila/terraform-runner-template/.github/workflows/reusable-terraform-validation.yaml@afbd9a2c5cae5549791cf4b3dda81a0470bcee5c
+    with:
+      # renovate: datasource=github-releases depName=hashicorp/terraform extractVersion=^v(?<version>.*)$ versioning=hashicorp
+      terraform_version: "1.15.1"
+      # renovate: depName=NWarila/terraform-runner-template packageName=https://github.com/NWarila/terraform-runner-template currentValue=main
+      template_ref: afbd9a2c5cae5549791cf4b3dda81a0470bcee5c
+      mode: runner
+      run_contract_check: true
+      lint_advisory: false
+      framework_repo: NWarila/terraform-framework-template
+      # renovate: depName=NWarila/terraform-framework-template packageName=https://github.com/NWarila/terraform-framework-template currentValue=main
+      framework_ref: 8c49f833b1b43716cc8d23ff059662701e027e16
+      overlay_paths: |
+        repos/public => terraform/repos/public
+        tests/fixtures/repos/private => terraform/repos/private

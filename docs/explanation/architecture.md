@@ -5,7 +5,7 @@
 `terraform-runner-template` is the type-template for Terraform-runner repos. It owns:
 
 - The contract every Terraform-runner repo must satisfy ([`contract/runner-template-contract.yaml`](../../contract/runner-template-contract.yaml)).
-- The runner-mode `pr-validation` reusable that checks out the consumed framework, overlays runner data, and runs `make ci` against the assembled tree ([`reusable-terraform-validation.yaml`](../../.github/workflows/reusable-terraform-validation.yaml) - framework-shaped validation belongs to framework templates).
+- The runner-mode `pr-validation` reusable that checks out the consumed framework, overlays runner data, and runs the framework quality gate against the assembled tree ([`reusable-terraform-validation.yaml`](../../.github/workflows/reusable-terraform-validation.yaml) - framework-shaped validation belongs to framework templates).
 - The canonical runner scaffold consumers adopt: shared tooling, OPA policy, reusable workflows, standard quality-gate callers, drift-gate layout, and the runner-specific deploy/validation wiring.
 - The seed runner data and integration fixture that new runner repos inherit (`repos/public/`, `repos/private/`, `tests/fixtures/`, and `fixtures/integration/basic/`).
 - The template-tier baseline manifest that every Terraform-runner consumer uses to mirror standardized scaffold files and template ADRs.

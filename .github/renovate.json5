@@ -12,7 +12,7 @@
   //
   // Rules in this file:
   //   - Pin third-party GitHub Actions to commit SHAs (matches the OPA
-  //     golden_terraform package's enforcement and org ADR-0004's
+  //     repo_hygiene package's enforcement and org ADR-0004's
   //     SHA-pin retention check).
   //   - Pin Terraform and provider versions exactly (template-tier
   //     ADR-template/0001 in this repo at
@@ -35,6 +35,7 @@
   "enabledManagers": [
     "github-actions",
     "terraform",
+    "pre-commit",
     "pip_requirements",
     "custom.regex"
   ],
@@ -54,6 +55,20 @@
         "# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>[^\\s]+?)(?: packageName=(?<packageName>[^\\s]+?))?(?: extractVersion=(?<extractVersion>[^\\s]+?))?(?: versioning=(?<versioning>[^\\s]+?))?\\s+\\w+(?:_VERSION)?:\\s*\"(?<currentValue>[^\"]+)\"",
         "# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>[^\\s]+?)(?: packageName=(?<packageName>[^\\s]+?))?(?: extractVersion=(?<extractVersion>[^\\s]+?))?(?: versioning=(?<versioning>[^\\s]+?))?\\s+\\w+_VERSION=\"(?<currentValue>[^\"]+)\"",
         "# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>[^\\s]+?)(?: packageName=(?<packageName>[^\\s]+?))?(?: extractVersion=(?<extractVersion>[^\\s]+?))?(?: versioning=(?<versioning>[^\\s]+?))?\\s+pip install --no-cache-dir (?<depName2>[a-zA-Z0-9-._]+)==(?<currentValue>[^\\s]+)"
+      ]
+    },
+    {
+      // Track SHA body inputs that must move with reusable workflow `uses:`
+      // pins. Renovate's git-refs datasource treats the branch name as
+      // currentValue and the checked-in 40-char SHA as currentDigest.
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/.*\\.ya?ml$/"
+      ],
+      "datasourceTemplate": "git-refs",
+      "versioningTemplate": "loose",
+      "matchStrings": [
+        "# renovate: depName=(?<depName>[^\\s]+) packageName=(?<packageName>[^\\s]+) currentValue=(?<currentValue>[^\\s]+)\\s+(?:template_ref|framework_ref):\\s*(?<currentDigest>[0-9a-f]{40})"
       ]
     }
   ],
@@ -84,6 +99,15 @@
       // the maintainer reviews them.
       "matchDepNames": ["NWarila/terraform-runner-template"],
       "groupName": "terraform-runner-template",
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "deps",
+      "automerge": false
+    },
+    {
+      // Bumps to the reference framework pin must update both the reusable
+      // workflow `uses:` SHA and the matching framework_ref body input.
+      "matchDepNames": ["NWarila/terraform-framework-template"],
+      "groupName": "terraform-framework-template",
       "semanticCommitType": "chore",
       "semanticCommitScope": "deps",
       "automerge": false

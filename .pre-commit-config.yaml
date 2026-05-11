@@ -1,4 +1,47 @@
 repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.13.0
+    hooks:
+      - id: ruff-check
+        name: ruff
+        args: [tools/]
+        pass_filenames: false
+        files: ^tools/.*\.py$
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args:
+          - -d
+          - "{ extends: relaxed, rules: { line-length: disable, document-start: disable, comments: disable, truthy: {check-keys: false} } }"
+          - .github/workflows/
+          - contract/
+        pass_filenames: false
+        files: ^\.github/workflows/.*\.ya?ml$|^contract/.*\.ya?ml$
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
+        args: [.github/workflows]
+        pass_filenames: false
+        files: ^\.github/workflows/.*\.ya?ml$
+
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.11.0
+    hooks:
+      - id: shellcheck
+        files: ^tools/install_ci_tools\.sh$
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.22.1
+    hooks:
+      - id: markdownlint-cli2
+        args: ["**/*.md"]
+        pass_filenames: false
+        files: \.md$
+
   - repo: local
     hooks:
       - id: docs-layout
@@ -7,3 +50,17 @@ repos:
         language: system
         pass_filenames: false
         files: ^docs/.*\.md$|^tools/check_docs_layout.py$
+
+      - id: adr-schema
+        name: ADR schema and index
+        entry: python tools/check_adr_schema.py
+        language: system
+        pass_filenames: false
+        files: ^docs/decision-records/.*\.md$|^tools/check_adr_schema.py$
+
+      - id: consistency
+        name: repository consistency
+        entry: python tools/check_consistency.py
+        language: system
+        pass_filenames: false
+        files: ^.*\.(md|ya?ml|py|json|json5|toml|sh|rego|tf|hcl|tfvars)$|^Makefile$

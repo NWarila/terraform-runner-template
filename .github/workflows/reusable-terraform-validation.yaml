@@ -66,7 +66,7 @@ on:
       framework_repo:
         description: |
           (mode: runner) `owner/repo` of the framework being deployed.
-          Example: nwarila-platform/github-terraform-framework
+          Example: NWarila/terraform-framework-template
         required: false
         type: string
         default: ""
@@ -86,11 +86,12 @@ on:
           paths are interpreted relative to each repo's root.
 
           Example:
-            repos/public/=>terraform/repos/public/
-            tests/fixtures/private/=>terraform/repos/private/
+            repos/public=>terraform/repos/public
+            tests/fixtures/private=>terraform/repos/private
 
-          Trailing slashes denote directories; the contents (including
-          dotfiles) are copied recursively.
+          Directory sources are copied as contents, including dotfiles.
+          Trailing slashes are accepted for readability but have no
+          separate meaning.
         required: false
         type: string
         default: ""
@@ -186,6 +187,33 @@ jobs:
           OVERLAY_PATHS: ${{ inputs.overlay_paths }}
         run: |
           set -euo pipefail
+          validate_overlay_path() {
+            local kind="$1"
+            local value="$2"
+            if [ -z "${value}" ]; then
+              echo "::error::overlay ${kind} is empty"
+              exit 1
+            fi
+            if [[ "${value}" == /* ]]; then
+              echo "::error::overlay ${kind} must be relative: ${value}"
+              exit 1
+            fi
+            if [[ "${value}" == "." || "${value}" == ".." || "${value}" == ../* || "${value}" == */../* || "${value}" == */.. ]]; then
+              echo "::error::overlay ${kind} must not contain path traversal: ${value}"
+              exit 1
+            fi
+          }
+          allowed_overlay_destination() {
+            local value="${1%/}"
+            case "${value}" in
+              terraform/repos|terraform/repos/*|terraform/fixtures/runtime|terraform/fixtures/runtime/*)
+                return 0
+                ;;
+              *)
+                return 1
+                ;;
+            esac
+          }
           # Newline-separated entries of the form `src=>dst`. Strip blank
           # lines and comments. Use `cp -a <src>/. <dst>/` so dotfiles are
           # included and trailing-slash directory semantics are explicit.
@@ -201,6 +229,12 @@ jobs:
             dst="${entry##*=>}"
             src="$(echo "${src}" | xargs)"
             dst="$(echo "${dst}" | xargs)"
+            validate_overlay_path "source" "${src}"
+            validate_overlay_path "destination" "${dst}"
+            if ! allowed_overlay_destination "${dst}"; then
+              echo "::error::overlay destination must be under terraform/repos/ or terraform/fixtures/runtime/: ${dst}"
+              exit 1
+            fi
             src_path="consumer/${src}"
             dst_path="framework/${dst}"
             if [ ! -e "${src_path}" ]; then

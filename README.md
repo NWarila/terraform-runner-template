@@ -6,6 +6,16 @@ A *runner* is a data-only deployer: it owns an inventory of repository definitio
 
 This template provides the contract every runner must satisfy plus the canonical caller-workflow set.
 
+For a real runner derived from this template, edit these first:
+
+1. `README.md` and repo-specific docs.
+2. `repos/public/` and the source for `repos/private/`.
+3. `pr-validation.yaml` and `terraform-deploy.yaml` refs.
+4. `docs/decision-records/repo/` for local decisions.
+5. Optional release layer, only if the repo publishes versioned releases.
+
+The mirroring rules live in [`docs/reference/mirroring.md`](docs/reference/mirroring.md).
+
 ## Normalized repo interface
 
 This repo uses the same validation command surface as the Terraform framework template:
@@ -15,16 +25,16 @@ This repo uses the same validation command surface as the Terraform framework te
 | `make lint` | Repo-local static checks: Python tooling and workflow/contract YAML. |
 | `make policy` | OPA policy tests plus policy evaluation against real repo files. |
 | `make docs-check` | Diataxis/ADR documentation layout check. |
-| `make ci` | Repo-local quality gate. |
-| `make integration` | Ephemeral consumer workspace assembled from this runner fixture plus a framework checkout. |
-| `make verify` | Full local verification: `ci` plus `integration`. |
+| `python tools/verify.py ci` | Repo-local quality gate. |
+| `python tools/verify.py integration` | Ephemeral consumer workspace assembled from this runner fixture plus a framework checkout. |
+| `python tools/verify.py verify` | Full local verification: `ci` plus `integration`. |
 
 Runner integration expects the framework template beside this repo by default:
 
 ```sh
-make integration
+python tools/verify.py integration
 # or override the framework module path
-make integration FRAMEWORK_SOURCE=../terraform-framework-template/terraform
+python tools/verify.py integration --framework-source ../terraform-framework-template/terraform
 ```
 
 The shared CI harness lives in `tools/ci/`; the runner-specific fixture lives in `fixtures/integration/basic/`. That mirrors the framework repo's shape while preserving the rule that runners do not own a top-level `terraform/` directory.
@@ -33,11 +43,11 @@ The shared CI harness lives in `tools/ci/`; the runner-specific fixture lives in
 
 | Surface | Mechanism | What it enforces |
 | --- | --- | --- |
-| Reusable validation | [`reusable-terraform-validation.yaml`](.github/workflows/reusable-terraform-validation.yaml) (`mode: runner`) | Checks out the framework at `framework_ref`, overlays runner data, runs `make ci` against the assembled tree. |
+| Reusable validation | [`reusable-terraform-validation.yaml`](.github/workflows/reusable-terraform-validation.yaml) (`mode: runner`) | Checks out the framework at `framework_ref`, overlays runner data, runs the framework quality gate against the assembled tree. |
 | Drift gate | [`drift-gate.yaml`](.github/workflows/drift-gate.yaml) + [`baseline-manifest.json`](baseline-manifest.json) | Pinned [`NWarila/drift-gate`](https://github.com/NWarila/drift-gate) verifies org-baseline mirrors here and gives consumers a template-tier manifest for byte-identical runner scaffold files. |
 | Contract validator | [`tools/check_template_contract.py`](tools/check_template_contract.py) | Required files, paths, and content rules for runner repos. |
 | Contract manifest | [`contract/runner-template-contract.yaml`](contract/runner-template-contract.yaml) | Single machine-readable source of truth. |
-| Universal quality gates | Reusable workflows for codeql, scorecard, iac-security, auto-merge, release-please, release-evidence | Universal lint/security/release tooling consumers wire up via `uses:` lines pinned to this template's SHA. |
+| Universal quality gates | `security.yaml`, optional `release.yaml`, and reusable workflows | Security tooling is part of the required baseline; release tooling is available for repos that publish versions. |
 
 ## How a consumer adopts this template
 
@@ -54,8 +64,8 @@ jobs:
       framework_repo: NWarila/terraform-framework-template
       framework_ref: <pinned-framework-sha>
       overlay_paths: |
-        repos/public/=>terraform/repos/public/
-        tests/fixtures/repos/private/=>terraform/repos/private/
+        repos/public => terraform/repos/public
+        tests/fixtures/repos/private => terraform/repos/private
       # ...tool versions...
 ```
 
@@ -67,9 +77,13 @@ jobs:
     with:
       framework_ref: <pinned-framework-sha>
       overlay_paths: |
-        repos/public/=>terraform/repos/public/
+        repos/public => terraform/repos/public
       apply: ${{ github.ref == 'refs/heads/main' }}
 ```
+
+Overlay paths are always copied as directory contents when the source is a
+directory. A trailing slash is accepted for readability but has no separate
+meaning; `repos/public` and `repos/public/` behave the same way.
 
 Renovate keeps both the `uses:` SHAs and the `framework_ref` inputs current. The runner's `terraform-deploy.yaml` calls the framework's `reusable-terraform-deploy.yaml` with per-runner specifics in repo Variables and Secrets.
 

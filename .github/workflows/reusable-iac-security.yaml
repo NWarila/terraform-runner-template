@@ -1,6 +1,6 @@
 name: Reusable IaC Security
 
-# Universal IaC security scanning consumed by Terraform runner
+# Universal IaC security scanning consumed by Terraform template
 # repositories. Three independent jobs run in parallel:
 #
 # - Trivy:    filesystem misconfig + secret scanning, fail on HIGH/CRITICAL
@@ -12,7 +12,7 @@ name: Reusable IaC Security
 # consumer's GitHub Security tab.
 #
 # Caller pattern:
-#   uses: NWarila/terraform-runner-template/.github/workflows/reusable-iac-security.yaml@<sha>
+#   uses: <owner>/<template-repo>/.github/workflows/reusable-iac-security.yaml@<sha>
 
 on:
   workflow_call:

@@ -2,7 +2,7 @@
 
 ## What the tests cover
 
-This template repo's `self-ci.yaml` exercises every component:
+This template repo's `ci.yaml` exercises every component:
 
 | Layer | Job | What it proves |
 |---|---|---|
@@ -16,7 +16,7 @@ This template repo's `self-ci.yaml` exercises every component:
 
 Consumer runners exercise this template via their own `pr-validation.yaml`,
 which calls this template's runner-mode reusable; the assembled
-framework-plus-runner-data tree runs `make ci` end-to-end on every PR.
+framework-plus-runner-data tree runs the framework quality gate end-to-end on every PR.
 
 ## What the tests do NOT cover
 

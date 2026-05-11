@@ -5,7 +5,7 @@ name: Reusable OpenSSF Scorecard
 # dependencies, vulnerabilities, etc.) and uploads SARIF to the consuming
 # repository's Security tab.
 #
-# Caller pattern (each consumer adds .github/workflows/scorecard.yaml):
+# Caller pattern (from the combined .github/workflows/security.yaml):
 #
 #   on:
 #     branch_protection_rule:
@@ -25,7 +25,7 @@ name: Reusable OpenSSF Scorecard
 #         id-token: write
 #         actions: read
 #         contents: read
-#       uses: NWarila/terraform-runner-template/.github/workflows/reusable-scorecard.yaml@<40-char-sha>
+#       uses: <owner>/<template-repo>/.github/workflows/reusable-scorecard.yaml@<40-char-sha>
 #
 # Behavior on private repositories:
 #   - Some Scorecard checks (branch protection, signed releases) require
