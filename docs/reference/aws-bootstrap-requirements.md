@@ -408,24 +408,23 @@ regions, and state-key layout in workflow metadata:
 - `AWS_DEPLOY_ROLE_ARN`
 - `AWS_REGION`
 - `TF_BACKEND_BUCKET`
-- `TF_BACKEND_KEY_PREFIX`
 
 `TF_BACKEND_BUCKET` is the bare S3 bucket name, not an ARN or `s3://` URI.
+The state-key prefix is a checked-in `backend_key_prefix` workflow input so
+reviewers can see which state object the runner owns. Move it to an environment
+secret only for repos that intentionally provision and map that secret.
 
 The template's `terraform-deploy.yaml` workflow uses those secrets on trusted
 `main` or manual runs to call the framework deploy reusable against:
 
 ```text
-s3://${TF_BACKEND_BUCKET}/${TF_BACKEND_KEY_PREFIX}/terraform.tfstate
+s3://${TF_BACKEND_BUCKET}/<backend_key_prefix>/terraform.tfstate
 ```
 
-Pull requests run plan-only validation against the local backend, so fork and PR
-validation stays deterministic and credential-free. Trusted deploy runs assume
-AWS via OIDC, initialize the S3 backend, apply the saved plan, and verify the
-state object with `aws s3api head-object`.
-
-For lower-sensitivity consumer repositories, the reusable deploy workflow also
-accepts same-named repository variables as a fallback.
+Pull requests run plan-only validation through `pr-validation.yaml`, so fork and
+PR validation stays deterministic and credential-free. Trusted deploy runs
+assume AWS via OIDC, initialize the S3 backend, apply the saved plan, and verify
+the state object with `aws s3api head-object`.
 
 Do not store static AWS access keys in repository or environment secrets.
 
