@@ -1,13 +1,13 @@
-package golden_terraform_test
+package repo_hygiene_test
 
-import data.golden_terraform
+import data.repo_hygiene
 import rego.v1
 
 # region ------ [ Workflow uses: pinning ] ------------------------------------------------- #
 
 # A SHA-pinned uses reference passes.
 test_sha_pinned_action_allowed if {
-	count(golden_terraform.deny) == 0 with input as {
+	count(repo_hygiene.deny) == 0 with input as {
 		"workflows": {"pr.yml": [{"line": 12, "uses": "actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd"}]},
 		"files": {"terraform/versions.tf": `terraform {
   required_version = "= 1.15.1"
@@ -17,7 +17,7 @@ test_sha_pinned_action_allowed if {
 
 # A tag-versioned uses reference is denied.
 test_tag_pinned_action_denied if {
-	denials := golden_terraform.deny with input as {
+	denials := repo_hygiene.deny with input as {
 		"workflows": {"pr.yml": [{"line": 7, "uses": "actions/checkout@v6"}]},
 		"files": {"terraform/versions.tf": `terraform {
   required_version = "= 1.15.1"
@@ -28,7 +28,7 @@ test_tag_pinned_action_denied if {
 
 # A malformed SHA-looking reference is denied.
 test_malformed_sha_action_denied if {
-	denials := golden_terraform.deny with input as {
+	denials := repo_hygiene.deny with input as {
 		"workflows": {"pr.yml": [{"line": 7, "uses": "actions/checkout@xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}]},
 		"files": {"terraform/versions.tf": `terraform {
   required_version = "= 1.15.1"
@@ -39,7 +39,7 @@ test_malformed_sha_action_denied if {
 
 # A floating @main reference is denied.
 test_main_branch_action_denied if {
-	denials := golden_terraform.deny with input as {
+	denials := repo_hygiene.deny with input as {
 		"workflows": {"pr.yml": [{"line": 3, "uses": "actions/checkout@main"}]},
 		"files": {"terraform/versions.tf": `terraform {
   required_version = "= 1.15.1"
@@ -50,7 +50,7 @@ test_main_branch_action_denied if {
 
 # A local reference is allowed.
 test_local_ref_allowed if {
-	count(golden_terraform.deny) == 0 with input as {
+	count(repo_hygiene.deny) == 0 with input as {
 		"workflows": {"pr.yml": [{"line": 5, "uses": "./.github/actions/setup"}]},
 		"files": {"terraform/versions.tf": `terraform {
   required_version = "= 1.15.1"
@@ -60,7 +60,7 @@ test_local_ref_allowed if {
 
 # A digest-pinned docker reference is allowed.
 test_docker_digest_allowed if {
-	count(golden_terraform.deny) == 0 with input as {
+	count(repo_hygiene.deny) == 0 with input as {
 		"workflows": {"pr.yml": [{"line": 9, "uses": "docker://ghcr.io/example/tool:v1.0.0@sha256:abc123"}]},
 		"files": {"terraform/versions.tf": `terraform {
   required_version = "= 1.15.1"
@@ -70,7 +70,7 @@ test_docker_digest_allowed if {
 
 # An undigested docker reference is denied.
 test_docker_without_digest_denied if {
-	denials := golden_terraform.deny with input as {
+	denials := repo_hygiene.deny with input as {
 		"workflows": {"pr.yml": [{"line": 4, "uses": "docker://ghcr.io/example/tool:v1.0.0"}]},
 		"files": {"terraform/versions.tf": `terraform {
   required_version = "= 1.15.1"
@@ -84,7 +84,7 @@ test_docker_without_digest_denied if {
 # region ------ [ pull_request_target guard ] ---------------------------------------------- #
 
 test_pull_request_target_checkout_denied if {
-	denials := golden_terraform.deny with input as {
+	denials := repo_hygiene.deny with input as {
 		"workflows": {},
 		"files": {".github/workflows/auto-merge.yaml": `on:
   pull_request_target:
@@ -97,8 +97,40 @@ jobs:
 	count(denials) >= 1
 }
 
+test_release_workflow_pull_request_target_denied if {
+	denials := repo_hygiene.deny with input as {
+		"workflows": {},
+		"files": {".github/workflows/release.yaml": `on:
+  pull_request_target:
+  workflow_dispatch:`},
+	}
+	count(denials) >= 1
+}
+
+test_pr_validation_pull_request_target_denied if {
+	denials := repo_hygiene.deny with input as {
+		"workflows": {},
+		"files": {".github/workflows/pr-validation.yaml": `on:
+  pull_request_target:
+jobs: {}`},
+	}
+	count(denials) >= 1
+}
+
+test_release_workflow_release_trigger_allowed if {
+	count(repo_hygiene.deny) == 0 with input as {
+		"workflows": {},
+		"files": {".github/workflows/release.yaml": `on:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:`},
+	}
+}
+
 test_auto_merge_reusable_pr_head_ref_denied if {
-	denials := golden_terraform.deny with input as {
+	denials := repo_hygiene.deny with input as {
 		"workflows": {},
 		"files": {".github/workflows/reusable-auto-merge.yaml": `jobs:
   enable-auto-merge:
@@ -109,7 +141,7 @@ test_auto_merge_reusable_pr_head_ref_denied if {
 }
 
 test_auto_merge_reusable_payload_metadata_allowed if {
-	count(golden_terraform.deny) == 0 with input as {
+	count(repo_hygiene.deny) == 0 with input as {
 		"workflows": {},
 		"files": {".github/workflows/reusable-auto-merge.yaml": `jobs:
   enable-auto-merge:
@@ -117,8 +149,52 @@ test_auto_merge_reusable_payload_metadata_allowed if {
       - env:
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: gh pr merge "${PR_NUMBER}" --repo "${{ github.repository }}" --auto --squash`},
+        run: |
+          declare -a trusted_authors=("renovate[bot]" "dependabot[bot]")
+          gh pr merge "${PR_NUMBER}" --repo "${{ github.repository }}" --auto --squash`},
 	}
+}
+
+test_auto_merge_reusable_extra_authors_denied if {
+	denials := repo_hygiene.deny with input as {
+		"workflows": {},
+		"files": {".github/workflows/reusable-auto-merge.yaml": `on:
+  workflow_call:
+    inputs:
+      extra_authors:
+        type: string
+jobs:
+  authorize:
+    steps:
+      - run: declare -a trusted_authors=("renovate[bot]")`},
+	}
+	count(denials) >= 1
+}
+
+test_auto_merge_reusable_github_actions_bot_denied if {
+	denials := repo_hygiene.deny with input as {
+		"workflows": {},
+		"files": {".github/workflows/reusable-auto-merge.yaml": `jobs:
+  authorize:
+    steps:
+      - run: |
+          declare -a trusted_authors=(
+            "renovate[bot]"
+            "github-actions[bot]"
+          )`},
+	}
+	count(denials) >= 1
+}
+
+test_auto_merge_reusable_trusted_authors_array_required if {
+	denials := repo_hygiene.deny with input as {
+		"workflows": {},
+		"files": {".github/workflows/reusable-auto-merge.yaml": `jobs:
+  authorize:
+    steps:
+      - run: trusted_authors="renovate[bot] dependabot[bot]"`},
+	}
+	count(denials) >= 1
 }
 
 # endregion --- [ pull_request_target guard ] ---------------------------------------------- #
@@ -128,7 +204,7 @@ test_auto_merge_reusable_payload_metadata_allowed if {
 # Repos without Terraform code are still allowed to use the workflow
 # pinning subset of this policy.
 test_missing_versions_tf_allowed if {
-	count(golden_terraform.deny) == 0 with input as {
+	count(repo_hygiene.deny) == 0 with input as {
 		"workflows": {},
 		"files": {},
 	}
@@ -136,7 +212,7 @@ test_missing_versions_tf_allowed if {
 
 # Missing required_version is denied.
 test_missing_required_version_denied if {
-	denials := golden_terraform.deny with input as {
+	denials := repo_hygiene.deny with input as {
 		"workflows": {},
 		"files": {"terraform/versions.tf": `terraform { }`},
 	}
@@ -145,7 +221,7 @@ test_missing_required_version_denied if {
 
 # A commented exact required_version does not satisfy the invariant.
 test_required_version_comment_spoof_denied if {
-	denials := golden_terraform.deny with input as {
+	denials := repo_hygiene.deny with input as {
 		"workflows": {},
 		"files": {"terraform/versions.tf": `terraform {
   # required_version = "= 1.15.1"
@@ -161,7 +237,7 @@ test_required_version_comment_spoof_denied if {
 
 # A pessimistic constraint operator is denied.
 test_pessimistic_operator_denied if {
-	denials := golden_terraform.deny with input as {
+	denials := repo_hygiene.deny with input as {
 		"workflows": {},
 		"files": {"terraform/versions.tf": `terraform { required_version = "= 1.15.1" }
 provider "null" { version = "~> 3.2" }`},
@@ -172,7 +248,7 @@ provider "null" { version = "~> 3.2" }`},
 # An exact provider pin with `=` passes — using the synthetic providers
 # this framework actually consumes, so the test reflects real config.
 test_exact_provider_pin_allowed if {
-	count(golden_terraform.deny) == 0 with input as {
+	count(repo_hygiene.deny) == 0 with input as {
 		"workflows": {},
 		"files": {"terraform/versions.tf": `terraform {
   required_version = "= 1.15.1"
@@ -192,7 +268,7 @@ test_exact_provider_pin_allowed if {
 
 # A provider version range is denied.
 test_provider_range_denied if {
-	denials := golden_terraform.deny with input as {
+	denials := repo_hygiene.deny with input as {
 		"workflows": {},
 		"files": {"terraform/versions.tf": `terraform {
   required_version = "= 1.15.1"
@@ -209,7 +285,7 @@ test_provider_range_denied if {
 
 # An unprefixed provider version is denied.
 test_provider_unprefixed_version_denied if {
-	denials := golden_terraform.deny with input as {
+	denials := repo_hygiene.deny with input as {
 		"workflows": {},
 		"files": {"terraform/versions.tf": `terraform {
   required_version = "= 1.15.1"

@@ -2,17 +2,16 @@ name: Reusable Auto-Merge
 
 # Enables GitHub auto-merge on pull requests authored by trusted bots once
 # all required status checks pass. Branch protection on `main` is what
-# defines the actual gate — this workflow only flips the auto-merge bit.
+# defines the actual gate; this workflow only flips the auto-merge bit.
 #
-# Trusted authors (hardcoded):
+# Trusted authors:
 #   - renovate[bot]
-#   - github-actions[bot]    (release-please CLI uses this)
 #   - dependabot[bot]
 #
-# Additional authors can be added via the `extra_authors` input. Anything not
-# on the trusted list is left alone for human review — that is the entire
-# point. We never auto-merge human-authored PRs even if they look identical
-# to a Renovate PR.
+# Anything not on the trusted list is left alone for human review. We never
+# auto-merge human-authored PRs, and we deliberately do not trust the broad
+# GitHub Actions automation identity. Release-please PRs created by
+# the Actions automation bot are intentionally left for human review.
 #
 # Caller pattern (in each consumer):
 #   name: Auto-Merge
@@ -24,7 +23,7 @@ name: Reusable Auto-Merge
 #     pull-requests: write
 #   jobs:
 #     auto-merge:
-#       uses: NWarila/terraform-runner-template/.github/workflows/reusable-auto-merge.yaml@<sha>
+#       uses: <owner>/<template-repo>/.github/workflows/reusable-auto-merge.yaml@<sha>
 #
 # Why pull_request_target is safe here: authorization runs in a read-only job
 # first, and the write-token job is skipped unless the PR author is trusted.
@@ -34,7 +33,7 @@ name: Reusable Auto-Merge
 #
 # Auto-merge waits for the repo's branch protection required checks to pass
 # before merging. If branch protection isn't configured, GitHub will not
-# allow auto-merge to be enabled at all — `gh pr merge --auto` will fail
+# allow auto-merge to be enabled at all; `gh pr merge --auto` will fail
 # loudly.
 
 on:
@@ -48,14 +47,6 @@ on:
         required: false
         type: string
         default: squash
-      extra_authors:
-        description: |
-          Comma-separated list of additional GitHub login names to treat as
-          trusted bot authors. Use sparingly — every entry is a path that
-          merges code with no human review.
-        required: false
-        type: string
-        default: ""
 
 permissions:
   contents: read
@@ -78,22 +69,23 @@ jobs:
         id: decide
         env:
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          EXTRA_AUTHORS: ${{ inputs.extra_authors }}
+          PR_AUTHOR_TYPE: ${{ github.event.pull_request.user.type }}
         run: |
           set -euo pipefail
-          # Built-in trusted authors. Add new ones here only after confirming
-          # the bot opens PRs whose contents you trust to merge with no
-          # human review.
-          builtins="renovate[bot] github-actions[bot] dependabot[bot]"
-          all="${builtins} ${EXTRA_AUTHORS//,/ }"
+
+          declare -a trusted_authors=(
+            "renovate[bot]"
+            "dependabot[bot]"
+          )
+
           trusted=0
-          for candidate in ${all}; do
+          for candidate in "${trusted_authors[@]}"; do
             if [ "${candidate}" = "${PR_AUTHOR}" ]; then
               trusted=1
               break
             fi
           done
-          if [ "${trusted}" = "1" ]; then
+          if [ "${trusted}" = "1" ] && [ "${PR_AUTHOR_TYPE}" = "Bot" ]; then
             echo "PR author '${PR_AUTHOR}' is trusted; enabling auto-merge."
             echo "trusted=true" >> "${GITHUB_OUTPUT}"
           else

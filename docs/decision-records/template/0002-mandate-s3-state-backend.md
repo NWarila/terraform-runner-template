@@ -2,14 +2,14 @@
 
 | Field          | Value                                    |
 | -------------- | ---------------------------------------- |
-| Status         | Accepted                                 |
+| Status         | Proposed                                 |
 | Date           | 2026-05-09                               |
 | Authors        | Nick Warila (@NWarila)                   |
 | Decision-maker | Nick Warila (sole portfolio maintainer)  |
 | Consulted      | None.                                    |
 | Informed       | None.                                    |
 | Reversibility  | Medium                                   |
-| Review-by      | N/A (Accepted)                           |
+| Review-by      | 2026-06-11                               |
 
 ## TL;DR
 
@@ -17,10 +17,10 @@ Every Terraform-runner consumer derived from `NWarila/terraform-runner-template`
 
 ## Context and Problem Statement
 
-The `terraform-framework-example` reference framework intentionally ships with the `local` backend so the example always works without external setup. But every real Terraform-runner consumer eventually needs to manage state somewhere. Without a template-tier rule, each consumer chooses independently:
+The `terraform-framework-template` reference framework intentionally ships with the `local` backend so the example always works without external setup. But every real Terraform-runner consumer eventually needs to manage state somewhere. Without a template-tier rule, each consumer chooses independently:
 
 - A consumer that picks the local backend has no concurrency protection — two CI jobs running `terraform apply` in parallel race on `terraform.tfstate` and silently corrupt it.
-- A consumer that picks Terraform Cloud introduces a paid third-party SaaS dependency that's outside the SHA-pinned supply chain enforced by the rest of this template (`golden_terraform.rego`, `drift-gate`, etc.).
+- A consumer that picks Terraform Cloud introduces a paid third-party SaaS dependency that's outside the SHA-pinned supply chain enforced by the rest of this template (`repo_hygiene.rego`, `drift-gate`, etc.).
 - A consumer that picks GCS or azurerm fragments the operational surface across cloud providers — reviewing one consumer's state operations doesn't transfer to reviewing another's.
 
 A template-tier rule moves this decision out of "every consumer chooses" into "the template prescribes; consumers comply." Same character as ADR-template/0001 (Pin Terraform and Provider Versions Exactly) — uniformity at the stack tier is worth more than per-consumer flexibility.
@@ -129,14 +129,16 @@ The framework being deployed (e.g. `NWarila/terraform-framework-template` for th
 
 Adherence to this ADR is confirmed by the following mechanisms. The wording `MUST`, `SHOULD`, and `MAY` follows [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) conventions.
 
-1. **Backend-block check.** Every adopting consumer's `terraform/backend.tf` MUST contain a `backend "s3" {}` block. A CI script or `tflint` rule MAY assert this. The OPA `golden_terraform` policy SHOULD be extended (in a follow-up commit to this template) to enforce backend-block presence and provider.
+1. **Backend-block check.** Every adopting consumer's `terraform/backend.tf` MUST contain a `backend "s3" {}` block. A CI script or `tflint` rule MAY assert this. The OPA `repo_hygiene` policy SHOULD be extended (in a follow-up commit to this template) to enforce backend-block presence and provider.
 2. **Required-attribute check.** The `backend "s3" {}` block MUST set `encrypt = true`, `use_lockfile = true`, and `use_fips_endpoint = true`. Other attributes (`bucket`, `key`, `region`) are passed via `-backend-config` and are not asserted by this rule.
 3. **No-static-credentials check.** Every adopting consumer's `terraform-deploy.yaml` MUST include the `aws-actions/configure-aws-credentials` action with `role-to-assume:` set. Workflow secrets named `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` MUST NOT exist on adopting repositories. A repository-settings audit MAY assert this.
 4. **Per-env-key check.** Multi-environment runners MUST use distinct `-backend-config=key=...` values per environment, NOT Terraform workspaces. A CI script that diffs the workflow's `terraform init` invocations across environments MAY assert this.
 5. **Bucket-property check.** The S3 bucket(s) used by adopting consumers MUST have versioning, server-side encryption, and access logging enabled. These are bucket-side properties, not consumer-side; verification happens in the bootstrap configuration that provisions the bucket(s), not in this template's CI.
 6. **Editorial rule.** A relaxation of the S3 mandate (e.g., a runner that legitimately needs Terraform Cloud) is itself an architectural decision and MUST be recorded as a repository-level superseding ADR in that consumer's `docs/decision-records/repo/`.
 
-Enforcement tooling is recommended but not mandatory at acceptance time. The OPA-based mechanical check (item 1) is the primary follow-up implementation; until it lands, contract review at PR time satisfies the requirement.
+This ADR remains Proposed until the OPA-based backend check and caller-workflow
+authentication checks land. PR review may use this document as intended design
+guidance, but CI does not yet treat it as an accepted mechanical control.
 
 ## Consequences
 

@@ -9,11 +9,9 @@ name: Reusable Release Evidence
 # -------------
 # release-please publishes the GitHub release using GITHUB_TOKEN, and
 # GITHUB_TOKEN-driven events do not cascade to other workflows. The
-# release-please reusable explicitly dispatches `release-evidence.yaml`
-# via `gh workflow run` (which IS exempt from the cascade restriction)
-# whenever a release is created. Consumers therefore add this caller
-# workflow with a `workflow_dispatch` trigger plus a `release: published`
-# trigger as a defensive belt-and-suspenders.
+# release-please reusable explicitly dispatches the `release.yaml`
+# release-evidence task via `gh workflow run` (which IS exempt from the
+# cascade restriction) whenever a release is created.
 #
 # Type-aware behavior
 # -------------------
@@ -38,6 +36,7 @@ name: Reusable Release Evidence
 #       uses: NWarila/terraform-runner-template/.github/workflows/reusable-release-evidence.yaml@<sha>
 #       with:
 #         terraform_version: "1.15.1"
+#         repo_type: ""  # optional; use "template" for intentional hybrid templates
 
 on:
   workflow_call:
@@ -48,6 +47,14 @@ on:
           terraform fmt/init/validate/test). Runner repos ignore this input.
         required: true
         type: string
+      repo_type:
+        description: |
+          Optional explicit repo type for intentional hybrid layouts. Leave
+          empty for normal consumers so the contract validator infers exactly
+          one of framework, runner, or template.
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -58,7 +65,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
+      attestations: write
       contents: write  # required for `gh release upload`
+      id-token: write
     defaults:
       run:
         shell: bash
@@ -71,20 +80,19 @@ jobs:
 
       - name: Detect repo type
         id: type
+        env:
+          REPO_TYPE: ${{ inputs.repo_type }}
         run: |
           set -euo pipefail
-          if [ -f terraform/versions.tf ]; then
-            t="framework"
-          elif [ -d repos/public ] || [ -d repos/private ]; then
-            t="runner"
-          else
-            echo "::error::cannot determine repo type (no terraform/versions.tf or repos/*)"
-            exit 1
+          args=(--repo-root . --print-type)
+          if [ -n "${REPO_TYPE}" ]; then
+            args+=(--type "${REPO_TYPE}")
           fi
+          t="$(python3 tools/check_template_contract.py "${args[@]}")"
           case "$t" in
-            framework|runner) ;;
+            framework|runner|template) ;;
             *)
-              echo "::error::unknown repo type '$t' (expected framework or runner)"
+              echo "::error::unknown repo type '$t' (expected framework, runner, or template)"
               exit 1
               ;;
           esac
@@ -176,13 +184,15 @@ jobs:
             echo "run_id=${GITHUB_RUN_ID}"
           } > "$OUT/metadata.txt"
 
-      - name: Generate runner evidence
-        if: steps.type.outputs.type == 'runner'
+      - name: Generate runner/template evidence
+        if: steps.type.outputs.type == 'runner' || steps.type.outputs.type == 'template'
         env:
           OUT: release-evidence
+          REPO_TYPE: ${{ steps.type.outputs.type }}
         run: |
           set -euo pipefail
           mkdir -p "$OUT/repos"
+          echo "${REPO_TYPE}" > "$OUT/repo-type.txt"
 
           # Capture the public repo inventory at this tag.
           if [ -d repos/public ]; then
@@ -242,11 +252,34 @@ jobs:
       - name: Bundle evidence
         run: tar -czf release-evidence.tar.gz release-evidence/
 
+      - name: Generate SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: release-evidence
+          format: spdx-json
+          output-file: release-evidence.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+          dependency-snapshot: false
+
+      - name: Attest release evidence provenance
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: release-evidence.tar.gz
+
+      - name: Attest release evidence SBOM
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
+        with:
+          subject-path: release-evidence.tar.gz
+          sbom-path: release-evidence.spdx.json
+
       - name: Upload to workflow run (always, for forensic access)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-evidence
-          path: release-evidence.tar.gz
+          path: |
+            release-evidence.tar.gz
+            release-evidence.spdx.json
           if-no-files-found: error
 
       - name: Attach to GitHub release
@@ -262,6 +295,4 @@ jobs:
             echo "::warning::no release tag in context (TAG='${TAG}'); skipping release upload."
             exit 0
           fi
-          # `gh release upload --clobber` so re-runs replace the asset
-          # rather than failing with "already exists".
-          gh release upload "${TAG}" release-evidence.tar.gz --clobber
+          gh release upload "${TAG}" release-evidence.tar.gz release-evidence.spdx.json

@@ -6,7 +6,7 @@ name: Reusable CodeQL
 # matrix via the `languages` input.
 #
 # Caller pattern:
-#   uses: NWarila/terraform-runner-template/.github/workflows/reusable-codeql.yaml@<sha>
+#   uses: <owner>/<template-repo>/.github/workflows/reusable-codeql.yaml@<sha>
 #   permissions:
 #     contents: read
 #     security-events: write

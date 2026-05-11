@@ -3,12 +3,12 @@ name: Reusable Release Please
 # Standard release-please integration shared across every consumer. Watches
 # main for Conventional Commits, opens a release PR, and on merge of that
 # PR tags + publishes a GitHub release. Every consumer also has a
-# `release-evidence.yaml` caller (universal contract requirement); this
-# workflow dispatches it on every release so the new tag gets a uniform
-# evidence bundle attached.
+# optional `release.yaml` caller can run release evidence; this workflow
+# dispatches that task on every release so the new tag gets a uniform evidence
+# bundle attached.
 #
 # Caller pattern (in each consumer):
-#   name: Release Please
+#   name: Release
 #   on:
 #     push:
 #       branches: [main]
@@ -17,9 +17,10 @@ name: Reusable Release Please
 #     contents: write
 #     pull-requests: write
 #     issues: write
+#     actions: write
 #   jobs:
 #     release:
-#       uses: NWarila/terraform-runner-template/.github/workflows/reusable-release-please.yaml@<sha>
+#       uses: <owner>/<template-repo>/.github/workflows/reusable-release-please.yaml@<sha>
 
 on:
   workflow_call:
@@ -66,15 +67,12 @@ jobs:
           config-file: ${{ inputs.config_file }}
           manifest-file: ${{ inputs.manifest_file }}
 
-      - name: Dispatch release-evidence
+      - name: Dispatch release evidence
         if: ${{ steps.release.outputs.release_created == 'true' }}
         env:
-          # release-please publishes the release using GITHUB_TOKEN, and
-          # GITHUB_TOKEN-driven events do not cascade to other workflows.
-          # Dispatching release-evidence.yaml explicitly via the gh CLI is
-          # exempt from that cascade restriction. Every consumer has the
-          # release-evidence.yaml caller per the universal contract.
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # workflow_dispatch triggered by GITHUB_TOKEN is allowed by GitHub,
+          # unlike most cascading workflow events.
+          GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ steps.release.outputs.tag_name }}
           REPOSITORY: ${{ github.repository }}
-        run: gh workflow run release-evidence.yaml --ref "$TAG_NAME" --repo "$REPOSITORY"
+        run: gh workflow run release.yaml --field task=release-evidence --ref "$TAG_NAME" --repo "$REPOSITORY"

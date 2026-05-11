@@ -13,19 +13,8 @@ the same tooling consumer runners use:
 ## The development loop
 
 ```sh
-# Lint the Python tools
-ruff check tools/
-
-# Lint the workflows
-yamllint .github/workflows/ contract/
-
-# Smoke-test audit tools and validate this repo against the template contract
-python tools/check_template_contract.py --help
-python tools/check_caller_workflows.py --help
-python tools/check_template_contract.py --repo-root . --contract contract/runner-template-contract.yaml --type template
-
-# Run zizmor against workflows
-zizmor --persona regular .github/workflows/
+python tools/verify.py ci
+python tools/verify.py integration
 ```
 
 ## Editing org-baseline-mirrored files
@@ -55,6 +44,6 @@ own pin bumps (Renovate-managed).
 
 ## Before opening a PR
 
-Self-CI runs the same gates above; if they pass locally, CI will pass.
+CI runs the same gates above; if they pass locally, CI will pass.
 Branch protection on `main` requires all status checks green before
 merge.

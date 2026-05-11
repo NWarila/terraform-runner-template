@@ -1,7 +1,8 @@
 name: Auto-Merge
 
 # Enables GitHub auto-merge on trusted-bot PRs once required status checks
-# pass. Human-authored PRs are never auto-merged by this workflow.
+# pass. Kept separate from release.yaml so pull_request_target has one
+# narrow, reviewable purpose.
 
 on:
   pull_request_target:

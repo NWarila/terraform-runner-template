@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build OPA input from this repository's real files.
 
-The golden_terraform policy expects a compact JSON document containing
+The repo_hygiene policy expects a compact JSON document containing
 workflow `uses:` references plus selected file contents. This script turns the
 checked-out repo into that input so `opa eval` enforces policy against the
 actual files under review, not only policy unit-test fixtures.
