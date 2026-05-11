@@ -1,0 +1,67 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.15.1",
+  "configuration": {
+    "root_module": {
+      "resources": [
+        {
+          "address": "aws_s3_bucket.public_logs",
+          "mode": "managed",
+          "type": "aws_s3_bucket",
+          "name": "public_logs",
+          "lifecycle": {
+            "prevent_destroy": true
+          }
+        },
+        {
+          "address": "aws_security_group.admin",
+          "mode": "managed",
+          "type": "aws_security_group",
+          "name": "admin"
+        }
+      ]
+    }
+  },
+  "resource_changes": [
+    {
+      "address": "aws_s3_bucket.public_logs",
+      "mode": "managed",
+      "type": "aws_s3_bucket",
+      "name": "public_logs",
+      "change": {
+        "actions": ["create"],
+        "after": {
+          "bucket": "public-logs",
+          "tags": {
+            "owner": "platform",
+            "environment": "prod",
+            "managed_by": "terraform"
+          }
+        }
+      }
+    },
+    {
+      "address": "aws_security_group.admin",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "admin",
+      "change": {
+        "actions": ["create"],
+        "after": {
+          "ingress": [
+            {
+              "from_port": 22,
+              "to_port": 22,
+              "cidr_blocks": ["0.0.0.0/0"]
+            }
+          ],
+          "tags": {
+            "owner": "platform",
+            "environment": "prod",
+            "managed_by": "terraform"
+          }
+        }
+      }
+    }
+  ]
+}

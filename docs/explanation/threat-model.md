@@ -27,9 +27,10 @@ What this template does NOT guarantee:
 - The consumed framework's correctness. If the framework is broken,
   runner deploys break — but the runner's `pr-validation` would catch
   it before merge by running the framework quality gate against the assembled tree.
-- AWS credentials handling. Runners use OIDC via
-  `aws-actions/configure-aws-credentials` with `mask-aws-account-id:
-  true`; the role permissions are configured outside this template.
+- AWS credentials handling. This template forbids static AWS access key names in
+  deploy workflow YAML, but OIDC action wiring and role permissions are owned by
+  the consumed framework deploy reusable and the AWS bootstrap configuration
+  outside this template.
 
 ## Elevation of Privilege
 

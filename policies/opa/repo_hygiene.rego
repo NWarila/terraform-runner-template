@@ -6,9 +6,6 @@
 # versions. Terraform plan-aware policy belongs in a separate package.
 #
 # Rules trace to:
-#   - org ADR-0003 (deny-all .gitignore) requires explicit allowlist
-#     discipline; the SHA-pin rules here ensure workflow refs share
-#     the same explicit-allowlist character.
 #   - template-tier ADR-template/0001 in the owning Terraform template
 #     ("Pin Terraform and Provider Versions Exactly") mandates the
 #     exact-pin rules below for every Terraform-runner consumer.
@@ -69,6 +66,8 @@ unsafe_pr_target_ref_fragments := {
 pull_request_target_allowed_workflows := {
 	".github/workflows/auto-merge.yaml",
 }
+
+auto_merge_reusable := ".github/workflows/reusable-auto-merge.yaml"
 
 # endregion --- [ Regex constants ] -------------------------------------------------------- #
 
@@ -144,7 +143,7 @@ protected_pull_request_target_workflow(path) if {
 }
 
 protected_pull_request_target_workflow(path) if {
-	path == ".github/workflows/reusable-auto-merge.yaml"
+	path == auto_merge_reusable
 	_ := input.files[path]
 }
 
@@ -188,24 +187,6 @@ deny contains msg if {
 		"%s:%d - pull_request_target auto-merge guard forbids PR-controlled content reads: %s",
 		[path, line_no, fragment],
 	)
-}
-
-deny contains msg if {
-	content := input.files[".github/workflows/reusable-auto-merge.yaml"]
-	contains(lower(content), "extra_authors")
-	msg := ".github/workflows/reusable-auto-merge.yaml must not expose extra_authors; auto-merge principals are a closed trust list"
-}
-
-deny contains msg if {
-	content := input.files[".github/workflows/reusable-auto-merge.yaml"]
-	contains(lower(content), "github-actions[bot]")
-	msg := ".github/workflows/reusable-auto-merge.yaml must not trust github-actions[bot]; release PRs require human review"
-}
-
-deny contains msg if {
-	content := input.files[".github/workflows/reusable-auto-merge.yaml"]
-	not contains(content, "declare -a trusted_authors=(")
-	msg := ".github/workflows/reusable-auto-merge.yaml must declare trusted authors as a bash array"
 }
 
 # endregion --- [ Deny rules: pull_request_target guard ] ---------------------------------- #

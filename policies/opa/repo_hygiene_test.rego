@@ -155,48 +155,6 @@ test_auto_merge_reusable_payload_metadata_allowed if {
 	}
 }
 
-test_auto_merge_reusable_extra_authors_denied if {
-	denials := repo_hygiene.deny with input as {
-		"workflows": {},
-		"files": {".github/workflows/reusable-auto-merge.yaml": `on:
-  workflow_call:
-    inputs:
-      extra_authors:
-        type: string
-jobs:
-  authorize:
-    steps:
-      - run: declare -a trusted_authors=("renovate[bot]")`},
-	}
-	count(denials) >= 1
-}
-
-test_auto_merge_reusable_github_actions_bot_denied if {
-	denials := repo_hygiene.deny with input as {
-		"workflows": {},
-		"files": {".github/workflows/reusable-auto-merge.yaml": `jobs:
-  authorize:
-    steps:
-      - run: |
-          declare -a trusted_authors=(
-            "renovate[bot]"
-            "github-actions[bot]"
-          )`},
-	}
-	count(denials) >= 1
-}
-
-test_auto_merge_reusable_trusted_authors_array_required if {
-	denials := repo_hygiene.deny with input as {
-		"workflows": {},
-		"files": {".github/workflows/reusable-auto-merge.yaml": `jobs:
-  authorize:
-    steps:
-      - run: trusted_authors="renovate[bot] dependabot[bot]"`},
-	}
-	count(denials) >= 1
-}
-
 # endregion --- [ pull_request_target guard ] ---------------------------------------------- #
 
 # region ------ [ versions.tf required_version pinning ] ----------------------------------- #

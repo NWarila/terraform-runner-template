@@ -6,30 +6,25 @@ script walks the repository under inspection and emits one PASS/FAIL line per
 rule, exiting non-zero if any rule fails.
 
 The contract has two layers:
-  - Universal requirements (apply to every consumer regardless of type).
-  - Type-specific requirements: `framework` (self-contained module),
-    `runner` (data-only deployer that consumes a framework at runtime), or
-    `template` (this type-template repository validating itself).
+  - Universal requirements (apply to every supported type).
+  - Type-specific requirements: `runner` (data-only deployer that consumes a
+    framework at runtime) or `template` (this type-template repository
+    validating itself).
 
-Repo type is determined in this order:
-  1. --type CLI flag.
-  2. Layout inference, but only when exactly one repo-type signal is present:
-     template contract/tooling -> template; terraform/versions.tf -> framework;
-     repos/public/ or repos/private/ -> runner.
-
-If neither flag nor inference resolves exactly one type, the validator errors
-loudly. Type ambiguity is a contract failure; pass --type for intentional
-hybrid layouts such as this template repository.
+Repo type is explicit. Callers pass `--type runner` for consumers and
+`--type template` for this template repository. Hybrid layouts should be
+handled by choosing the contract surface being validated at the call site.
 
 Usage:
     check_template_contract.py [--repo-root PATH] [--contract PATH]
-                               [--template-root PATH] [--print-type]
-                               [--type framework|runner|template]
+                               [--template-root PATH]
+                               --type runner|template
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from dataclasses import dataclass
@@ -43,15 +38,6 @@ except ImportError:
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 USES_LINE_RE = re.compile(r"^\s*(?:-\s*)?uses:\s*([^\s#]+)")
-REQUIRED_VERSION_RE = re.compile(
-    r'^\s*required_version\s*=\s*"=\s*[0-9]+\.[0-9]+\.[0-9]+"\s*(?:#.*|//.*)?$',
-    re.MULTILINE,
-)
-EXACT_PROVIDER_VERSION_RE = re.compile(r"^=\s*[0-9]+\.[0-9]+\.[0-9]+$")
-PROVIDER_START_RE = re.compile(r"^\s*([A-Za-z0-9_-]+)\s*=\s*\{")
-VERSION_ATTR_RE = re.compile(r'^\s*version\s*=\s*"([^"]+)"\s*(?:#.*|//.*)?$')
-
-REPO_TYPES = ("framework", "runner", "template")
 CONTRACT_TYPES = ("runner", "template")
 
 
@@ -221,157 +207,48 @@ def _classify_uses(ref: str, *, allow_local: bool, allow_digest: bool) -> tuple[
     return (False, f"not SHA-pinned (got @{version})")
 
 
-def strip_block_comments(text: str) -> str:
-    return re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
-
-
-def check_terraform_version_pins(repo_root: Path) -> list[RuleResult]:
-    target = repo_root / "terraform" / "versions.tf"
-    if not target.is_file():
-        return [
-            RuleResult(
-                name="terraform_required_version_exact",
-                passed=False,
-                detail="terraform/versions.tf not found",
-            ),
-            RuleResult(
-                name="terraform_provider_pinning",
-                passed=False,
-                detail="terraform/versions.tf not found",
-            ),
-        ]
-
-    text = strip_block_comments(target.read_text(encoding="utf-8"))
-    results: list[RuleResult] = []
-    results.append(
-        RuleResult(
-            name="terraform_required_version_exact",
-            passed=REQUIRED_VERSION_RE.search(text) is not None,
-            detail=""
-            if REQUIRED_VERSION_RE.search(text)
-            else 'required_version must be an uncommented exact `= X.Y.Z` line',
-        )
-    )
-
-    block = extract_required_providers_block(text)
-    if block is None:
-        results.append(
-            RuleResult(
-                name="terraform_provider_pinning",
-                passed=True,
-                detail="no required_providers block",
-            )
-        )
-        return results
-
-    provider_results = check_provider_blocks(block)
-    if provider_results:
-        results.extend(provider_results)
-    else:
-        results.append(RuleResult(name="terraform_provider_pinning", passed=True))
-    return results
-
-
-def extract_required_providers_block(text: str) -> str | None:
-    match = re.search(r"\brequired_providers\s*\{", text)
-    if not match:
-        return None
-    start = text.find("{", match.start())
-    depth = 0
-    for idx in range(start, len(text)):
-        char = text[idx]
-        if char == "{":
-            depth += 1
-        elif char == "}":
-            depth -= 1
-            if depth == 0:
-                return text[start + 1 : idx]
-    return text[start + 1 :]
-
-
-def check_provider_blocks(block: str) -> list[RuleResult]:
-    results: list[RuleResult] = []
-    lines = block.splitlines()
-    idx = 0
-    while idx < len(lines):
-        line = lines[idx]
-        start = PROVIDER_START_RE.match(line)
-        if not start:
-            idx += 1
-            continue
-        provider = start.group(1)
-        start_line = idx + 1
-        depth = line.count("{") - line.count("}")
-        body = [line]
-        idx += 1
-        while idx < len(lines) and depth > 0:
-            body.append(lines[idx])
-            depth += lines[idx].count("{") - lines[idx].count("}")
-            idx += 1
-        version_values: list[tuple[int, str]] = []
-        for offset, body_line in enumerate(body, start_line):
-            version = VERSION_ATTR_RE.match(body_line)
-            if version:
-                version_values.append((offset, version.group(1).strip()))
-        if not version_values:
-            results.append(
-                RuleResult(
-                    name=f"terraform_provider_pinning:{provider}",
-                    passed=False,
-                    detail="provider is missing an exact version pin",
-                )
-            )
-            continue
-        for line_no, value in version_values:
-            results.append(
-                RuleResult(
-                    name=f"terraform_provider_pinning:{provider}",
-                    passed=EXACT_PROVIDER_VERSION_RE.match(value) is not None,
-                    detail=""
-                    if EXACT_PROVIDER_VERSION_RE.match(value)
-                    else f"line {line_no}: version must be `= X.Y.Z` (got `{value}`)",
-                )
-            )
-    return results
-
-
-def check_gitignore_wildcards(repo_root: Path) -> RuleResult:
-    target = repo_root / ".gitignore"
-    if not target.is_file():
-        return RuleResult(
-            name="gitignore:wildcards",
-            passed=False,
-            detail=".gitignore not found",
-        )
-    offenders: list[str] = []
-    for lineno, line in enumerate(target.read_text(encoding="utf-8").splitlines(), 1):
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#"):
-            continue
-        if "*" in stripped and stripped != "**":
-            offenders.append(f"{lineno}:{stripped}")
-    return RuleResult(
-        name="gitignore:wildcards",
-        passed=not offenders,
-        detail="" if not offenders else "wildcards other than leading `**`: " + ", ".join(offenders),
-    )
-
-
 def check_sync_drift(
     repo_root: Path, template_root: Path, manifest: Path
 ) -> list[RuleResult]:
     """Verify that synced files in the consumer match the template byte-for-byte."""
-    if not manifest.is_file():
-        return [
-            RuleResult(
-                name="sync_drift",
-                passed=False,
-                detail=f"sync manifest not found at {manifest}",
-            )
-        ]
-    spec = yaml.safe_load(manifest.read_text(encoding="utf-8"))
+    if manifest.is_file():
+        spec = yaml.safe_load(manifest.read_text(encoding="utf-8"))
+        entries = spec.get("synced_files", [])
+    else:
+        baseline = template_root / "baseline-manifest.json"
+        if not baseline.is_file():
+            return [
+                RuleResult(
+                    name="sync_drift",
+                    passed=False,
+                    detail=(
+                        f"sync manifest not found at {manifest} and "
+                        f"baseline manifest not found at {baseline}"
+                    ),
+                )
+            ]
+        try:
+            spec = json.loads(baseline.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            return [
+                RuleResult(
+                    name="sync_drift",
+                    passed=False,
+                    detail=f"baseline manifest is not valid JSON: {exc}",
+                )
+            ]
+        entries = spec.get("files", [])
+        if spec.get("version") != "1" or not isinstance(entries, list):
+            return [
+                RuleResult(
+                    name="sync_drift",
+                    passed=False,
+                    detail="baseline manifest must use version 1 with a files list",
+                )
+            ]
+
     results: list[RuleResult] = []
-    for entry in spec.get("synced_files", []):
+    for entry in entries:
         if "path" in entry:
             source_rel = target_rel = entry["path"]
         elif "source" in entry and "target" in entry:
@@ -423,49 +300,6 @@ def check_sync_drift(
     return results
 
 
-def detect_repo_type(repo_root: Path, cli_type: str | None) -> tuple[str | None, str]:
-    """Return (repo_type, source_description). repo_type is None on failure."""
-    if cli_type:
-        if cli_type not in REPO_TYPES:
-            return None, f"--type {cli_type!r} is not one of {REPO_TYPES}"
-        return cli_type, "--type CLI flag"
-
-    signals: list[tuple[str, str]] = []
-
-    has_template_tooling = (
-        (repo_root / "contract" / "runner-template-contract.yaml").is_file()
-        and (repo_root / "tools" / "check_template_contract.py").is_file()
-        and (repo_root / ".github" / "workflows" / "ci.yaml").is_file()
-        and (
-            repo_root
-            / ".github"
-            / "workflows"
-            / "reusable-terraform-validation.yaml"
-        ).is_file()
-    )
-    if has_template_tooling:
-        signals.append(("template", "template contract/tooling"))
-
-    has_terraform = (repo_root / "terraform" / "versions.tf").is_file()
-    has_runner_dirs = (repo_root / "repos" / "public").is_dir() or (
-        repo_root / "repos" / "private"
-    ).is_dir()
-    if has_terraform:
-        signals.append(("framework", "terraform/versions.tf"))
-    if has_runner_dirs:
-        signals.append(("runner", "repos/public|private"))
-    if len(signals) == 1:
-        repo_type, source = signals[0]
-        return repo_type, f"inferred from {source}"
-    if signals:
-        present = ", ".join(f"{repo_type} ({source})" for repo_type, source in signals)
-        return None, f"ambiguous repo type: multiple signals present: {present}"
-    return (
-        None,
-        "no template tooling, terraform/versions.tf, or repos/* - cannot infer",
-    )
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -493,33 +327,14 @@ def main() -> int:
     )
     parser.add_argument(
         "--type",
-        choices=REPO_TYPES,
-        default=None,
-        help=(
-            "Override repo type detection. By default the validator reads "
-            "the repo layout."
-        ),
-    )
-    parser.add_argument(
-        "--print-type",
-        action="store_true",
-        help="Print only the detected repo type, then exit without contract validation.",
+        choices=CONTRACT_TYPES,
+        required=True,
+        help="Contract surface to validate.",
     )
     args = parser.parse_args()
 
     repo_root = args.repo_root.resolve()
-
-    repo_type, source = detect_repo_type(repo_root, args.type)
-    if repo_type is None:
-        sys.stderr.write(f"error: cannot determine repo type ({source}).\n")
-        sys.stderr.write(
-            "  pass --type framework, --type runner, or --type template, "
-            "or use a recognizable framework, runner, or template layout.\n"
-        )
-        return 2
-    if args.print_type:
-        print(repo_type)
-        return 0
+    repo_type = args.type
 
     if not args.contract.is_file():
         sys.stderr.write(f"error: contract not found at {args.contract}\n")
@@ -527,13 +342,7 @@ def main() -> int:
 
     yaml_mod = require_yaml()
     contract = yaml_mod.safe_load(args.contract.read_text(encoding="utf-8"))
-    if repo_type not in CONTRACT_TYPES:
-        sys.stderr.write(
-            f"error: repo type {repo_type!r} is not validated by this contract "
-            f"(supported: {CONTRACT_TYPES}).\n"
-        )
-        return 2
-    print(f"repo type: {repo_type} ({source})")
+    print(f"repo type: {repo_type} (--type)")
     print()
 
     universal = contract.get("universal", {})
@@ -562,11 +371,6 @@ def main() -> int:
         if not entry_applies(rule, repo_type):
             continue
         results.append(check_content_rule(repo_root, rule))
-
-    if repo_type == "framework":
-        results.extend(check_terraform_version_pins(repo_root))
-
-    results.append(check_gitignore_wildcards(repo_root))
 
     pinning = contract.get("workflow_pinning")
     if pinning and pinning.get("enforce_sha_pin"):

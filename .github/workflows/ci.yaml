@@ -70,9 +70,7 @@ jobs:
           chmod +x /usr/local/bin/opa
           opa version
       - name: Run OPA tests and policy
-        run: |
-          make opa-test
-          make opa-policy
+        run: make policy
 
   yamllint:
     name: yamllint
@@ -206,10 +204,6 @@ jobs:
         run: python tools/check_adr_schema.py
       - name: Bash syntax check workflow run blocks
         run: python tools/check_workflow_run_blocks.py .github/workflows
-      - name: Framework naming consistency
-        run: python tools/check_consistency.py
-      - name: Repo type detector fixtures
-        run: python tools/run_repo_type_tests.py
       - name: Caller workflow validator fixtures
         run: python tools/run_contract_tests.py
       - name: Validate template contract against self

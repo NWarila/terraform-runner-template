@@ -2,7 +2,20 @@ PYTHON ?= python3
 FRAMEWORK_SOURCE ?= ../terraform-framework-template/terraform
 INTEGRATION_CASE ?= basic
 
-.PHONY: ruff yamllint opa-test opa-policy opa-plan manifest-check contract-check contract-tests lint policy docs-check consistency-check integration ci verify
+.PHONY: help setup ruff yamllint opa-test opa-policy opa-plan manifest-check contract-check contract-tests lint policy docs-check integration ci verify
+
+help:
+	@printf "Targets:\\n"
+	@printf "  setup          Install local Python lint dependencies\\n"
+	@printf "  lint           Run Python/workflow lint checks\\n"
+	@printf "  policy         Run OPA tests and policy evaluation\\n"
+	@printf "  docs-check     Check docs layout and ADR index\\n"
+	@printf "  ci             Run the repo-local quality gate\\n"
+	@printf "  integration    Compose this runner with a framework checkout\\n"
+	@printf "  verify         Run ci plus integration\\n"
+
+setup:
+	$(PYTHON) -m pip install --upgrade pyyaml==6.0.3 ruff==0.13.0 yamllint==1.35.1
 
 # This is a META-TEMPLATE for Terraform-runner repos. It does not
 # contain a `terraform/` directory of its own — the runner pattern
@@ -66,9 +79,6 @@ policy:
 
 docs-check:
 	$(PYTHON) tools/verify.py docs-check
-
-consistency-check:
-	$(PYTHON) tools/verify.py consistency-check
 
 integration:
 	$(PYTHON) tools/verify.py integration --case $(INTEGRATION_CASE) --framework-source "$(FRAMEWORK_SOURCE)"

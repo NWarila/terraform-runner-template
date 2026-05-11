@@ -1,23 +1,17 @@
 # terraform-runner-template
 
-The opinionated template for **terraform-runner** repositories under any NWarila-owned organization (`NWarila`, `nwarila-platform`, `the-hero-wars-guys`, …).
+Template for data-only Terraform runner repositories: a runner owns `repos/public/` and `repos/private/`, pins the framework it consumes, and delegates validation/deploy to reusable workflows instead of carrying its own top-level `terraform/` tree.
 
-A *runner* is a data-only deployer: it owns an inventory of repository definitions in `repos/public/` and `repos/private/` (the latter typically fetched from S3 at deploy time) and delegates the actual `terraform apply` to a Terraform framework's reusable workflow. **Runners contain no `terraform/` directory of their own** — that's the framework's job.
+## Quickstart
 
-This template provides the contract every runner must satisfy plus the canonical caller-workflow set.
+```sh
+make help
+make setup
+python tools/verify.py ci
+python tools/verify.py integration --framework-source ../terraform-framework-template/terraform
+```
 
-For a real runner derived from this template, edit these first:
-
-1. `README.md` and repo-specific docs.
-2. `repos/public/` and the source for `repos/private/`.
-3. `pr-validation.yaml` and `terraform-deploy.yaml` refs.
-4. `docs/decision-records/repo/` for local decisions.
-5. AWS/OIDC bootstrap resources outside this runner repo.
-6. Optional release layer, only if the repo publishes versioned releases.
-
-The mirroring rules live in [`docs/reference/mirroring.md`](docs/reference/mirroring.md).
-The AWS bootstrap contract lives in
-[`docs/reference/aws-bootstrap-requirements.md`](docs/reference/aws-bootstrap-requirements.md).
+For a real runner derived from this template, update `repos/public/`, the private inventory source, `.github/workflows/pr-validation.yaml`, `.github/workflows/terraform-deploy.yaml`, and any repo-local decisions under `docs/decision-records/repo/`. The mirroring rules live in [`docs/reference/mirroring.md`](docs/reference/mirroring.md); AWS bootstrap expectations live in [`docs/reference/aws-bootstrap-requirements.md`](docs/reference/aws-bootstrap-requirements.md).
 
 ## Normalized repo interface
 
