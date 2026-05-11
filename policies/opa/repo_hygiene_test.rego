@@ -143,6 +143,11 @@ test_auto_merge_reusable_pr_head_ref_denied if {
 test_auto_merge_reusable_payload_metadata_allowed if {
 	count(repo_hygiene.deny) == 0 with input as {
 		"workflows": {},
+		"workflow_data": {".github/workflows/reusable-auto-merge.yaml": {
+			"workflow_call_inputs": [],
+			"has_trusted_authors_array": true,
+			"trusted_authors": ["renovate[bot]", "dependabot[bot]"],
+		}},
 		"files": {".github/workflows/reusable-auto-merge.yaml": `jobs:
   enable-auto-merge:
     steps:
@@ -158,6 +163,11 @@ test_auto_merge_reusable_payload_metadata_allowed if {
 test_auto_merge_reusable_extra_authors_denied if {
 	denials := repo_hygiene.deny with input as {
 		"workflows": {},
+		"workflow_data": {".github/workflows/reusable-auto-merge.yaml": {
+			"workflow_call_inputs": ["extra_authors"],
+			"has_trusted_authors_array": true,
+			"trusted_authors": ["renovate[bot]"],
+		}},
 		"files": {".github/workflows/reusable-auto-merge.yaml": `on:
   workflow_call:
     inputs:
@@ -174,6 +184,11 @@ jobs:
 test_auto_merge_reusable_github_actions_bot_denied if {
 	denials := repo_hygiene.deny with input as {
 		"workflows": {},
+		"workflow_data": {".github/workflows/reusable-auto-merge.yaml": {
+			"workflow_call_inputs": [],
+			"has_trusted_authors_array": true,
+			"trusted_authors": ["renovate[bot]", "github-actions[bot]"],
+		}},
 		"files": {".github/workflows/reusable-auto-merge.yaml": `jobs:
   authorize:
     steps:
@@ -189,6 +204,11 @@ test_auto_merge_reusable_github_actions_bot_denied if {
 test_auto_merge_reusable_trusted_authors_array_required if {
 	denials := repo_hygiene.deny with input as {
 		"workflows": {},
+		"workflow_data": {".github/workflows/reusable-auto-merge.yaml": {
+			"workflow_call_inputs": [],
+			"has_trusted_authors_array": false,
+			"trusted_authors": [],
+		}},
 		"files": {".github/workflows/reusable-auto-merge.yaml": `jobs:
   authorize:
     steps:

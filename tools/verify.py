@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -67,6 +68,7 @@ def install(package: str) -> None:
 
 
 def opa_policy() -> None:
+    install("pyyaml==6.0.3")
     opa_input = capture([PYTHON, "tools/build_opa_input.py"])
     run(
         [
@@ -85,24 +87,72 @@ def opa_policy() -> None:
 
 
 def opa_plan() -> None:
-    fixture = ROOT / "tests" / "fixtures" / "terraform-plan" / "safe-plan.json"
-    if not fixture.is_file():
-        raise SystemExit(f"missing Terraform plan fixture: {fixture}")
+    safe_fixture = ROOT / "tests" / "fixtures" / "terraform-plan" / "safe-plan.json"
+    bad_fixture = ROOT / "tests" / "fixtures" / "terraform-plan" / "bad-plan.json"
+    if not safe_fixture.is_file():
+        raise SystemExit(f"missing Terraform plan fixture: {safe_fixture}")
+    if not bad_fixture.is_file():
+        raise SystemExit(f"missing Terraform plan fixture: {bad_fixture}")
+    safe_denies = opa_plan_denies(safe_fixture)
+    if safe_denies:
+        raise SystemExit(
+            "safe Terraform plan fixture produced denial(s): "
+            + "; ".join(safe_denies)
+        )
+    bad_denies = opa_plan_denies(bad_fixture)
+    expected = (
+        "aws_s3_bucket.public_logs must have server-side encryption configuration",
+        "aws_security_group.admin must not expose admin port 22 to the world",
+    )
+    missing = [
+        fragment
+        for fragment in expected
+        if not any(fragment in denial for denial in bad_denies)
+    ]
+    extra = [
+        denial
+        for denial in bad_denies
+        if not any(fragment in denial for fragment in expected)
+    ]
+    if missing:
+        raise SystemExit(
+            "bad Terraform plan fixture did not produce expected denial(s): "
+            + "; ".join(missing)
+        )
+    if extra:
+        raise SystemExit(
+            "bad Terraform plan fixture produced unexpected denial(s): "
+            + "; ".join(extra)
+        )
+    print(f"Terraform plan policy fixtures passed: {len(bad_denies)} bad-plan denials")
+
+
+def opa_plan_denies(fixture: Path) -> list[str]:
     opa_input = capture([PYTHON, "tools/build_plan_input.py", "--plan-json", str(fixture)])
-    run(
+    output = capture(
         [
             "opa",
             "eval",
-            "--fail-defined",
             "--format",
-            "pretty",
+            "json",
             "--stdin-input",
             "--data",
             "policies/opa",
-            "data.terraform_plan.deny[_]",
+            "data.terraform_plan.deny",
         ],
         input_text=opa_input,
     )
+    payload = json.loads(output)
+    result = payload.get("result", [])
+    if not result:
+        return []
+    expressions = result[0].get("expressions", [])
+    if not expressions:
+        return []
+    value = expressions[0].get("value", [])
+    if not isinstance(value, list):
+        return []
+    return [str(denial) for denial in value]
 
 
 def run_if_available(executable: str, args: list[str]) -> None:
@@ -117,6 +167,15 @@ def run_if_available(executable: str, args: list[str]) -> None:
             print(f"skip: {executable} could not be launched", flush=True)
             return
         raise
+
+
+def workflow_files() -> list[str]:
+    workflows = ROOT / ".github" / "workflows"
+    return sorted(
+        path.relative_to(ROOT).as_posix()
+        for pattern in ("*.yml", "*.yaml")
+        for path in workflows.glob(pattern)
+    )
 
 
 def contract_shape() -> None:
@@ -152,13 +211,16 @@ def build_steps(case: str, framework_source: str) -> dict[str, Step]:
                 ]
             ),
         ),
-        "actionlint": lambda: run_if_available("actionlint", [".github/workflows"]),
+        "actionlint": lambda: run_if_available("actionlint", workflow_files()),
         "shellcheck": lambda: run_if_available("shellcheck", ["tools/install_ci_tools.sh"]),
         "markdownlint": lambda: run_if_available("markdownlint-cli2", ["**/*.md"]),
         "opa-test": lambda: run(["opa", "test", "policies/opa"]),
         "opa-policy": opa_policy,
         "opa-plan": opa_plan,
-        "manifest-check": lambda: run([PYTHON, "tools/check_baseline_manifest.py"]),
+        "manifest-check": lambda: (
+            run([PYTHON, "tools/check_baseline_manifest.py"]),
+            run([PYTHON, "tools/check_baseline_self_consistency.py"]),
+        ),
         "contract-shape": contract_shape,
         "contract-check": lambda: (
             contract_shape(),

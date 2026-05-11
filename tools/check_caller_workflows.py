@@ -298,6 +298,41 @@ def validate_overlay_paths(repo_root: Path, value: Any, *, input_name: str) -> R
     )
 
 
+def validate_tfvars_file(repo_root: Path, value: Any, *, input_name: str) -> RuleResult:
+    result_name = (
+        input_name if input_name.startswith("terraform-deploy:") else f"input:{input_name}"
+    )
+    if value in (None, ""):
+        return RuleResult(name=result_name, passed=True, detail="default empty")
+    if not isinstance(value, str):
+        return RuleResult(
+            name=result_name,
+            passed=False,
+            detail=f"must be a relative path string, got {value!r}",
+        )
+
+    path, error = normalize_posix_path(value)
+    if path is None:
+        return RuleResult(
+            name=result_name,
+            passed=False,
+            detail=error,
+        )
+    if not path_is_under(path, SAFE_OVERLAY_SOURCES):
+        return RuleResult(
+            name=result_name,
+            passed=False,
+            detail=f"{path!r} is outside allowed runner data paths",
+        )
+    if not local_path_from_posix(repo_root, path).is_file():
+        return RuleResult(
+            name=result_name,
+            passed=False,
+            detail=f"{path!r} does not exist",
+        )
+    return RuleResult(name=result_name, passed=True, detail=path)
+
+
 def check_pr_validation(
     repo_root: Path,
 ) -> tuple[list[RuleResult], PrValidationContext | None]:
@@ -587,6 +622,13 @@ def check_terraform_deploy(repo_root: Path, pr: PrValidationContext) -> list[Rul
                 input_name="terraform-deploy.overlay_paths",
             )
         )
+    results.append(
+        validate_tfvars_file(
+            repo_root,
+            inputs.get("tfvars_file"),
+            input_name="terraform-deploy:input:tfvars_file",
+        )
+    )
 
     return results
 

@@ -6,8 +6,8 @@
 | Date           | 2026-05-11                              |
 | Authors        | Nick Warila (@NWarila)                  |
 | Decision-maker | Nick Warila (sole portfolio maintainer) |
-| Consulted      | None.                                   |
-| Informed       | None.                                   |
+| Consulted      | zizmor findings and OPA policy review.  |
+| Informed       | Trusted-bot auto-merge consumers via workflow docs. |
 | Reversibility  | Medium                                  |
 | Review-by      | N/A (Accepted)                          |
 
@@ -152,8 +152,8 @@ None (current).
 
 ## Implementing PRs
 
-Pending. The implementing change splits auto-merge and release callers, adds
-the OPA release-trigger rule, and wires ADR schema/index checks into CI.
+- [`7400021`](https://github.com/NWarila/terraform-runner-template/commit/7400021e15fad6a47c1afdaf904e4dcf0d5f6eb0) added the pull-request-target OPA allowlist and runner contract gates.
+- [`b269b3c`](https://github.com/NWarila/terraform-runner-template/commit/b269b3cb0cc897ddb684a3ac0f98ab38839e1d42) documented the scoped zizmor waiver for the isolated auto-merge caller.
 
 ## Related ADRs
 

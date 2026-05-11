@@ -70,9 +70,7 @@ jobs:
           chmod +x /usr/local/bin/opa
           opa version
       - name: Run OPA tests and policy
-        run: |
-          make opa-test
-          make opa-policy
+        run: make policy
 
   yamllint:
     name: yamllint

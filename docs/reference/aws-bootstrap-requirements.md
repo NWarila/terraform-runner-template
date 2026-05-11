@@ -62,6 +62,7 @@ Example branch-scoped trust policy:
       "Condition": {
         "StringEquals": {
           "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+          "token.actions.githubusercontent.com:repository_id": "<numeric-repo-id>",
           "token.actions.githubusercontent.com:sub": "repo:<owner>/<runner-repo>:ref:refs/heads/main"
         }
       }
@@ -69,6 +70,14 @@ Example branch-scoped trust policy:
   ]
 }
 ```
+
+Include `token.actions.githubusercontent.com:repository_id` whenever the AWS
+account hosts roles for portfolio repositories that might be renamed,
+transferred, or recreated. The numeric repository ID is immutable across
+renames; the textual `sub` claim is not. Pinning both closes a rename-squatting
+window where a deleted repo's name could be reclaimed by an attacker who then
+re-establishes the original `sub` value. Retrieve the ID once with
+`gh api repos/<owner>/<repo> --jq .id` and write it into the trust policy.
 
 If the runner uses GitHub Environments for deployment approval, scope `sub` to
 the environment instead:
@@ -85,7 +94,7 @@ If the framework uses the S3 backend required by
 `ADR-template/0002`, the deploy role needs access to the specific state bucket
 and key prefix for that runner.
 
-Minimum S3 policy shape:
+Minimum hardened S3 policy shape:
 
 ```json
 {
@@ -105,18 +114,60 @@ Minimum S3 policy shape:
       }
     },
     {
-      "Sid": "ReadWriteRunnerStateObjects",
+      "Sid": "ReadWriteRunnerStateFile",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::<state-bucket>/runners/<runner-repo>/terraform.tfstate"
+    },
+    {
+      "Sid": "ManageRunnerStateLockfile",
       "Effect": "Allow",
       "Action": [
         "s3:GetObject",
         "s3:PutObject",
         "s3:DeleteObject"
       ],
-      "Resource": "arn:aws:s3:::<state-bucket>/runners/<runner-repo>/*"
+      "Resource": "arn:aws:s3:::<state-bucket>/runners/<runner-repo>/terraform.tfstate.tflock"
+    },
+    {
+      "Sid": "DenyDeleteRunnerStateFile",
+      "Effect": "Deny",
+      "Action": "s3:DeleteObject",
+      "Resource": "arn:aws:s3:::<state-bucket>/runners/<runner-repo>/terraform.tfstate"
+    },
+    {
+      "Sid": "DenyUnencryptedRunnerStatePuts",
+      "Effect": "Deny",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::<state-bucket>/runners/<runner-repo>/*",
+      "Condition": {
+        "StringNotEquals": {
+          "s3:x-amz-server-side-encryption": "AES256"
+        }
+      }
+    },
+    {
+      "Sid": "DenyRunnerStatePutsWithoutEncryptionHeader",
+      "Effect": "Deny",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::<state-bucket>/runners/<runner-repo>/*",
+      "Condition": {
+        "Null": {
+          "s3:x-amz-server-side-encryption": "true"
+        }
+      }
     }
   ]
 }
 ```
+
+The state object and lockfile object are split intentionally. The state file can
+be read and written but not deleted; the lockfile can be deleted so Terraform's
+S3 native locking can release it. Keep the explicit delete deny and both
+encryption deny guards even when the bucket has default encryption enabled.
 
 If the bucket uses SSE-KMS, also grant the role the narrow KMS actions required
 for that key:
@@ -168,6 +219,157 @@ Framework-specific permissions must be:
 - Kept out of `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`; OIDC is the only
   supported credential path.
 
+## Worked Example: This Template's Own State Backend
+
+The IAM role this template itself uses to write its own Terraform state to
+`s3://793496711039-terraform/nwarila-platform/terraform-runner-template/` is
+included here as a concrete reference. Substitute account ID, bucket name,
+state-key prefix, and repository ID for your own consumer. The defensive
+patterns — `repository_id` constraint, explicit `Deny` rules, per-object
+ACLs, dual encryption guards — are the parts worth carrying forward.
+
+### Trust policy (this template)
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "GitHubActionsAssumeRole",
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::793496711039:oidc-provider/token.actions.githubusercontent.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+          "token.actions.githubusercontent.com:repository_id": "1233369688",
+          "token.actions.githubusercontent.com:sub": "repo:NWarila/terraform-runner-template:ref:refs/heads/main"
+        }
+      }
+    }
+  ]
+}
+```
+
+Three claims pinned together: `aud` is the standard audience, `repository_id`
+locks the trust to the immutable numeric ID of `NWarila/terraform-runner-template`,
+and `sub` further restricts to workflow runs originating from `refs/heads/main`.
+A pull request triggered run cannot assume this role; only post-merge workflows
+on `main` can.
+
+### Permission policy (this template)
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ListRepoFolders",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::793496711039-terraform",
+      "Condition": {
+        "StringEquals": {
+          "s3:prefix": [
+            "nwarila-platform/terraform-runner-template/"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ReadWriteStateFileOnly",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": "arn:aws:s3:::793496711039-terraform/nwarila-platform/terraform-runner-template/terraform.tfstate"
+    },
+    {
+      "Sid": "ManageS3LockfileOnly",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::793496711039-terraform/nwarila-platform/terraform-runner-template/terraform.tfstate.tflock"
+    },
+    {
+      "Sid": "DenyDeleteStateFile",
+      "Effect": "Deny",
+      "Action": "s3:DeleteObject",
+      "Resource": "arn:aws:s3:::793496711039-terraform/nwarila-platform/terraform-runner-template/terraform.tfstate"
+    },
+    {
+      "Sid": "DenyUnencryptedPuts",
+      "Effect": "Deny",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::793496711039-terraform/nwarila-platform/terraform-runner-template/*",
+      "Condition": {
+        "StringNotEquals": {
+          "s3:x-amz-server-side-encryption": "AES256"
+        }
+      }
+    },
+    {
+      "Sid": "DenyPutsWithoutEncryptionHeader",
+      "Effect": "Deny",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::793496711039-terraform/nwarila-platform/terraform-runner-template/*",
+      "Condition": {
+        "Null": {
+          "s3:x-amz-server-side-encryption": "true"
+        }
+      }
+    }
+  ]
+}
+```
+
+Six statements, four defensive patterns worth carrying:
+
+1. **Per-object ACLs.** The state object (`terraform.tfstate`) can only be read
+   or written — never deleted by the role. The lockfile object
+   (`terraform.tfstate.tflock`) can be deleted because S3 native locking
+   removes it when the lock is released. Splitting these into two `Allow`
+   statements is stricter than a single prefix-wildcard `Allow`.
+2. **Explicit deny on state deletion.** Even though `Effect: Allow` for
+   `s3:DeleteObject` is never granted on `terraform.tfstate`, the explicit
+   `Deny` (Sid `DenyDeleteStateFile`) survives any future policy edit that
+   accidentally widens the `Allow` set. AWS evaluates explicit `Deny` before
+   any `Allow`, so this is a backstop against drift.
+3. **Dual encryption guards.** `DenyUnencryptedPuts` rejects writes with the
+   wrong algorithm; `DenyPutsWithoutEncryptionHeader` rejects writes that omit
+   the header entirely. A single `StringNotEquals` would only catch the first
+   case; the `Null` condition catches the second. Together they enforce that
+   every object written under this prefix carries SSE-S3 encryption.
+4. **Prefix-scoped `ListBucket`.** The role can list the bucket only when
+   the request is constrained to the template's own state prefix. This prevents
+   the role from being used to enumerate other tenants' state objects in the
+   same bucket.
+
+### Substituting for a consumer
+
+For a runner repository at `<owner>/<runner-repo>` writing state at
+`<state-bucket>/<runner-prefix>/`:
+
+- Replace `793496711039` with the AWS account ID hosting the role and bucket.
+- Replace `793496711039-terraform` with the state bucket name.
+- Replace `nwarila-platform/terraform-runner-template/` with the runner-specific
+  state-key prefix (`runners/<runner-repo>/`, an org-prefixed path, or whatever
+  matches the bootstrap configuration's key convention).
+- Replace `1233369688` with the consumer's numeric repository ID
+  (`gh api repos/<owner>/<runner-repo> --jq .id`).
+- Replace the `sub` value with `repo:<owner>/<runner-repo>:ref:refs/heads/main`,
+  or the appropriate `environment:<name>` form if GitHub Environments gate
+  the deploy.
+
+The four defensive patterns are repository-agnostic and SHOULD be retained
+verbatim.
+
 ## Required GitHub Workflow Wiring
 
 Any runner workflow that assumes the AWS role needs:
@@ -201,8 +403,14 @@ Do not store static AWS access keys in repository or environment secrets.
 ## Implementation Checklist
 
 - [ ] OIDC provider exists in the AWS account.
-- [ ] Deploy role trust policy scopes `aud` and `sub`.
+- [ ] Deploy role trust policy scopes `aud`, `repository_id`, and `sub`.
 - [ ] Deploy role policy grants only the required state bucket prefix.
+- [ ] State-object `Allow` is limited to `GetObject` + `PutObject`; an
+      explicit `Deny` on `DeleteObject` covers the state object.
+- [ ] Lockfile `Allow` (`terraform.tfstate.tflock`) grants `DeleteObject` so
+      native locking can release the lock.
+- [ ] Dual encryption guards reject `PutObject` with wrong algorithm
+      (`StringNotEquals`) and with missing header (`Null`).
 - [ ] KMS access is scoped to the state bucket key, if SSE-KMS is used.
 - [ ] Private inventory S3 access is read-only and prefix-scoped.
 - [ ] Framework-specific permissions are reviewed separately.

@@ -103,6 +103,7 @@
 !/tools/build_plan_input.py
 !/tools/check_adr_schema.py
 !/tools/check_baseline_manifest.py
+!/tools/check_baseline_self_consistency.py
 !/tools/check_caller_workflows.py
 !/tools/check_consistency.py
 !/tools/check_docs_layout.py
@@ -147,6 +148,16 @@
 !/tests/fixtures/repos/private/sample-private-environments.tfvars
 !/tests/fixtures/terraform-plan/
 !/tests/fixtures/terraform-plan/safe-plan.json
+!/tests/fixtures/terraform-plan/bad-plan.json
+!/tests/fixtures/contract/
+!/tests/fixtures/contract/good/
+!/tests/fixtures/contract/good/.github/
+!/tests/fixtures/contract/good/.github/workflows/
+!/tests/fixtures/contract/good/.github/workflows/terraform-deploy.yaml
+!/tests/fixtures/contract/bad-deploy-missing-oidc/
+!/tests/fixtures/contract/bad-deploy-missing-oidc/.github/
+!/tests/fixtures/contract/bad-deploy-missing-oidc/.github/workflows/
+!/tests/fixtures/contract/bad-deploy-missing-oidc/.github/workflows/terraform-deploy.yaml
 !/tests/fixtures/consumers/
 !/tests/fixtures/consumers/good/
 !/tests/fixtures/consumers/good/.github/
@@ -226,6 +237,19 @@
 !/tests/fixtures/consumers/bad-apply-unrestricted/tests/
 !/tests/fixtures/consumers/bad-apply-unrestricted/tests/fixtures/
 !/tests/fixtures/consumers/bad-apply-unrestricted/tests/fixtures/.gitkeep
+!/tests/fixtures/consumers/bad-tfvars-traversal/
+!/tests/fixtures/consumers/bad-tfvars-traversal/.github/
+!/tests/fixtures/consumers/bad-tfvars-traversal/.github/workflows/
+!/tests/fixtures/consumers/bad-tfvars-traversal/.github/workflows/pr-validation.yaml
+!/tests/fixtures/consumers/bad-tfvars-traversal/.github/workflows/terraform-deploy.yaml
+!/tests/fixtures/consumers/bad-tfvars-traversal/repos/
+!/tests/fixtures/consumers/bad-tfvars-traversal/repos/public/
+!/tests/fixtures/consumers/bad-tfvars-traversal/repos/public/.gitkeep
+!/tests/fixtures/consumers/bad-tfvars-traversal/repos/private/
+!/tests/fixtures/consumers/bad-tfvars-traversal/repos/private/.gitkeep
+!/tests/fixtures/consumers/bad-tfvars-traversal/tests/
+!/tests/fixtures/consumers/bad-tfvars-traversal/tests/fixtures/
+!/tests/fixtures/consumers/bad-tfvars-traversal/tests/fixtures/.gitkeep
 
 # ----- [ Integration fixtures ] -------------------------------------------------------------------
 !/fixtures/

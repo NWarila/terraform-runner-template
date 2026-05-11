@@ -25,6 +25,13 @@
 #       ]
 #     },
 #     "files": { "<path>": "<contents>" }  # includes workflow files
+#     "workflow_data": {
+#       "<filename>": {
+#         "workflow_call_inputs": ["<input_name>", ...],
+#         "has_trusted_authors_array": <bool>,
+#         "trusted_authors": ["<bot-login>", ...]
+#       }
+#     }
 #   }
 
 package repo_hygiene
@@ -69,6 +76,8 @@ unsafe_pr_target_ref_fragments := {
 pull_request_target_allowed_workflows := {
 	".github/workflows/auto-merge.yaml",
 }
+
+auto_merge_reusable := ".github/workflows/reusable-auto-merge.yaml"
 
 # endregion --- [ Regex constants ] -------------------------------------------------------- #
 
@@ -144,8 +153,29 @@ protected_pull_request_target_workflow(path) if {
 }
 
 protected_pull_request_target_workflow(path) if {
-	path == ".github/workflows/reusable-auto-merge.yaml"
+	path == auto_merge_reusable
 	_ := input.files[path]
+}
+
+workflow_data_root := object.get(input, "workflow_data", {})
+
+workflow_data(path) := workflow_meta if {
+	workflow_meta := object.get(workflow_data_root, path, {})
+}
+
+workflow_call_inputs(path) := inputs if {
+	workflow_meta := workflow_data(path)
+	inputs := object.get(workflow_meta, "workflow_call_inputs", [])
+}
+
+trusted_authors(path) := authors if {
+	workflow_meta := workflow_data(path)
+	authors := object.get(workflow_meta, "trusted_authors", [])
+}
+
+has_trusted_authors_array(path) if {
+	workflow_meta := workflow_data(path)
+	object.get(workflow_meta, "has_trusted_authors_array", false)
 }
 
 # endregion --- [ Helpers ] ---------------------------------------------------------------- #
@@ -191,20 +221,20 @@ deny contains msg if {
 }
 
 deny contains msg if {
-	content := input.files[".github/workflows/reusable-auto-merge.yaml"]
-	contains(lower(content), "extra_authors")
+	inputs := workflow_call_inputs(auto_merge_reusable)
+	inputs[_] == "extra_authors"
 	msg := ".github/workflows/reusable-auto-merge.yaml must not expose extra_authors; auto-merge principals are a closed trust list"
 }
 
 deny contains msg if {
-	content := input.files[".github/workflows/reusable-auto-merge.yaml"]
-	contains(lower(content), "github-actions[bot]")
+	authors := trusted_authors(auto_merge_reusable)
+	authors[_] == "github-actions[bot]"
 	msg := ".github/workflows/reusable-auto-merge.yaml must not trust github-actions[bot]; release PRs require human review"
 }
 
 deny contains msg if {
-	content := input.files[".github/workflows/reusable-auto-merge.yaml"]
-	not contains(content, "declare -a trusted_authors=(")
+	_ := input.files[auto_merge_reusable]
+	not has_trusted_authors_array(auto_merge_reusable)
 	msg := ".github/workflows/reusable-auto-merge.yaml must declare trusted authors as a bash array"
 }
 

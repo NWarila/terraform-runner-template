@@ -36,10 +36,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Drift gate (org baseline)
-        # renovate: datasource=github-tags depName=NWarila/drift-gate
-        uses: NWarila/drift-gate@d835ae411f1e55e25b2b6c079d5891e7345a043c # main @ 2026-05-09
+        # renovate: datasource=git-refs depName=NWarila/drift-gate
+        uses: NWarila/drift-gate@a29b46ba971b55956994d51684c44d6861f7b4bf # main @ 2026-05-11
         with:
           source-repo: nwarila-platform/.github
-          source-ref: f2ff593bb4b16555ce0968137f53cdf29b373336 # main @ 2026-05-09
+          source-ref: 8e890d1f41fc2e4fb6162af13729ca1dfd232dd7 # main @ 2026-05-11
           manifest: baseline-manifest.json
           check-name: org-baseline / verify

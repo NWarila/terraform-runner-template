@@ -54,6 +54,20 @@ def collect_config_resources(module: dict[str, Any] | None) -> dict[str, dict[st
     return resources
 
 
+def expression_references(config: dict[str, Any]) -> dict[str, list[str]]:
+    references: dict[str, list[str]] = {}
+    expressions = config.get("expressions", {})
+    if not isinstance(expressions, dict):
+        return references
+    for name, expression in expressions.items():
+        if not isinstance(name, str) or not isinstance(expression, dict):
+            continue
+        refs = expression.get("references", [])
+        if isinstance(refs, list):
+            references[name] = [ref for ref in refs if isinstance(ref, str)]
+    return references
+
+
 def normalize_resource(
     change: dict[str, Any], config_resources: dict[str, dict[str, Any]]
 ) -> dict[str, Any]:
@@ -66,6 +80,7 @@ def normalize_resource(
         "name": change["name"],
         "actions": change_detail.get("actions", []),
         "lifecycle": config.get("lifecycle", {}),
+        "references": expression_references(config),
         "values": planned_values(change_detail),
     }
 

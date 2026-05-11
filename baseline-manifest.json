@@ -118,8 +118,20 @@
       "target": "tools/build_opa_input.py"
     },
     {
+      "source": "tools/build_plan_input.py",
+      "target": "tools/build_plan_input.py"
+    },
+    {
       "source": "tools/check_baseline_manifest.py",
       "target": "tools/check_baseline_manifest.py"
+    },
+    {
+      "source": "tools/check_baseline_self_consistency.py",
+      "target": "tools/check_baseline_self_consistency.py"
+    },
+    {
+      "source": "tools/check_adr_schema.py",
+      "target": "tools/check_adr_schema.py"
     },
     {
       "source": "tools/check_caller_workflows.py",
@@ -172,6 +184,14 @@
     {
       "source": "policies/opa/repo_hygiene_test.rego",
       "target": "policies/opa/repo_hygiene_test.rego"
+    },
+    {
+      "source": "policies/opa/terraform_plan.rego",
+      "target": "policies/opa/terraform_plan.rego"
+    },
+    {
+      "source": "policies/opa/terraform_plan_test.rego",
+      "target": "policies/opa/terraform_plan_test.rego"
     },
     {
       "source": "repos/public/.gitkeep",

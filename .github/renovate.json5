@@ -32,6 +32,20 @@
   "labels": ["dependencies"],
   "prConcurrentLimit": 5,
 
+  // Supply-chain quarantine. No update lands sooner than 7 days after the
+  // upstream release was published. Combined with `internalChecksFilter:
+  // "strict"`, a release whose timestamp Renovate cannot resolve is treated
+  // as failing the age check (rather than silently passing). Catches the
+  // common compromised-package window where a malicious release gets yanked
+  // within hours/days of publication.
+  //
+  // No vulnerability-alert carve-out is configured here; if a CVE-driven
+  // immediate-bump policy becomes necessary, add
+  // `vulnerabilityAlerts: { enabled: true, minimumReleaseAge: "0 days" }`
+  // and record the carve-out in a superseding ADR.
+  "minimumReleaseAge": "7 days",
+  "internalChecksFilter": "strict",
+
   "enabledManagers": [
     "github-actions",
     "terraform",
@@ -90,6 +104,12 @@
       "matchDepNames": ["hashicorp/terraform"],
       "groupName": "Terraform CLI",
       "semanticCommitType": "deps",
+      "semanticCommitScope": "deps"
+    },
+    {
+      "matchDepNames": ["actions/setup-python"],
+      "groupName": "actions/setup-python",
+      "semanticCommitType": "ci",
       "semanticCommitScope": "deps"
     },
     {

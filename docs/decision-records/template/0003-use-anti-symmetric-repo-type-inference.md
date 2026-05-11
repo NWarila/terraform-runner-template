@@ -3,11 +3,11 @@
 | Field          | Value                                   |
 | -------------- | --------------------------------------- |
 | Status         | Accepted                                |
-| Date           | 2026-05-11                              |
+| Date           | 2026-05-10                              |
 | Authors        | Nick Warila (@NWarila)                  |
 | Decision-maker | Nick Warila (sole portfolio maintainer) |
-| Consulted      | None.                                   |
-| Informed       | None.                                   |
+| Consulted      | Contract fixture behavior and ambiguity tests. |
+| Informed       | Template consumers via repo-type detector fixtures. |
 | Reversibility  | High                                    |
 | Review-by      | N/A (Accepted)                          |
 
@@ -152,8 +152,8 @@ None (current).
 
 ## Implementing PRs
 
-Pending. The implementing change updates the validator, test fixtures, Makefile,
-and CI callers so template self-validation passes `--type template`.
+- [`afbd9a2`](https://github.com/NWarila/terraform-runner-template/commit/afbd9a2c5cae5549791cf4b3dda81a0470bcee5c) tightened runner validation inputs and contract behavior.
+- [`7400021`](https://github.com/NWarila/terraform-runner-template/commit/7400021e15fad6a47c1afdaf904e4dcf0d5f6eb0) added the contract and policy gates that exercise repo-type inference through fixtures.
 
 ## Related ADRs
 
