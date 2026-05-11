@@ -23,10 +23,10 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    uses: NWarila/terraform-framework-template/.github/workflows/reusable-terraform-deploy.yaml@24deab9db40fbf22a8e7a0c61d7110098c0a1397
+    uses: NWarila/terraform-framework-template/.github/workflows/reusable-terraform-deploy.yaml@db6b94c6e6f6d8bd77e721bfc48f241e2a60eff3
     with:
       # renovate: depName=NWarila/terraform-framework-template packageName=https://github.com/NWarila/terraform-framework-template currentValue=main
-      framework_ref: 24deab9db40fbf22a8e7a0c61d7110098c0a1397
+      framework_ref: db6b94c6e6f6d8bd77e721bfc48f241e2a60eff3
       overlay_paths: |
         repos/public => terraform/repos/public
         repos/private => terraform/repos/private
