@@ -1,11 +1,5 @@
 # Changelog
 
-## 1.0.0 (unreleased)
-
-### Breaking Changes
-
-* `reusable-release-evidence.yaml` now requires callers to pass explicit `repo_type`; automatic repository-type inference was removed.
-
 ## 0.1.0 (2026-05-11)
 
 
