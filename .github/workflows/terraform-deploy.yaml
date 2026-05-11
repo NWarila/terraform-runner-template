@@ -56,4 +56,3 @@ jobs:
       aws_role_arn: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
       aws_region: ${{ secrets.AWS_REGION }}
       backend_bucket: ${{ secrets.TF_BACKEND_BUCKET }}
-      backend_key_prefix: ${{ secrets.TF_BACKEND_KEY_PREFIX }}
