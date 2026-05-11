@@ -397,18 +397,22 @@ step with `role-to-assume:`:
 - name: Configure AWS credentials
   uses: aws-actions/configure-aws-credentials@<40-character-sha>
   with:
-    role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
-    aws-region: ${{ vars.AWS_REGION }}
+    role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+    aws-region: ${{ secrets.AWS_REGION }}
 ```
 
-Use repository or environment variables for non-secret values such as:
+Use repository or environment secrets for deployment identifiers. These values
+are not static credentials, but they can disclose AWS account IDs, bucket names,
+regions, and state-key layout in workflow metadata:
 
 - `AWS_DEPLOY_ROLE_ARN`
 - `AWS_REGION`
 - `TF_BACKEND_BUCKET`
 - `TF_BACKEND_KEY_PREFIX`
 
-The template's `live-s3-backend-smoke.yaml` workflow uses those variables to
+`TF_BACKEND_BUCKET` is the bare S3 bucket name, not an ARN or `s3://` URI.
+
+The template's `live-s3-backend-smoke.yaml` workflow uses those secrets to
 initialize a minimal Terraform module against:
 
 ```text
@@ -418,6 +422,8 @@ s3://${TF_BACKEND_BUCKET}/${TF_BACKEND_KEY_PREFIX}/terraform.tfstate
 It runs only after merge to `main` or by manual dispatch. A successful run proves
 that GitHub OIDC, the AWS role trust, S3 backend configuration, native locking,
 state-object writes, and server-side encryption all work together.
+For lower-sensitivity consumer repositories, the workflow also accepts
+same-named repository variables as a fallback.
 
 Do not store static AWS access keys in repository or environment secrets.
 

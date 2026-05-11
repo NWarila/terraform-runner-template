@@ -28,14 +28,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      AWS_REGION: ${{ vars.AWS_REGION }}
-      TF_BACKEND_BUCKET: ${{ vars.TF_BACKEND_BUCKET }}
-      TF_BACKEND_KEY_PREFIX: ${{ vars.TF_BACKEND_KEY_PREFIX || 'nwarila-platform/terraform-runner-template' }}
+      AWS_REGION: ${{ secrets.AWS_REGION || vars.AWS_REGION }}
+      TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET || vars.TF_BACKEND_BUCKET }}
+      TF_BACKEND_KEY_PREFIX: ${{ secrets.TF_BACKEND_KEY_PREFIX || vars.TF_BACKEND_KEY_PREFIX || 'nwarila-platform/terraform-runner-template' }}
       TF_VERSION: "1.15.1"
     steps:
       - name: Validate live backend configuration
         env:
-          ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          ROLE_ARN: ${{ secrets.AWS_DEPLOY_ROLE_ARN || vars.AWS_DEPLOY_ROLE_ARN }}
         run: |
           set -euo pipefail
 
@@ -51,6 +51,20 @@ jobs:
             exit 1
           fi
 
+          for name in ROLE_ARN AWS_REGION TF_BACKEND_BUCKET TF_BACKEND_KEY_PREFIX; do
+            echo "::add-mask::${!name}"
+          done
+
+          account_id="$(printf '%s' "${ROLE_ARN}" | sed -n 's#^arn:aws:iam::\([0-9][0-9]*\):role/.*#\1#p')"
+          if [ -n "${account_id}" ]; then
+            echo "::add-mask::${account_id}"
+          fi
+
+          if [[ "${TF_BACKEND_BUCKET}" == arn:aws:s3:::* ]] || [[ "${TF_BACKEND_BUCKET}" == s3://* ]] || [[ "${TF_BACKEND_BUCKET}" == */* ]]; then
+            echo "::error::TF_BACKEND_BUCKET must be the bare S3 bucket name, not an ARN, URI, or path."
+            exit 1
+          fi
+
           prefix="${TF_BACKEND_KEY_PREFIX%/}"
           if [ -z "${prefix}" ] || [[ "${prefix}" == /* ]] || [[ "${prefix}" == *..* ]]; then
             echo "::error::TF_BACKEND_KEY_PREFIX must be a relative S3 key prefix without '..'."
@@ -58,15 +72,16 @@ jobs:
           fi
 
           state_key="${prefix}/terraform.tfstate"
+          echo "::add-mask::${state_key}"
           echo "STATE_KEY=${state_key}" >> "${GITHUB_ENV}"
-          echo "State backend: s3://${TF_BACKEND_BUCKET}/${state_key}"
+          echo "State backend configuration accepted."
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
-          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN || vars.AWS_DEPLOY_ROLE_ARN }}
           role-session-name: terraform-runner-template-s3-smoke
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION || vars.AWS_REGION }}
           mask-aws-account-id: true
 
       - name: Setup Terraform
@@ -173,7 +188,7 @@ jobs:
 
           {
             echo "### Live S3 backend smoke"
-            echo "- State object: \`s3://${TF_BACKEND_BUCKET}/${STATE_KEY}\`"
+            echo "- State object verified with \`aws s3api head-object\`"
             echo "- Size: ${content_length} bytes"
             echo "- Encryption: ${encryption}"
           } >> "${GITHUB_STEP_SUMMARY}"
