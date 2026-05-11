@@ -167,6 +167,8 @@ deny contains msg if {
 # region ------ [ Deny rules: pull_request_target guard ] ---------------------------------- #
 
 deny contains msg if {
+	some path
+	_ := input.files[path]
 	has_pull_request_target_trigger(path)
 	not pull_request_target_allowed_workflows[path]
 	msg := sprintf("%s must not use pull_request_target; only auto-merge.yaml is allowed to run in that context", [path])

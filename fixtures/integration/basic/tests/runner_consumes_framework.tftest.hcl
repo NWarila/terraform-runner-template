@@ -12,7 +12,7 @@ run "runner_consumes_framework" {
   }
 
   assert {
-    condition     = output.environments["demo"].retention_days == 7
+    condition     = output.environments["sample-runner-demo"].retention_days == 7
     error_message = "Expected dev tier default retention_days=7 through the runner/framework boundary."
   }
 }
