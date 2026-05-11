@@ -106,9 +106,10 @@ Minimum hardened S3 policy shape:
       "Action": "s3:ListBucket",
       "Resource": "arn:aws:s3:::<state-bucket>",
       "Condition": {
-        "StringLike": {
+        "StringEquals": {
           "s3:prefix": [
-            "runners/<runner-repo>/*"
+            "runners/<runner-repo>/terraform.tfstate",
+            "runners/<runner-repo>/terraform.tfstate.tflock"
           ]
         }
       }
@@ -174,6 +175,12 @@ encryption deny guards even when the bucket has default encryption enabled. The
 `StringNotEquals` guard above permits either SSE-S3 (`AES256`) or SSE-KMS
 (`aws:kms`); narrow it to one value if the bucket policy intentionally allows
 only one encryption mode.
+
+The `s3:ListBucket` condition uses the exact state key and lockfile key because
+Terraform's S3 backend checks the configured key path while refreshing state. A
+folder-only prefix such as `runners/<runner-repo>/` can still produce `403`
+responses during `terraform init` even when `GetObject` and `PutObject` are
+correctly scoped.
 
 If the bucket uses SSE-KMS, also grant the role the narrow KMS actions required
 for that key:
@@ -275,14 +282,15 @@ on `main` can.
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "ListRepoFolders",
+      "Sid": "ListTerraformStateKeys",
       "Effect": "Allow",
       "Action": "s3:ListBucket",
       "Resource": "arn:aws:s3:::793496711039-terraform",
       "Condition": {
         "StringEquals": {
           "s3:prefix": [
-            "nwarila-platform/terraform-runner-template/"
+            "nwarila-platform/terraform-runner-template/terraform.tfstate",
+            "nwarila-platform/terraform-runner-template/terraform.tfstate.tflock"
           ]
         }
       }
@@ -356,10 +364,10 @@ Six statements, four defensive patterns worth carrying:
    case; the `Null` condition catches the second. In this worked example they
    enforce that every object written under this prefix carries SSE-S3
    encryption; for SSE-KMS, allow `aws:kms` and add the scoped KMS grant.
-4. **Prefix-scoped `ListBucket`.** The role can list the bucket only when
-   the request is constrained to the template's own state prefix. This prevents
-   the role from being used to enumerate other tenants' state objects in the
-   same bucket.
+4. **State-key-scoped `ListBucket`.** The role can list the bucket only when
+   the request is constrained to the template's state object or lockfile object.
+   This lets Terraform refresh the backend without granting the role permission
+   to enumerate other tenants' state objects in the same bucket.
 
 ### Substituting for a consumer
 
