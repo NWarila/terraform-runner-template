@@ -68,21 +68,44 @@ jobs:
 
 ```yaml
 # .github/workflows/terraform-deploy.yaml
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
 jobs:
   deploy:
+    permissions:
+      contents: read
+      id-token: write
     uses: NWarila/terraform-framework-template/.github/workflows/reusable-terraform-deploy.yaml@<40-char-sha>
     with:
       framework_ref: <pinned-framework-sha>
       overlay_paths: |
         repos/public => terraform/repos/public
-      apply: ${{ github.ref == 'refs/heads/main' }}
+      backend_mode: s3
+      backend_key_prefix: <reviewed-state-prefix>
+      upload_plan_artifact: false
+      apply: true
+    secrets:
+      aws_role_arn: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+      aws_region: ${{ secrets.AWS_REGION }}
+      backend_bucket: ${{ secrets.TF_BACKEND_BUCKET }}
 ```
 
 Overlay paths are always copied as directory contents when the source is a
 directory. A trailing slash is accepted for readability but has no separate
 meaning; `repos/public` and `repos/public/` behave the same way.
 
-Renovate keeps both the `uses:` SHAs and the `framework_ref` inputs current. The runner's `terraform-deploy.yaml` calls the framework's `reusable-terraform-deploy.yaml` with per-runner specifics in repo Variables and Secrets.
+Renovate keeps both the `uses:` SHAs and the `framework_ref` inputs current.
+The runner's `pr-validation.yaml` handles credential-free pull request
+validation. The runner's `terraform-deploy.yaml` is the trusted deploy path:
+it calls the framework's `reusable-terraform-deploy.yaml` with repo-specific
+S3 backend and OIDC settings from reviewed inputs and repository or environment
+secrets.
 
 ## Architecture
 
