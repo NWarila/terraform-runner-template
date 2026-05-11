@@ -12,9 +12,12 @@ For a real runner derived from this template, edit these first:
 2. `repos/public/` and the source for `repos/private/`.
 3. `pr-validation.yaml` and `terraform-deploy.yaml` refs.
 4. `docs/decision-records/repo/` for local decisions.
-5. Optional release layer, only if the repo publishes versioned releases.
+5. AWS/OIDC bootstrap resources outside this runner repo.
+6. Optional release layer, only if the repo publishes versioned releases.
 
 The mirroring rules live in [`docs/reference/mirroring.md`](docs/reference/mirroring.md).
+The AWS bootstrap contract lives in
+[`docs/reference/aws-bootstrap-requirements.md`](docs/reference/aws-bootstrap-requirements.md).
 
 ## Normalized repo interface
 
