@@ -1,6 +1,15 @@
 # terraform-runner-template
 
-Template for data-only Terraform runner repositories: a runner owns `repos/public/` and `repos/private/`, pins the framework it consumes, and delegates validation/deploy to reusable workflows instead of carrying its own top-level `terraform/` tree.
+A template for Terraform repos that consume a framework: they own data (the
+inputs that describe what to deploy) but not the Terraform module itself. Use it
+to scaffold a new runner repo with CI, policy, drift-gate, and release evidence
+already wired up.
+
+A *fleet* of repositories is only as rigorous as its worst member. The
+per-type-template family moves the rigor — workflows, policies, contract — into
+one place per type that every consumer of that type references by SHA. When the
+standard improves here, every runner gets the improvement on its next dependency
+bump. When a runner drifts, the contract validator catches it on the next PR.
 
 ## Quickstart
 
@@ -21,7 +30,7 @@ This repo uses the same validation command surface as the Terraform framework te
 | --- | --- |
 | `make lint` | Repo-local static checks: Python tooling and workflow/contract YAML. |
 | `make policy` | OPA policy tests plus policy evaluation against real repo files. |
-| `make docs-check` | Diataxis/ADR documentation layout check. |
+| `make docs-check` | Diátaxis/ADR documentation layout check. |
 | `python tools/verify.py ci` | Repo-local quality gate. |
 | `python tools/verify.py integration` | Ephemeral consumer workspace assembled from this runner fixture plus a framework checkout. |
 | `python tools/verify.py verify` | Full local verification: `ci` plus `integration`. |
@@ -118,7 +127,3 @@ This template participates in the three-tier ADR model formalised in [`nwarila-p
 ## Versioning
 
 Conventional Commits + release-please. Consumers pin to commit SHAs (per the same rule the contract enforces on them) and let Renovate carry pins forward.
-
-## Why this exists
-
-A *fleet* of repositories is only as rigorous as its worst member. The per-type-template family moves the rigor — workflows, policies, contract — into one place per type that every consumer of that type references by SHA. When the standard improves here, every runner gets the improvement on its next dependency bump. When a runner drifts, the contract validator catches it on the next PR.
