@@ -72,6 +72,7 @@
 !/docs/reference/
 !/docs/reference/.gitkeep
 !/docs/reference/invariants.md
+!/docs/reference/aws-bootstrap-requirements.md
 !/docs/reference/mirroring.md
 !/docs/reference/release-gates.md
 !/docs/how-to/
