@@ -32,7 +32,7 @@ jobs:
         repos/private => terraform/repos/private
       tfvars_file: repos/public/sample-environments.tfvars
       backend_mode: s3
-      backend_key_prefix: nwarila-platform/terraform-runner-template
+      backend_key_prefix: nwarila/terraform-runner-template
       upload_plan_artifact: false
       apply: true
     secrets:
