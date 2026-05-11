@@ -2,12 +2,12 @@
 
 | Field          | Value                                    |
 | -------------- | ---------------------------------------- |
-| Status         | Proposed                                 |
+| Status         | Accepted (partial enforcement)           |
 | Date           | 2026-05-09                               |
 | Authors        | Nick Warila (@NWarila)                   |
 | Decision-maker | Nick Warila (sole portfolio maintainer)  |
-| Consulted      | None.                                    |
-| Informed       | None.                                    |
+| Consulted      | AWS bootstrap requirements and runner contract rules. |
+| Informed       | Terraform-runner consumers via content rules. |
 | Reversibility  | Medium                                   |
 | Review-by      | 2026-06-11                               |
 
@@ -129,16 +129,21 @@ The framework being deployed (e.g. `NWarila/terraform-framework-template` for th
 
 Adherence to this ADR is confirmed by the following mechanisms. The wording `MUST`, `SHOULD`, and `MAY` follows [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) conventions.
 
-1. **Backend-block check.** Every adopting consumer's `terraform/backend.tf` MUST contain a `backend "s3" {}` block. A CI script or `tflint` rule MAY assert this. The OPA `repo_hygiene` policy SHOULD be extended (in a follow-up commit to this template) to enforce backend-block presence and provider.
+1. **Backend-block check.** Every adopting consumer's `terraform/backend.tf` MUST contain a `backend "s3" {}` block. A CI script or `tflint` rule MAY assert this. The OPA `repo_hygiene` policy SHOULD be extended in a follow-up commit to enforce backend-block presence and provider.
 2. **Required-attribute check.** The `backend "s3" {}` block MUST set `encrypt = true`, `use_lockfile = true`, and `use_fips_endpoint = true`. Other attributes (`bucket`, `key`, `region`) are passed via `-backend-config` and are not asserted by this rule.
-3. **No-static-credentials check.** Every adopting consumer's `terraform-deploy.yaml` MUST include the `aws-actions/configure-aws-credentials` action with `role-to-assume:` set. Workflow secrets named `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` MUST NOT exist on adopting repositories. A repository-settings audit MAY assert this.
+3. **No-static-credentials check.** Every adopting consumer's `terraform-deploy.yaml` MUST NOT contain static AWS access key names (`AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY`). Workflow secrets with those names MUST NOT exist on adopting repositories. A repository-settings audit MAY assert secret absence. Positive OIDC wiring (`aws-actions/configure-aws-credentials` with `role-to-assume:`) remains an ADR requirement, but mechanical enforcement belongs with the framework deploy reusable and is a deferred follow-up control.
 4. **Per-env-key check.** Multi-environment runners MUST use distinct `-backend-config=key=...` values per environment, NOT Terraform workspaces. A CI script that diffs the workflow's `terraform init` invocations across environments MAY assert this.
 5. **Bucket-property check.** The S3 bucket(s) used by adopting consumers MUST have versioning, server-side encryption, and access logging enabled. These are bucket-side properties, not consumer-side; verification happens in the bootstrap configuration that provisions the bucket(s), not in this template's CI.
 6. **Editorial rule.** A relaxation of the S3 mandate (e.g., a runner that legitimately needs Terraform Cloud) is itself an architectural decision and MUST be recorded as a repository-level superseding ADR in that consumer's `docs/decision-records/repo/`.
 
-This ADR remains Proposed until the OPA-based backend check and caller-workflow
-authentication checks land. PR review may use this document as intended design
-guidance, but CI does not yet treat it as an accepted mechanical control.
+This ADR is accepted with partial enforcement as of 2026-05-11. The runner
+contract currently enforces the negative authentication rule (no static AWS key
+names in `terraform-deploy.yaml`) and the pinned framework reusable deploy
+call. Positive OIDC enforcement moved out of this thin caller in commit
+`2f18490`; a framework-side reusable deploy rule that asserts
+`aws-actions/configure-aws-credentials` and `role-to-assume:` remains a
+follow-up control. The OPA backend-block check also remains a follow-up control
+and is tracked here rather than treated as already implemented.
 
 ## Consequences
 
@@ -182,21 +187,18 @@ None (current).
 
 ## Implementing PRs
 
-Pending. The first implementing change is a swap of `NWarila/terraform-framework-template`'s `terraform/backend.tf` from `local` to `s3` once the maintainer provisions the state bucket. Subsequent implementing PRs will be listed here as runner consumers migrate.
+- [#6](https://github.com/NWarila/terraform-runner-template/issues/6) / [`8a92b91`](https://github.com/NWarila/terraform-runner-template/commit/8a92b915a47cfc1dd9d27d29e30bb0f1ee046a8a) recorded the S3 backend mandate.
+- [`7400021`](https://github.com/NWarila/terraform-runner-template/commit/7400021e15fad6a47c1afdaf904e4dcf0d5f6eb0) added runner contract and policy gates, including the deploy-workflow authentication content rules.
+- [`2f18490`](https://github.com/NWarila/terraform-runner-template/commit/2f184908773b13e335c347d10cc605761bd5655c) moved positive OIDC ownership out of the runner's thin deploy caller and into the deferred framework-reusable enforcement path; the runner contract now retains only the no-static-key negative rule plus the framework reusable pin.
+- The remaining implementing change is the OPA backend-block rule. Framework consumers still need their `terraform/backend.tf` migration from `local` to `s3` after the state bucket is provisioned. Subsequent consumer migrations will be listed here as they land.
+
+The concrete IAM role and policy this template itself uses for its own state backend are documented as a worked example in [`docs/reference/aws-bootstrap-requirements.md`](https://github.com/NWarila/terraform-runner-template/blob/main/docs/reference/aws-bootstrap-requirements.md#worked-example-this-templates-own-state-backend). The defensive patterns demonstrated there — `repository_id` claim, explicit `Deny` on state deletion, dual encryption guards (`StringNotEquals` + `Null` header), per-object ACLs splitting state from lockfile — apply to every adopting consumer and are the form the OPA backend rule (deferred per the Confirmation note below) will eventually enforce mechanically.
 
 ## Related ADRs
 
 - [`ADR-template/0001`](0001-pin-terraform-and-provider-versions-exactly.md) — establishes exact-pinning of the Terraform CLI and provider versions. This ADR's reliance on Terraform 1.10+ native S3 locking depends on that pin.
-- [Org ADR-0004 (Renovate)](org/0004-use-renovate-for-dependency-updates.md) — establishes Renovate as the dependency-update mechanism for every adopting repository. Renovate keeps Terraform CLI versions current; the 1.10+ native-locking guarantee comes from the Renovate-managed pin staying within the supported range.
+- [Org ADR-0004 (Renovate)](../org/0004-use-renovate-for-dependency-updates.md) — establishes Renovate as the dependency-update mechanism for every adopting repository. Renovate keeps Terraform CLI versions current; the 1.10+ native-locking guarantee comes from the Renovate-managed pin staying within the supported range.
 
 ## Compliance Notes
 
-This ADR strengthens the operational posture of every Terraform-runner consumer by mandating an encrypted, versioned, audit-logged state backend with native locking. It also strengthens the supply-chain posture by mandating OIDC-only authentication (no static AWS credentials in CI).
-
-| Framework              | Control / Practice ID                                          | Potential Evidence Contribution                                                                                                     |
-| ---------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| NIST SP 800-53 Rev. 5  | SC-13 (Cryptographic Protection)                               | Encryption at rest on the state bucket protects state-file contents (which include all infrastructure attributes Terraform manages). |
-| NIST SP 800-53 Rev. 5  | AU-2 (Event Logging)                                           | S3 access logging (or CloudTrail data events) on the bucket records every state read/write.                                         |
-| NIST SP 800-53 Rev. 5  | CP-9 (System Backup)                                           | S3 bucket versioning means state-file backups are inherent — every prior state version is recoverable without explicit backup configuration. |
-| NIST SP 800-53 Rev. 5  | IA-5 (Authenticator Management)                                | OIDC-only authentication eliminates long-lived static credentials, satisfying the rotation and revocation expectations for IA-5. |
-| NIST SP 800-218 (SSDF) | PO.5 (Implement and Maintain Secure Environments for Software Development) | Mandating an encrypted, audit-logged backend across every adopting consumer is one of the per-environment controls SSDF expects. |
+None.

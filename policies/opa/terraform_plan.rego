@@ -10,7 +10,7 @@ import rego.v1
 
 required_tags := ["owner", "environment", "managed_by"]
 
-admin_ports := [22, 3389]
+admin_ports := [22, 2379, 3306, 3389, 5432, 6379, 6443]
 
 stateful_types := {
 	"aws_db_instance",
@@ -69,6 +69,36 @@ s3_bucket_name(resource) := resource.name if {
 has_inline_sse(resource) if {
 	config := object.get(resource.values, "server_side_encryption_configuration", null)
 	config != null
+}
+
+reference_matches_address(ref, address) if {
+	ref == address
+}
+
+reference_matches_address(ref, address) if {
+	startswith(ref, sprintf("%s.", [address]))
+}
+
+reference_matches_address(ref, address) if {
+	base := split(address, "[")[0]
+	ref == base
+}
+
+reference_matches_address(ref, address) if {
+	base := split(address, "[")[0]
+	startswith(ref, sprintf("%s.", [base]))
+}
+
+config_references_bucket(config, resource) if {
+	refs := object.get(object.get(config, "references", {}), "bucket", [])
+	ref := refs[_]
+	reference_matches_address(ref, resource.address)
+}
+
+has_sse_config(resource) if {
+	config := input.resources[_]
+	config.type == "aws_s3_bucket_server_side_encryption_configuration"
+	config_references_bucket(config, resource)
 }
 
 has_sse_config(resource) if {

@@ -51,6 +51,30 @@ test_s3_bucket_without_sse_denied if {
 	count(denials) >= 1
 }
 
+test_s3_bucket_sse_reference_graph_allowed if {
+	denials := terraform_plan.deny with input as {
+		"resources": [
+			{
+				"address": "aws_s3_bucket.logs",
+				"type": "aws_s3_bucket",
+				"name": "logs",
+				"lifecycle": {"prevent_destroy": true},
+				"values": {
+					"bucket_prefix": "logs-",
+					"tags": {"owner": "platform", "environment": "prod", "managed_by": "terraform"},
+				},
+			},
+			{
+				"address": "aws_s3_bucket_server_side_encryption_configuration.logs",
+				"type": "aws_s3_bucket_server_side_encryption_configuration",
+				"references": {"bucket": ["aws_s3_bucket.logs.id"]},
+				"values": {"bucket": "known-after-apply"},
+			},
+		],
+	}
+	count(denials) == 0
+}
+
 test_iam_policy_wildcard_admin_denied if {
 	denials := terraform_plan.deny with input as {
 		"resources": [{

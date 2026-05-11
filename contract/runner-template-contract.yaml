@@ -32,7 +32,7 @@ universal:
   - path: .editorconfig
     rationale: Baseline editor consistency.
   - path: .gitignore
-    rationale: Deny-all strategy excludes state/credentials by default.
+    rationale: Excludes local state, credentials, caches, and build artifacts.
   - path: .gitattributes
     rationale: Repository text handling.
   - path: .pre-commit-config.yaml
@@ -128,13 +128,9 @@ types:
       type: directory
     content_rules:
     - file: .github/workflows/terraform-deploy.yaml
-      pattern: aws-actions/configure-aws-credentials@[0-9a-f]{40}
+      pattern: 'NWarila/terraform-framework-template/.github/workflows/reusable-terraform-deploy.yaml@[0-9a-f]{40}'
       must_match: true
-      rationale: Deploy callers must assume cloud credentials through a SHA-pinned OIDC action.
-    - file: .github/workflows/terraform-deploy.yaml
-      pattern: 'role-to-assume\s*:'
-      must_match: true
-      rationale: Deploy callers must name an assumed role instead of relying on ambient credentials.
+      rationale: Deploy callers must delegate to the SHA-pinned framework reusable deploy workflow.
     - file: .github/workflows/terraform-deploy.yaml
       pattern: AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY
       must_match: false
@@ -180,8 +176,6 @@ types:
       rationale: Contract validator used by consumers and self-CI.
     - path: tools/check_caller_workflows.py
       rationale: Caller-workflow validator used by reusable validation.
-    - path: tools/check_consistency.py
-      rationale: Repository naming consistency check for canonical framework references.
     - path: tools/run_contract_tests.py
       rationale: Self-CI harness that runs validator fixtures and asserts pass/fail behavior.
     - path: tools/build_opa_input.py
