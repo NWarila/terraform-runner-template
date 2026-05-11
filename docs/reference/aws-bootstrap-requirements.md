@@ -235,7 +235,7 @@ Framework-specific permissions must be:
 ## Worked Example: This Template's Own State Backend
 
 The IAM role this template itself uses to write its own Terraform state to
-`s3://793496711039-terraform/nwarila-platform/terraform-runner-template/` is
+`s3://793496711039-terraform/nwarila/terraform-runner-template/` is
 included here as a concrete reference. This worked example is written for
 SSE-S3 (`AES256`). If the bucket uses SSE-KMS instead, change the encryption
 condition to allow `aws:kms` and add the KMS key grant shown above. Substitute
@@ -289,8 +289,8 @@ on `main` can.
       "Condition": {
         "StringEquals": {
           "s3:prefix": [
-            "nwarila-platform/terraform-runner-template/terraform.tfstate",
-            "nwarila-platform/terraform-runner-template/terraform.tfstate.tflock"
+            "nwarila/terraform-runner-template/terraform.tfstate",
+            "nwarila/terraform-runner-template/terraform.tfstate.tflock"
           ]
         }
       }
@@ -302,7 +302,7 @@ on `main` can.
         "s3:GetObject",
         "s3:PutObject"
       ],
-      "Resource": "arn:aws:s3:::793496711039-terraform/nwarila-platform/terraform-runner-template/terraform.tfstate"
+      "Resource": "arn:aws:s3:::793496711039-terraform/nwarila/terraform-runner-template/terraform.tfstate"
     },
     {
       "Sid": "ManageS3LockfileOnly",
@@ -312,19 +312,19 @@ on `main` can.
         "s3:PutObject",
         "s3:DeleteObject"
       ],
-      "Resource": "arn:aws:s3:::793496711039-terraform/nwarila-platform/terraform-runner-template/terraform.tfstate.tflock"
+      "Resource": "arn:aws:s3:::793496711039-terraform/nwarila/terraform-runner-template/terraform.tfstate.tflock"
     },
     {
       "Sid": "DenyDeleteStateFile",
       "Effect": "Deny",
       "Action": "s3:DeleteObject",
-      "Resource": "arn:aws:s3:::793496711039-terraform/nwarila-platform/terraform-runner-template/terraform.tfstate"
+      "Resource": "arn:aws:s3:::793496711039-terraform/nwarila/terraform-runner-template/terraform.tfstate"
     },
     {
       "Sid": "DenyUnencryptedPuts",
       "Effect": "Deny",
       "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::793496711039-terraform/nwarila-platform/terraform-runner-template/*",
+      "Resource": "arn:aws:s3:::793496711039-terraform/nwarila/terraform-runner-template/*",
       "Condition": {
         "StringNotEquals": {
           "s3:x-amz-server-side-encryption": "AES256"
@@ -335,7 +335,7 @@ on `main` can.
       "Sid": "DenyPutsWithoutEncryptionHeader",
       "Effect": "Deny",
       "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::793496711039-terraform/nwarila-platform/terraform-runner-template/*",
+      "Resource": "arn:aws:s3:::793496711039-terraform/nwarila/terraform-runner-template/*",
       "Condition": {
         "Null": {
           "s3:x-amz-server-side-encryption": "true"
@@ -376,7 +376,7 @@ For a runner repository at `<owner>/<runner-repo>` writing state at
 
 - Replace `793496711039` with the AWS account ID hosting the role and bucket.
 - Replace `793496711039-terraform` with the state bucket name.
-- Replace `nwarila-platform/terraform-runner-template/` with the runner-specific
+- Replace `nwarila/terraform-runner-template/` with the runner-specific
   state-key prefix (`runners/<runner-repo>/`, an org-prefixed path, or whatever
   matches the bootstrap configuration's key convention).
 - Replace `1233369688` with the consumer's numeric repository ID
