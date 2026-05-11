@@ -408,6 +408,17 @@ Use repository or environment variables for non-secret values such as:
 - `TF_BACKEND_BUCKET`
 - `TF_BACKEND_KEY_PREFIX`
 
+The template's `live-s3-backend-smoke.yaml` workflow uses those variables to
+initialize a minimal Terraform module against:
+
+```text
+s3://${TF_BACKEND_BUCKET}/${TF_BACKEND_KEY_PREFIX}/terraform.tfstate
+```
+
+It runs only after merge to `main` or by manual dispatch. A successful run proves
+that GitHub OIDC, the AWS role trust, S3 backend configuration, native locking,
+state-object writes, and server-side encryption all work together.
+
 Do not store static AWS access keys in repository or environment secrets.
 
 ## Implementation Checklist
@@ -426,4 +437,6 @@ Do not store static AWS access keys in repository or environment secrets.
 - [ ] Framework-specific permissions are reviewed separately.
 - [ ] GitHub workflow has `id-token: write` and `contents: read`.
 - [ ] Workflow uses SHA-pinned `aws-actions/configure-aws-credentials`.
+- [ ] `live-s3-backend-smoke.yaml` succeeds on `main` and verifies the state
+      object with `aws s3api head-object`.
 - [ ] No static AWS access keys exist in workflow YAML or repo secrets.

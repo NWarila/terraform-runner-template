@@ -1,0 +1,179 @@
+name: Live S3 Backend Smoke
+
+# Post-merge/manual proof that the runner template's AWS OIDC role, S3 backend,
+# native lockfile, and state-object encryption are wired end to end. Pull
+# requests stay deterministic; this workflow is the live parity check.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/live-s3-backend-smoke.yaml"
+      - ".github/workflows/terraform-deploy.yaml"
+      - "contract/runner-template-contract.yaml"
+      - "docs/reference/aws-bootstrap-requirements.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: live-s3-backend-smoke-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: Prove S3 state backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      TF_BACKEND_BUCKET: ${{ vars.TF_BACKEND_BUCKET }}
+      TF_BACKEND_KEY_PREFIX: ${{ vars.TF_BACKEND_KEY_PREFIX || 'nwarila-platform/terraform-runner-template' }}
+      TF_VERSION: "1.15.1"
+    steps:
+      - name: Validate live backend configuration
+        env:
+          ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+        run: |
+          set -euo pipefail
+
+          missing=0
+          for name in ROLE_ARN AWS_REGION TF_BACKEND_BUCKET TF_BACKEND_KEY_PREFIX; do
+            if [ -z "${!name}" ]; then
+              echo "::error::${name} must be configured before the live S3 backend smoke can run."
+              missing=1
+            fi
+          done
+
+          if [ "${missing}" -ne 0 ]; then
+            exit 1
+          fi
+
+          prefix="${TF_BACKEND_KEY_PREFIX%/}"
+          if [ -z "${prefix}" ] || [[ "${prefix}" == /* ]] || [[ "${prefix}" == *..* ]]; then
+            echo "::error::TF_BACKEND_KEY_PREFIX must be a relative S3 key prefix without '..'."
+            exit 1
+          fi
+
+          state_key="${prefix}/terraform.tfstate"
+          echo "STATE_KEY=${state_key}" >> "${GITHUB_ENV}"
+          echo "State backend: s3://${TF_BACKEND_BUCKET}/${state_key}"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          role-session-name: terraform-runner-template-s3-smoke
+          aws-region: ${{ vars.AWS_REGION }}
+          mask-aws-account-id: true
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
+        with:
+          # renovate: datasource=github-releases depName=hashicorp/terraform extractVersion=^v(?<version>.*)$ versioning=hashicorp
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Build smoke Terraform module
+        run: |
+          set -euo pipefail
+
+          smoke_dir="${RUNNER_TEMP}/s3-backend-smoke"
+          mkdir -p "${smoke_dir}"
+
+          cat > "${smoke_dir}/backend.tf" <<'EOF'
+          terraform {
+            backend "s3" {
+              encrypt           = true
+              use_fips_endpoint = true
+              use_lockfile      = true
+            }
+          }
+          EOF
+
+          cat > "${smoke_dir}/variables.tf" <<'EOF'
+          variable "repository" {
+            type = string
+          }
+
+          variable "github_run_id" {
+            type = string
+          }
+
+          variable "github_run_attempt" {
+            type = string
+          }
+          EOF
+
+          cat > "${smoke_dir}/main.tf" <<'EOF'
+          resource "terraform_data" "backend_smoke" {
+            input = {
+              repository         = var.repository
+              github_run_id      = var.github_run_id
+              github_run_attempt = var.github_run_attempt
+            }
+          }
+
+          output "backend_smoke_id" {
+            value = terraform_data.backend_smoke.id
+          }
+          EOF
+
+          echo "SMOKE_DIR=${smoke_dir}" >> "${GITHUB_ENV}"
+
+      - name: Terraform init and apply
+        run: |
+          set -euo pipefail
+
+          terraform -chdir="${SMOKE_DIR}" init \
+            -backend-config="bucket=${TF_BACKEND_BUCKET}" \
+            -backend-config="key=${STATE_KEY}" \
+            -backend-config="region=${AWS_REGION}" \
+            -input=false
+
+          terraform -chdir="${SMOKE_DIR}" apply \
+            -auto-approve \
+            -input=false \
+            -var="repository=${GITHUB_REPOSITORY}" \
+            -var="github_run_id=${GITHUB_RUN_ID}" \
+            -var="github_run_attempt=${GITHUB_RUN_ATTEMPT}"
+
+      - name: Verify S3 state object
+        run: |
+          set -euo pipefail
+
+          aws s3api head-object \
+            --bucket "${TF_BACKEND_BUCKET}" \
+            --key "${STATE_KEY}" \
+            --output json > "${RUNNER_TEMP}/state-head.json"
+
+          encryption="$(aws s3api head-object \
+            --bucket "${TF_BACKEND_BUCKET}" \
+            --key "${STATE_KEY}" \
+            --query 'ServerSideEncryption' \
+            --output text)"
+
+          if [ "${encryption}" != "AES256" ] && [ "${encryption}" != "aws:kms" ]; then
+            echo "::error::State object is missing expected server-side encryption."
+            exit 1
+          fi
+
+          content_length="$(aws s3api head-object \
+            --bucket "${TF_BACKEND_BUCKET}" \
+            --key "${STATE_KEY}" \
+            --query 'ContentLength' \
+            --output text)"
+
+          if ! [[ "${content_length}" =~ ^[0-9]+$ ]] || [ "${content_length}" -le 0 ]; then
+            echo "::error::State object exists but has no content."
+            exit 1
+          fi
+
+          {
+            echo "### Live S3 backend smoke"
+            echo "- State object: \`s3://${TF_BACKEND_BUCKET}/${STATE_KEY}\`"
+            echo "- Size: ${content_length} bytes"
+            echo "- Encryption: ${encryption}"
+          } >> "${GITHUB_STEP_SUMMARY}"

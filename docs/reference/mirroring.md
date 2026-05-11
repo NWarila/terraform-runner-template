@@ -32,6 +32,9 @@ for runners that only deploy inventory.
 Reusable workflows, OPA policy tests, generated contract fixtures, and contract
 tooling are template-maintainer machinery. They are valuable portfolio signal,
 but new runner repos should only touch them when changing the baseline itself.
+Template-only self-validation workflows such as `ci.yaml` and
+`live-s3-backend-smoke.yaml` are not byte-mirrored into consumers; real runners
+should prove their own backend against their actual deploy path and state key.
 
 ## New Runner Checklist
 
