@@ -172,10 +172,4 @@ None (current).
 
 ## Compliance Notes
 
-This ADR strengthens the supply-chain posture by ensuring that every Terraform configuration consumed in `nwarila-platform` runs against a known, tested set of CLI and provider versions.
-
-| Framework              | Control / Practice ID                                                | Potential Evidence Contribution                                                                                                |
-| ---------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| NIST SP 800-53 Rev. 5  | CM-2 (Baseline Configuration)                                        | Exact-pinned Terraform and provider versions are part of the baseline configuration of every infrastructure deployment.       |
-| NIST SP 800-53 Rev. 5  | SI-7 (Software, Firmware, and Information Integrity)                 | Exact pins reduce the surface for unintentional or malicious version changes between author-tested and consumer-deployed.     |
-| NIST SP 800-218 (SSDF) | PS.2 (Provide a Mechanism for Verifying Software Release Integrity)  | Combined with SHA-pinned Actions, exact-pinned Terraform contributes to release-integrity verification across the toolchain.  |
+None.

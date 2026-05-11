@@ -145,7 +145,10 @@ Minimum hardened S3 policy shape:
       "Resource": "arn:aws:s3:::<state-bucket>/runners/<runner-repo>/*",
       "Condition": {
         "StringNotEquals": {
-          "s3:x-amz-server-side-encryption": "AES256"
+          "s3:x-amz-server-side-encryption": [
+            "AES256",
+            "aws:kms"
+          ]
         }
       }
     },
@@ -167,7 +170,10 @@ Minimum hardened S3 policy shape:
 The state object and lockfile object are split intentionally. The state file can
 be read and written but not deleted; the lockfile can be deleted so Terraform's
 S3 native locking can release it. Keep the explicit delete deny and both
-encryption deny guards even when the bucket has default encryption enabled.
+encryption deny guards even when the bucket has default encryption enabled. The
+`StringNotEquals` guard above permits either SSE-S3 (`AES256`) or SSE-KMS
+(`aws:kms`); narrow it to one value if the bucket policy intentionally allows
+only one encryption mode.
 
 If the bucket uses SSE-KMS, also grant the role the narrow KMS actions required
 for that key:
@@ -223,10 +229,13 @@ Framework-specific permissions must be:
 
 The IAM role this template itself uses to write its own Terraform state to
 `s3://793496711039-terraform/nwarila-platform/terraform-runner-template/` is
-included here as a concrete reference. Substitute account ID, bucket name,
-state-key prefix, and repository ID for your own consumer. The defensive
-patterns — `repository_id` constraint, explicit `Deny` rules, per-object
-ACLs, dual encryption guards — are the parts worth carrying forward.
+included here as a concrete reference. This worked example is written for
+SSE-S3 (`AES256`). If the bucket uses SSE-KMS instead, change the encryption
+condition to allow `aws:kms` and add the KMS key grant shown above. Substitute
+account ID, bucket name, state-key prefix, and repository ID for your own
+consumer. The defensive patterns — `repository_id` constraint, explicit
+`Deny` rules, per-object ACLs, dual encryption guards — are the parts worth
+carrying forward.
 
 ### Trust policy (this template)
 
@@ -344,8 +353,9 @@ Six statements, four defensive patterns worth carrying:
 3. **Dual encryption guards.** `DenyUnencryptedPuts` rejects writes with the
    wrong algorithm; `DenyPutsWithoutEncryptionHeader` rejects writes that omit
    the header entirely. A single `StringNotEquals` would only catch the first
-   case; the `Null` condition catches the second. Together they enforce that
-   every object written under this prefix carries SSE-S3 encryption.
+   case; the `Null` condition catches the second. In this worked example they
+   enforce that every object written under this prefix carries SSE-S3
+   encryption; for SSE-KMS, allow `aws:kms` and add the scoped KMS grant.
 4. **Prefix-scoped `ListBucket`.** The role can list the bucket only when
    the request is constrained to the template's own state prefix. This prevents
    the role from being used to enumerate other tenants' state objects in the

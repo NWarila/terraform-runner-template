@@ -78,10 +78,6 @@
       "target": "docs/decision-records/template/0002-mandate-s3-state-backend.md"
     },
     {
-      "source": "docs/decision-records/template/0003-use-anti-symmetric-repo-type-inference.md",
-      "target": "docs/decision-records/template/0003-use-anti-symmetric-repo-type-inference.md"
-    },
-    {
       "source": "docs/decision-records/template/0004-isolate-pull-request-target-triggers.md",
       "target": "docs/decision-records/template/0004-isolate-pull-request-target-triggers.md"
     },
@@ -126,20 +122,12 @@
       "target": "tools/check_baseline_manifest.py"
     },
     {
-      "source": "tools/check_baseline_self_consistency.py",
-      "target": "tools/check_baseline_self_consistency.py"
-    },
-    {
       "source": "tools/check_adr_schema.py",
       "target": "tools/check_adr_schema.py"
     },
     {
       "source": "tools/check_caller_workflows.py",
       "target": "tools/check_caller_workflows.py"
-    },
-    {
-      "source": "tools/check_consistency.py",
-      "target": "tools/check_consistency.py"
     },
     {
       "source": "tools/check_docs_layout.py",
@@ -150,12 +138,12 @@
       "target": "tools/check_template_contract.py"
     },
     {
-      "source": "tools/run_contract_tests.py",
-      "target": "tools/run_contract_tests.py"
+      "source": "tools/check_workflow_run_blocks.py",
+      "target": "tools/check_workflow_run_blocks.py"
     },
     {
-      "source": "tools/run_repo_type_tests.py",
-      "target": "tools/run_repo_type_tests.py"
+      "source": "tools/run_contract_tests.py",
+      "target": "tools/run_contract_tests.py"
     },
     {
       "source": "tools/verify.py",

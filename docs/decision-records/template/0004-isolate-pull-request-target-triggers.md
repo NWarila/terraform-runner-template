@@ -104,9 +104,10 @@ Adherence to this ADR is confirmed by the following mechanisms. The wording
    policy enforces this against real workflow files.
 2. **Release trigger policy.** `.github/workflows/release.yaml` MUST NOT contain
    a `pull_request_target` trigger.
-3. **Auto-merge reusable guard.** `reusable-auto-merge.yaml` MUST keep the
-   trusted-author list closed, MUST NOT trust `github-actions[bot]`, and MUST
-   NOT read PR-controlled content or check out PR code.
+3. **Auto-merge reusable guard.** `reusable-auto-merge.yaml` MUST NOT read
+   PR-controlled content or check out PR code. The OPA `repo_hygiene` policy
+   enforces those content boundaries; the trusted-author list is maintained by
+   convention and branch protection.
 4. **Runner validation separation.** `pr-validation.yaml` and
    `reusable-terraform-validation.yaml` MUST remain outside
    `pull_request_target`.
@@ -161,14 +162,9 @@ None (current).
   establishes exact toolchain pinning.
 - [ADR-template/0002](0002-mandate-s3-state-backend.md) defines the runner
   state backend posture for real consumers.
-- [ADR-template/0003](0003-use-anti-symmetric-repo-type-inference.md) keeps
-  runner/template shape validation explicit.
+- `tools/check_template_contract.py --type runner|template` keeps the validated
+  contract surface explicit at each call site.
 
 ## Compliance Notes
 
-- NIST SP 800-53 Rev. 5 AC-6: limiting `pull_request_target` to a narrow
-  workflow supports least-privilege execution.
-- NIST SP 800-53 Rev. 5 CM-5: separating release and validation changes from
-  privileged PR triggers reduces unauthorized change paths.
-- NIST SP 800-218 SSDF PO.5: workflow trust boundaries are part of maintaining
-  a secure development environment.
+None.

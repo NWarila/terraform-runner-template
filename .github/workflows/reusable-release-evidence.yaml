@@ -36,7 +36,7 @@ name: Reusable Release Evidence
 #       uses: NWarila/terraform-runner-template/.github/workflows/reusable-release-evidence.yaml@<sha>
 #       with:
 #         terraform_version: "1.15.1"
-#         repo_type: ""  # optional; use "template" for intentional hybrid templates
+#         repo_type: runner
 
 on:
   workflow_call:
@@ -49,12 +49,9 @@ on:
         type: string
       repo_type:
         description: |
-          Optional explicit repo type for intentional hybrid layouts. Leave
-          empty for normal consumers so the contract validator infers exactly
-          one of framework, runner, or template.
-        required: false
+          Explicit repo type for release evidence: framework, runner, or template.
+        required: true
         type: string
-        default: ""
 
 permissions:
   contents: read
@@ -84,11 +81,7 @@ jobs:
           REPO_TYPE: ${{ inputs.repo_type }}
         run: |
           set -euo pipefail
-          args=(--repo-root . --print-type)
-          if [ -n "${REPO_TYPE}" ]; then
-            args+=(--type "${REPO_TYPE}")
-          fi
-          t="$(python3 tools/check_template_contract.py "${args[@]}")"
+          t="${REPO_TYPE}"
           case "$t" in
             framework|runner|template) ;;
             *)

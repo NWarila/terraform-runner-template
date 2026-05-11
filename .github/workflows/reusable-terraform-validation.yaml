@@ -32,9 +32,10 @@ on:
         type: string
       template_ref:
         description: |
-          SHA, tag, or branch of NWarila/terraform-runner-template to check out for
-          contract validation. Use the same SHA the caller pins this workflow
-          to so the validator and the workflow stay in lockstep.
+          40-character SHA of NWarila/terraform-runner-template to check out for
+          contract validation. This is validated at job start; use the same SHA
+          the caller pins this workflow to so the validator and the workflow stay
+          in lockstep.
         required: true
         type: string
       run_contract_check:
@@ -126,6 +127,16 @@ jobs:
               exit 1
               ;;
           esac
+
+      - name: Validate template ref
+        env:
+          TEMPLATE_REF: ${{ inputs.template_ref }}
+        run: |
+          set -euo pipefail
+          if ! [[ "${TEMPLATE_REF}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::template_ref must be a 40-character SHA, got '${TEMPLATE_REF}'"
+            exit 1
+          fi
 
       - name: Check out consumer repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

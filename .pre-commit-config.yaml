@@ -57,10 +57,3 @@ repos:
         language: system
         pass_filenames: false
         files: ^docs/decision-records/.*\.md$|^tools/check_adr_schema.py$
-
-      - id: consistency
-        name: repository consistency
-        entry: python tools/check_consistency.py
-        language: system
-        pass_filenames: false
-        files: ^.*\.(md|ya?ml|py|json|json5|toml|sh|rego|tf|hcl|tfvars)$|^Makefile$

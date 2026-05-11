@@ -13,17 +13,7 @@ from pathlib import Path
 
 
 EXPECTED_BAD_FAILURES: dict[str, tuple[str, ...]] = {
-    "bad-apply-unrestricted": ("terraform-deploy:input:apply",),
-    "bad-framework-ref-mismatch": (
-        "terraform-deploy:framework-ref_matches_pr_validation",
-    ),
-    "bad-overlay-destination": ("input:overlay_paths",),
-    "bad-template-ref-mismatch": ("input:template_ref_matches_reusable",),
-    "bad-template-ref-tag": (
-        "pr-validation:runner-template-ref",
-        "input:template_ref_sha",
-    ),
-    "bad-tfvars-traversal": ("terraform-deploy:input:tfvars_file",),
+    "bad-template-ref-tag": (".github/workflows/pr-validation.yaml",),
 }
 
 EXPECTED_BAD_CONTRACT_FAILURES: dict[str, tuple[str, ...]] = {

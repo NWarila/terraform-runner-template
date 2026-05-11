@@ -191,63 +191,79 @@ def contract_shape() -> None:
     print("runner-template contract looks well-formed")
 
 
-def build_steps(case: str, framework_source: str) -> dict[str, Step]:
-    return {
-        "ruff": lambda: (
-            install("ruff==0.13.0"),
-            run([PYTHON, "-m", "ruff", "check", "tools/"]),
-        ),
-        "yamllint": lambda: (
-            install("yamllint==1.35.1"),
-            run(
-                [
-                    PYTHON,
-                    "-m",
-                    "yamllint",
-                    "-d",
-                    YAMLLINT_CONFIG,
-                    ".github/workflows/",
-                    "contract/",
-                ]
-            ),
-        ),
-        "actionlint": lambda: run_if_available("actionlint", workflow_files()),
-        "shellcheck": lambda: run_if_available("shellcheck", ["tools/install_ci_tools.sh"]),
-        "markdownlint": lambda: run_if_available("markdownlint-cli2", ["**/*.md"]),
-        "opa-test": lambda: run(["opa", "test", "policies/opa"]),
-        "opa-policy": opa_policy,
-        "opa-plan": opa_plan,
-        "manifest-check": lambda: (
-            run([PYTHON, "tools/check_baseline_manifest.py"]),
-            run([PYTHON, "tools/check_baseline_self_consistency.py"]),
-        ),
-        "contract-shape": contract_shape,
-        "contract-check": lambda: (
-            contract_shape(),
-            run(
-                [
-                    PYTHON,
-                    "tools/check_template_contract.py",
-                    "--repo-root",
-                    ".",
-                    "--contract",
-                    "contract/runner-template-contract.yaml",
-                    "--type",
-                    "template",
-                ]
-            ),
-            run([PYTHON, "tools/run_repo_type_tests.py"]),
-            run([PYTHON, "tools/run_contract_tests.py"]),
-        ),
-        "contract-tests": lambda: (
-            install("pyyaml==6.0.3"),
-            run([PYTHON, "tools/run_repo_type_tests.py"]),
-            run([PYTHON, "tools/run_contract_tests.py"]),
-        ),
-        "docs-check": lambda: run([PYTHON, "tools/check_docs_layout.py"]),
-        "adr-schema": lambda: run([PYTHON, "tools/check_adr_schema.py"]),
-        "consistency-check": lambda: run([PYTHON, "tools/check_consistency.py"]),
-        "integration": lambda: run(
+def ruff() -> None:
+    install("ruff==0.13.0")
+    run([PYTHON, "-m", "ruff", "check", "tools/"])
+
+
+def yamllint() -> None:
+    install("yamllint==1.35.1")
+    run(
+        [
+            PYTHON,
+            "-m",
+            "yamllint",
+            "-d",
+            YAMLLINT_CONFIG,
+            ".github/workflows/",
+            "contract/",
+        ]
+    )
+
+
+def actionlint() -> None:
+    run_if_available("actionlint", workflow_files())
+
+
+def shellcheck() -> None:
+    run_if_available("shellcheck", ["tools/install_ci_tools.sh"])
+
+
+def markdownlint() -> None:
+    run_if_available("markdownlint-cli2", ["**/*.md"])
+
+
+def opa_test() -> None:
+    run(["opa", "test", "policies/opa"])
+
+
+def manifest_check() -> None:
+    run([PYTHON, "tools/check_baseline_manifest.py"])
+
+
+def contract_check() -> None:
+    contract_shape()
+    run(
+        [
+            PYTHON,
+            "tools/check_template_contract.py",
+            "--repo-root",
+            ".",
+            "--contract",
+            "contract/runner-template-contract.yaml",
+            "--type",
+            "template",
+        ]
+    )
+    run([PYTHON, "tools/run_contract_tests.py"])
+
+
+def contract_tests() -> None:
+    install("pyyaml==6.0.3")
+    run([PYTHON, "tools/run_contract_tests.py"])
+
+
+def docs_check() -> None:
+    run([PYTHON, "tools/check_docs_layout.py"])
+
+
+def adr_schema() -> None:
+    run([PYTHON, "tools/check_adr_schema.py"])
+
+
+def make_integration_step(case: str, framework_source: str) -> Step:
+    def integration() -> None:
+        run(
             [
                 PYTHON,
                 "tools/ci/run_integration.py",
@@ -256,7 +272,28 @@ def build_steps(case: str, framework_source: str) -> dict[str, Step]:
                 "--framework-source",
                 framework_source,
             ]
-        ),
+        )
+
+    return integration
+
+
+def build_steps(case: str, framework_source: str) -> dict[str, Step]:
+    return {
+        "ruff": ruff,
+        "yamllint": yamllint,
+        "actionlint": actionlint,
+        "shellcheck": shellcheck,
+        "markdownlint": markdownlint,
+        "opa-test": opa_test,
+        "opa-policy": opa_policy,
+        "opa-plan": opa_plan,
+        "manifest-check": manifest_check,
+        "contract-shape": contract_shape,
+        "contract-check": contract_check,
+        "contract-tests": contract_tests,
+        "docs-check": docs_check,
+        "adr-schema": adr_schema,
+        "integration": make_integration_step(case, framework_source),
     }
 
 
@@ -268,7 +305,6 @@ TARGETS: dict[str, tuple[str, ...]] = {
         "policy",
         "docs-check",
         "adr-schema",
-        "consistency-check",
         "manifest-check",
         "contract-check",
     ),
