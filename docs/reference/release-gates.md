@@ -11,7 +11,11 @@ PRs to `main` on this template must pass:
 - `audit-tools-smoke-test` (tooling sanity + template contract self-validation + template scaffold manifest schema)
 - `org-baseline / verify` (drift-gate against `nwarila-platform/.github` at pinned source-ref)
 - `Trivy (filesystem & secrets)`, `Gitleaks (secret scan)`, `zizmor (Actions security)` (security)
-- `analyze` (CodeQL)
-- `analysis` (Scorecard)
+- `CodeQL` (`security.yaml`)
+- `OpenSSF Scorecard` (`security.yaml`)
 
-All gates run via the workflows in `.github/workflows/`. The drift-gate workflow is SHA-pinned to [`NWarila/drift-gate`](https://github.com/NWarila/drift-gate); the other reusables (`reusable-codeql.yaml`, `reusable-scorecard.yaml`, `reusable-iac-security.yaml`, `reusable-auto-merge.yaml`, `reusable-release-please.yaml`, `reusable-release-evidence.yaml`, `reusable-terraform-validation.yaml`) live in this repo and are referenced by consumer runners via SHA-pinned `uses:` lines.
+All gates run via the workflows in `.github/workflows/`. The drift-gate workflow is SHA-pinned to [`NWarila/drift-gate`](https://github.com/NWarila/drift-gate); required consumer validation and security flow through `pr-validation.yaml`, `terraform-deploy.yaml`, and `security.yaml`. Release automation lives behind optional `release.yaml`.
+
+Release evidence, when enabled, uploads the evidence bundle and SPDX SBOM as
+release assets and emits GitHub artifact attestations for bundle provenance and
+SBOM binding. Trusted-bot auto-merge is isolated in `auto-merge.yaml`.

@@ -1,4 +1,4 @@
-name: Self CI
+name: CI
 
 # Self-validation for NWarila/terraform-runner-template. Catches errors in
 # the template before they ship to consumer runner repos — typo'd workflow
@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: self-ci-${{ github.event.pull_request.number || github.ref }}
+  group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -167,6 +167,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: NWarila/terraform-framework-template
+          ref: 8c49f833b1b43716cc8d23ff059662701e027e16
           path: terraform-framework-template
           fetch-depth: 1
           persist-credentials: false
@@ -177,9 +178,9 @@ jobs:
           terraform_version: "1.15.1"
           terraform_wrapper: false
 
-      - name: make integration
+      - name: Integration
         working-directory: terraform-runner-template
-        run: make integration
+        run: python tools/verify.py integration
 
   audit-tools-smoke-test:
     name: audit tools smoke test
@@ -199,6 +200,18 @@ jobs:
         run: python tools/check_template_contract.py --help
       - name: check_caller_workflows.py imports
         run: python tools/check_caller_workflows.py --help
+      - name: Validate reference caller workflows
+        run: python tools/check_caller_workflows.py --repo-root .
+      - name: ADR schema and index
+        run: python tools/check_adr_schema.py
+      - name: Bash syntax check workflow run blocks
+        run: python tools/check_workflow_run_blocks.py .github/workflows
+      - name: Framework naming consistency
+        run: python tools/check_consistency.py
+      - name: Repo type detector fixtures
+        run: python tools/run_repo_type_tests.py
+      - name: Caller workflow validator fixtures
+        run: python tools/run_contract_tests.py
       - name: Validate template contract against self
         run: >-
           python tools/check_template_contract.py
@@ -220,28 +233,5 @@ jobs:
           assert 'workflow_pinning' in spec, 'missing workflow_pinning'
           print('runner-template contract manifest looks well-formed')
           "
-      - name: Install drift-gate (manifest schema)
-        # renovate: datasource=github-tags depName=NWarila/drift-gate
-        run: >-
-          python -m pip install --no-cache-dir
-          'git+https://github.com/NWarila/drift-gate@d835ae411f1e55e25b2b6c079d5891e7345a043c'
       - name: Template-tier baseline-manifest.json is well-formed
-        # Validates that this template's own template-tier manifest parses
-        # against drift-gate's stdlib schema and that every `source` resolves
-        # on disk. Catches a broken template manifest here, before downstream
-        # consumers' template-tier drift-gate runs fail against it.
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          from baseline.manifest import load_manifest
-
-          m = load_manifest(Path("baseline-manifest.json"))
-          print(f"template baseline manifest: version={m.version}, files={len(m.files)}")
-          missing = [f.source for f in m.files if not Path(f.source).is_file()]
-          if missing:
-              print("ERROR: template manifest entries reference sources missing on disk:")
-              for s in missing:
-                  print(f"  - {s}")
-              raise SystemExit(1)
-          print("all template-tier sources resolve on disk")
-          PY
+        run: python tools/check_baseline_manifest.py

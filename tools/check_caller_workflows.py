@@ -44,10 +44,13 @@ SAFE_OVERLAY_SOURCES = (
     "tests/fixtures",
 )
 SAFE_OVERLAY_DESTINATIONS = (
-    "terraform/repos/public",
-    "terraform/repos/private",
-    "terraform/tests",
+    "terraform/repos",
+    "terraform/fixtures/runtime",
 )
+SAFE_APPLY_EXPRESSIONS = {
+    "${{ github.ref == 'refs/heads/main' }}",
+    "${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}",
+}
 
 
 @dataclass(frozen=True)
@@ -169,6 +172,34 @@ def check_static_bool_input(
         name=f"input:{key}",
         passed=False,
         detail=f"must be statically {str(required_value).lower()}, got {value!r}",
+    )
+
+
+def validate_apply_input(inputs: dict[str, Any]) -> RuleResult:
+    if "apply" not in inputs:
+        return RuleResult(
+            name="terraform-deploy:input:apply",
+            passed=True,
+            detail="default false",
+        )
+
+    value = inputs["apply"]
+    if value is False:
+        return RuleResult(name="terraform-deploy:input:apply", passed=True)
+    if isinstance(value, str):
+        normalized = " ".join(value.strip().split())
+        if normalized.lower() == "false":
+            return RuleResult(name="terraform-deploy:input:apply", passed=True)
+        if normalized in SAFE_APPLY_EXPRESSIONS:
+            return RuleResult(name="terraform-deploy:input:apply", passed=True)
+
+    return RuleResult(
+        name="terraform-deploy:input:apply",
+        passed=False,
+        detail=(
+            "must be false or exactly one of "
+            f"{sorted(SAFE_APPLY_EXPRESSIONS)}, got {value!r}"
+        ),
     )
 
 
@@ -518,6 +549,7 @@ def check_terraform_deploy(repo_root: Path, pr: PrValidationContext) -> list[Rul
         )
         return results
     results.append(RuleResult(name="terraform-deploy:with", passed=True))
+    results.append(validate_apply_input(inputs))
 
     deploy_framework_ref, deploy_framework_ref_result = require_string(
         inputs,

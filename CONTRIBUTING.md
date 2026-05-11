@@ -39,6 +39,16 @@ Use [Discussions](https://github.com/NWarila/.github/discussions) for questions,
 - Links to a related issue when one exists
 - Includes testing evidence appropriate to the change
 
+### Local pre-commit prerequisites
+
+This repository's `.pre-commit-config.yaml` uses pinned upstream hooks for
+Python, YAML, workflow, shell, and Markdown linting. `pre-commit run
+--all-files` installs those hook environments automatically.
+
+Only repository-local Python checks remain `language: system`; they execute the
+scripts under `tools/` directly because no generic upstream hook owns those
+contract checks.
+
 ## Code of conduct
 
 All contributors are expected to follow the project's code of conduct. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for details.

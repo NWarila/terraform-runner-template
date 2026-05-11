@@ -13,16 +13,17 @@ The contract has two layers:
 
 Repo type is determined in this order:
   1. --type CLI flag.
-  2. Template-repo structural inference.
-  3. Inference: terraform/versions.tf present -> framework; repos/public/ or
-     repos/private/ present -> runner.
+  2. Layout inference, but only when exactly one repo-type signal is present:
+     template contract/tooling -> template; terraform/versions.tf -> framework;
+     repos/public/ or repos/private/ -> runner.
 
-If neither flag, file, nor inference resolves a type, the validator errors
-loudly. Type ambiguity is a contract failure.
+If neither flag nor inference resolves exactly one type, the validator errors
+loudly. Type ambiguity is a contract failure; pass --type for intentional
+hybrid layouts such as this template repository.
 
 Usage:
     check_template_contract.py [--repo-root PATH] [--contract PATH]
-                               [--template-root PATH]
+                               [--template-root PATH] [--print-type]
                                [--type framework|runner|template]
 """
 
@@ -37,10 +38,7 @@ from pathlib import Path
 try:
     import yaml
 except ImportError:
-    sys.stderr.write(
-        "error: PyYAML is required. Install with `pip install pyyaml`.\n"
-    )
-    sys.exit(2)
+    yaml = None
 
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -53,7 +51,8 @@ EXACT_PROVIDER_VERSION_RE = re.compile(r"^=\s*[0-9]+\.[0-9]+\.[0-9]+$")
 PROVIDER_START_RE = re.compile(r"^\s*([A-Za-z0-9_-]+)\s*=\s*\{")
 VERSION_ATTR_RE = re.compile(r'^\s*version\s*=\s*"([^"]+)"\s*(?:#.*|//.*)?$')
 
-VALID_TYPES = ("framework", "runner", "template")
+REPO_TYPES = ("framework", "runner", "template")
+CONTRACT_TYPES = ("runner", "template")
 
 
 @dataclass
@@ -61,6 +60,15 @@ class RuleResult:
     name: str
     passed: bool
     detail: str = ""
+
+
+def require_yaml():
+    if yaml is None:
+        sys.stderr.write(
+            "error: PyYAML is required. Install with `pip install pyyaml`.\n"
+        )
+        sys.exit(2)
+    return yaml
 
 
 def resolve_exact_path(repo_root: Path, rel: str) -> Path | None:
@@ -104,6 +112,10 @@ def entry_applies(entry: dict, repo_type: str) -> bool:
         else:
             applies = set(applies_to)
         if repo_type not in applies:
+            print(
+                f"[SKIP] {entry_label(entry)} - applies_to "
+                f"{sorted(applies)} excludes {repo_type}"
+            )
             return False
 
     except_types = entry.get("except_types")
@@ -113,9 +125,17 @@ def entry_applies(entry: dict, repo_type: str) -> bool:
         else:
             excluded = set(except_types)
         if repo_type in excluded:
+            print(
+                f"[SKIP] {entry_label(entry)} - except_types "
+                f"{sorted(excluded)} excludes {repo_type}"
+            )
             return False
 
     return True
+
+
+def entry_label(entry: dict) -> str:
+    return entry.get("path") or entry.get("file") or entry.get("name") or "<entry>"
 
 
 def check_content_rule(repo_root: Path, rule: dict) -> RuleResult:
@@ -406,34 +426,44 @@ def check_sync_drift(
 def detect_repo_type(repo_root: Path, cli_type: str | None) -> tuple[str | None, str]:
     """Return (repo_type, source_description). repo_type is None on failure."""
     if cli_type:
-        if cli_type not in VALID_TYPES:
-            return None, f"--type {cli_type!r} is not one of {VALID_TYPES}"
+        if cli_type not in REPO_TYPES:
+            return None, f"--type {cli_type!r} is not one of {REPO_TYPES}"
         return cli_type, "--type CLI flag"
 
-    if (
+    signals: list[tuple[str, str]] = []
+
+    has_template_tooling = (
         (repo_root / "contract" / "runner-template-contract.yaml").is_file()
         and (repo_root / "tools" / "check_template_contract.py").is_file()
-        and (repo_root / ".github" / "workflows" / "self-ci.yaml").is_file()
+        and (repo_root / ".github" / "workflows" / "ci.yaml").is_file()
         and (
             repo_root
             / ".github"
             / "workflows"
             / "reusable-terraform-validation.yaml"
         ).is_file()
-    ):
-        return "template", "inferred from template contract/tooling"
+    )
+    if has_template_tooling:
+        signals.append(("template", "template contract/tooling"))
 
     has_terraform = (repo_root / "terraform" / "versions.tf").is_file()
     has_runner_dirs = (repo_root / "repos" / "public").is_dir() or (
         repo_root / "repos" / "private"
     ).is_dir()
-    if has_terraform and has_runner_dirs:
-        return None, "ambiguous: both terraform/versions.tf and repos/* present"
     if has_terraform:
-        return "framework", "inferred from terraform/versions.tf"
+        signals.append(("framework", "terraform/versions.tf"))
     if has_runner_dirs:
-        return "runner", "inferred from repos/public|private"
-    return None, "no terraform/versions.tf and no repos/* — cannot infer"
+        signals.append(("runner", "repos/public|private"))
+    if len(signals) == 1:
+        repo_type, source = signals[0]
+        return repo_type, f"inferred from {source}"
+    if signals:
+        present = ", ".join(f"{repo_type} ({source})" for repo_type, source in signals)
+        return None, f"ambiguous repo type: multiple signals present: {present}"
+    return (
+        None,
+        "no template tooling, terraform/versions.tf, or repos/* - cannot infer",
+    )
 
 
 def main() -> int:
@@ -463,20 +493,20 @@ def main() -> int:
     )
     parser.add_argument(
         "--type",
-        choices=VALID_TYPES,
+        choices=REPO_TYPES,
         default=None,
         help=(
             "Override repo type detection. By default the validator reads "
             "the repo layout."
         ),
     )
+    parser.add_argument(
+        "--print-type",
+        action="store_true",
+        help="Print only the detected repo type, then exit without contract validation.",
+    )
     args = parser.parse_args()
 
-    if not args.contract.is_file():
-        sys.stderr.write(f"error: contract not found at {args.contract}\n")
-        return 2
-
-    contract = yaml.safe_load(args.contract.read_text(encoding="utf-8"))
     repo_root = args.repo_root.resolve()
 
     repo_type, source = detect_repo_type(repo_root, args.type)
@@ -485,6 +515,22 @@ def main() -> int:
         sys.stderr.write(
             "  pass --type framework, --type runner, or --type template, "
             "or use a recognizable framework, runner, or template layout.\n"
+        )
+        return 2
+    if args.print_type:
+        print(repo_type)
+        return 0
+
+    if not args.contract.is_file():
+        sys.stderr.write(f"error: contract not found at {args.contract}\n")
+        return 2
+
+    yaml_mod = require_yaml()
+    contract = yaml_mod.safe_load(args.contract.read_text(encoding="utf-8"))
+    if repo_type not in CONTRACT_TYPES:
+        sys.stderr.write(
+            f"error: repo type {repo_type!r} is not validated by this contract "
+            f"(supported: {CONTRACT_TYPES}).\n"
         )
         return 2
     print(f"repo type: {repo_type} ({source})")

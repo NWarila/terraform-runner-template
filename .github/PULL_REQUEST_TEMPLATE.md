@@ -8,7 +8,7 @@
 
 ## Test plan
 
-- [ ] Self-CI passes locally / in PR
-- [ ] If touching universal-layer files: confirm canonical-baseline.yaml does NOT list them, OR plan to land the change in canonical first then sync forward
-- [ ] If touching contract: confirm seed_consumer scaffold still produces a contract-conformant repo
+- [ ] CI passes locally / in PR
+- [ ] If touching baseline-mirrored files: confirm `baseline-manifest.json` reflects the intended source of truth, or plan the upstream change before syncing forward
+- [ ] If touching contract: run `make contract-check` and update the existing consumer fixtures when expectations change
 - [ ] Documentation reflects the change (when applicable)

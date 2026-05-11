@@ -2,9 +2,8 @@
 #
 # Machine-readable manifest for terraform-runner repos consuming
 # NWarila/terraform-runner-template, plus the template repo's own
-# self-validation shape (`template`). The universal section is shared
-# with every other per-type template via cross-template sync from
-# NWarila/terraform-template-template (canonical).
+# self-validation shape (`template`). The universal section is local to
+# this contract and applies to both supported shapes.
 #
 # Rule philosophy:
 #   - Every required path maps to a load-bearing operational concern.
@@ -29,7 +28,7 @@ universal:
   - path: SUPPORT.md
     rationale: Local mirror of the org-owned support policy; drift-gated against nwarila-platform/.github.
   - path: Makefile
-    rationale: Canonical local validation interface; CI calls `make ci`.
+    rationale: Thin local wrapper around `python tools/verify.py`.
   - path: .editorconfig
     rationale: Baseline editor consistency.
   - path: .gitignore
@@ -40,10 +39,6 @@ universal:
     rationale: Pre-commit hooks for local validation.
   - path: .markdownlint-cli2.jsonc
     rationale: Markdown lint configuration.
-  - path: release-please-config.json
-    rationale: Release automation configuration.
-  - path: .release-please-manifest.json
-    rationale: Release-please version manifest.
   required_github_files:
   - path: .github/CODEOWNERS
     rationale: Ownership for high-risk paths.
@@ -61,47 +56,7 @@ universal:
       org-adr-sync + template-sync mechanism with a single composable check.'
   - path: .github/workflows/security.yaml
     applies_to: [runner]
-    rationale: Calls the reusable IaC security workflow in strict mode.
-  - path: .github/workflows/codeql.yaml
-    applies_to: [runner]
-    rationale: Calls the reusable CodeQL workflow for GitHub Actions analysis.
-  - path: .github/workflows/scorecard.yaml
-    rationale: 'Calls the reusable OpenSSF Scorecard workflow. Provides automated
-
-      supply-chain best-practices scoring (branch protection, code review,
-
-      pinned dependencies, signed releases, etc.) and uploads SARIF to the
-
-      Security tab.
-
-      '
-  - path: .github/workflows/release-please.yaml
-    applies_to: [runner]
-    rationale: 'Calls the reusable release-please workflow. Every consumer ships
-
-      versioned releases on Conventional Commits; manual tagging is
-
-      forbidden per org ADR 0006.
-
-      '
-  - path: .github/workflows/release-evidence.yaml
-    applies_to: [runner]
-    rationale: 'Calls the reusable release-evidence workflow. Every release gets
-
-      a uniform evidence bundle (terraform fmt/init/validate/test JSON
-
-      for frameworks; repos/ inventory + framework_ref pin for runners)
-
-      attached to the GitHub release. Dispatched by reusable-release-
-
-      please on every tag.
-
-      '
-  - path: .github/workflows/auto-merge.yaml
-    applies_to: [runner]
-    rationale: 'Calls the reusable auto-merge workflow. Trusted-bot PRs (Renovate,
-      release-please) auto-merge once required checks pass. This is what makes
-      the fleet weekly-click-merge-only.'
+    rationale: Calls the combined reusable security surface (IaC, CodeQL, Scorecard).
   required_documentation:
   - path: docs/README.md
   - path: docs/explanation/architecture.md
@@ -109,6 +64,7 @@ universal:
   - path: docs/explanation/threat-model.md
   - path: docs/reference/release-gates.md
   - path: docs/reference/invariants.md
+  - path: docs/reference/mirroring.md
   - path: docs/how-to/develop-this-module.md
   - path: docs/decision-records/
     type: directory
@@ -138,16 +94,24 @@ types:
         actual `terraform apply` workflow; pr-validation is plan-only.
 
         '
-    - path: policies/opa/golden_terraform.rego
+    - path: policies/opa/repo_hygiene.rego
       rationale: OPA policy enforcing workflow pinning and Terraform exact pins.
-    - path: policies/opa/golden_terraform_test.rego
+    - path: policies/opa/repo_hygiene_test.rego
       rationale: Unit tests for the OPA policy's pass/fail behavior.
     - path: tools/build_opa_input.py
       rationale: Builds real-repo OPA input for `make opa-policy`.
+    - path: policies/opa/terraform_plan.rego
+      rationale: Plan-aware OPA policy for Terraform resource invariants.
+    - path: policies/opa/terraform_plan_test.rego
+      rationale: Unit tests for plan-aware OPA policy.
+    - path: tools/build_plan_input.py
+      rationale: Normalizes `terraform show -json` plan output for plan-aware OPA checks.
     - path: tools/ci/config.toml
       rationale: Normalized CI harness config shared across Terraform repo types.
     - path: tools/ci/run_integration.py
       rationale: Builds and verifies the ephemeral integration workspace used by `make integration`.
+    - path: tools/verify.py
+      rationale: Cross-platform local verification entrypoint.
     - path: fixtures/integration/basic/
       rationale: Runner consumer fixture proving this repo can compose with a framework checkout.
       type: directory
@@ -162,6 +126,19 @@ types:
 
         '
       type: directory
+    content_rules:
+    - file: .github/workflows/terraform-deploy.yaml
+      pattern: aws-actions/configure-aws-credentials@[0-9a-f]{40}
+      must_match: true
+      rationale: Deploy callers must assume cloud credentials through a SHA-pinned OIDC action.
+    - file: .github/workflows/terraform-deploy.yaml
+      pattern: 'role-to-assume\s*:'
+      must_match: true
+      rationale: Deploy callers must name an assumed role instead of relying on ambient credentials.
+    - file: .github/workflows/terraform-deploy.yaml
+      pattern: AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY
+      must_match: false
+      rationale: Static AWS access keys are forbidden; OIDC is the only credential path.
   template:
     rationale: 'Self-validation shape for this type-template repository. It owns
       reusable workflows, contract tooling, drift-gate metadata, and the seed
@@ -169,18 +146,18 @@ types:
     required_paths:
     - path: baseline-manifest.json
       rationale: Template-tier drift-gate manifest consumed by downstream runners.
+    - path: release-please-config.json
+      rationale: Optional release automation configuration inherited by consumers that publish releases.
+    - path: .release-please-manifest.json
+      rationale: Optional release-please version manifest.
     - path: contract/runner-template-contract.yaml
       rationale: Machine-readable runner/template contract manifest.
-    - path: .github/workflows/self-ci.yaml
+    - path: .github/workflows/ci.yaml
       rationale: Self-validation workflow for this template repository.
+    - path: .github/workflows/release.yaml
+      rationale: Optional release and evidence caller.
     - path: .github/workflows/auto-merge.yaml
-      rationale: Canonical trusted-bot auto-merge caller inherited by runner repos.
-    - path: .github/workflows/codeql.yaml
-      rationale: Canonical CodeQL caller inherited by runner repos.
-    - path: .github/workflows/release-evidence.yaml
-      rationale: Canonical release evidence caller inherited by runner repos.
-    - path: .github/workflows/release-please.yaml
-      rationale: Canonical release-please caller inherited by runner repos.
+      rationale: Isolated pull_request_target caller for trusted-bot auto-merge.
     - path: .github/workflows/reusable-terraform-validation.yaml
       rationale: Runner-mode reusable validation workflow consumed by runner repos.
     - path: .github/workflows/reusable-codeql.yaml
@@ -203,6 +180,10 @@ types:
       rationale: Contract validator used by consumers and self-CI.
     - path: tools/check_caller_workflows.py
       rationale: Caller-workflow validator used by reusable validation.
+    - path: tools/check_consistency.py
+      rationale: Repository naming consistency check for canonical framework references.
+    - path: tools/run_contract_tests.py
+      rationale: Self-CI harness that runs validator fixtures and asserts pass/fail behavior.
     - path: tools/build_opa_input.py
       rationale: Builds real-repo OPA input for `make opa-policy`.
     - path: tools/ci/config.toml
@@ -211,10 +192,18 @@ types:
       rationale: Builds and verifies the ephemeral integration workspace used by `make integration`.
     - path: tools/install_ci_tools.sh
       rationale: Pinned CI tool installer used by reusable validation.
-    - path: policies/opa/golden_terraform.rego
+    - path: tools/verify.py
+      rationale: Cross-platform local verification entrypoint.
+    - path: policies/opa/repo_hygiene.rego
       rationale: OPA policy enforcing workflow pinning for this template.
-    - path: policies/opa/golden_terraform_test.rego
+    - path: policies/opa/repo_hygiene_test.rego
       rationale: Unit tests for the OPA policy's pass/fail behavior.
+    - path: policies/opa/terraform_plan.rego
+      rationale: Plan-aware OPA policy for Terraform resource invariants.
+    - path: policies/opa/terraform_plan_test.rego
+      rationale: Unit tests for plan-aware OPA policy.
+    - path: tools/build_plan_input.py
+      rationale: Normalizes `terraform show -json` plan output for plan-aware OPA checks.
     - path: repos/public/
       rationale: Seed public runner data directory inherited by consumers.
       type: directory
