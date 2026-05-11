@@ -46,14 +46,15 @@ has_wildcard(value) if {
 	value[_] == "*"
 }
 
-policy_statements(policy) contains statement if {
-	statements := object.get(policy, "Statement", [])
-	statement := statements[_]
+statement_list(policy) := statements if {
+	raw := object.get(policy, "Statement", [])
+	is_array(raw)
+	statements := raw
 }
 
-policy_statements(policy) contains statement if {
-	statement := object.get(policy, "Statement", {})
-	is_object(statement)
+statement_list(policy) := [raw] if {
+	raw := object.get(policy, "Statement", {})
+	is_object(raw)
 }
 
 s3_bucket_name(resource) := name if {
@@ -123,7 +124,7 @@ deny contains msg if {
 	raw := object.get(resource.values, "policy", "")
 	is_string(raw)
 	policy := json.unmarshal(raw)
-	statement := policy_statements(policy)[_]
+	statement := statement_list(policy)[_]
 	has_wildcard(object.get(statement, "Action", null))
 	has_wildcard(object.get(statement, "Resource", null))
 	msg := sprintf("%s must not allow Action \"*\" on Resource \"*\"", [resource.address])
