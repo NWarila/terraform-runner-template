@@ -31,6 +31,10 @@ ORG_ADR_HISTORICAL_REFERENCES = {
     Path("docs/decision-records/org/0003-use-deny-all-gitignore-strategy.md"),
 }
 
+GENERATED_RELEASE_HISTORY = {
+    Path("CHANGELOG.md"),
+}
+
 
 @dataclass(frozen=True)
 class Finding:
@@ -84,7 +88,11 @@ def fallback_files() -> list[Path]:
 
 
 def candidate_files() -> list[Path]:
-    return [path for path in (git_files() or fallback_files()) if path.is_file()]
+    return [
+        path
+        for path in (git_files() or fallback_files())
+        if path.is_file() and rel(path) not in GENERATED_RELEASE_HISTORY
+    ]
 
 
 def is_allowed_historical_reference(path: Path, term: str) -> bool:
