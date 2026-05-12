@@ -3,7 +3,7 @@
 ## [1.0.0](https://github.com/NWarila/terraform-runner-template/compare/v0.1.0...v1.0.0) (2026-05-11)
 
 
-### ⚠ BREAKING CHANGES
+### BREAKING CHANGES
 
 * derivative runner repositories must adopt the v1.0.0 runner-template contract, caller workflow pins, S3 backend deploy semantics, and release evidence layout.
 
