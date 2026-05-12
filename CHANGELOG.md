@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/NWarila/terraform-runner-template/compare/v1.0.0...v1.0.1) (2026-05-12)
+
+
+### Bug Fixes
+
+* repair pr validation self reference ([540e643](https://github.com/NWarila/terraform-runner-template/commit/540e6436d2b043b5df519a05845b0e49243e824d))
+
 ## [1.0.0](https://github.com/NWarila/terraform-runner-template/compare/v0.1.0...v1.0.0) (2026-05-11)
 
 
