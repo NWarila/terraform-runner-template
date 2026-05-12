@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.0.0](https://github.com/NWarila/terraform-runner-template/compare/v0.1.0...v1.0.0) (2026-05-11)
+
+
+### BREAKING CHANGES
+
+* derivative runner repositories must adopt the v1.0.0 runner-template contract, caller workflow pins, S3 backend deploy semantics, and release evidence layout.
+
+### Features
+
+* prepare runner template v1.0.0 ([413c453](https://github.com/NWarila/terraform-runner-template/commit/413c453500e751752dff208c40d38f28f3b23e24))
+
+
+### Bug Fixes
+
+* align runner state backend prefix ([77e33e5](https://github.com/NWarila/terraform-runner-template/commit/77e33e5f9cc1f4d7bb4fbd7437c6257030729426))
+* make deploy workflow main only ([2d3cb48](https://github.com/NWarila/terraform-runner-template/commit/2d3cb482d42249e34dd77be95fcfe6977b2832eb))
+* use explicit deploy backend prefix ([644c9d9](https://github.com/NWarila/terraform-runner-template/commit/644c9d9ed6dda3fc2c1b5ae46f1f15d9628dc8e6))
+
 ## 0.1.0 (2026-05-11)
 
 
