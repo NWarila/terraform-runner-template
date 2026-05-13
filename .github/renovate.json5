@@ -7,7 +7,7 @@
   // file is the single source of truth for Renovate behavior across every
   // Terraform repo under nwarila-platform; consumers extend it via
   // `extends: ["github>NWarila/terraform-runner-template"]` (see org
-  // ADR-0004 in nwarila-platform/.github for the per-template-baseline
+  // ADR-0004 in NWarila/.github for the per-template-baseline
   // model).
   //
   // Rules in this file:
@@ -25,10 +25,10 @@
     "config:recommended",
     ":dependencyDashboard",
     ":semanticCommits",
-    ":semanticCommitTypeAll(chore)",
-    "schedule:weekly"
+    ":semanticCommitTypeAll(chore)"
   ],
 
+  "schedule": ["before 6am on monday"],
   "labels": ["dependencies"],
   "prConcurrentLimit": 5,
 
@@ -82,7 +82,7 @@
       "datasourceTemplate": "git-refs",
       "versioningTemplate": "loose",
       "matchStrings": [
-        "# renovate: depName=(?<depName>[^\\s]+) packageName=(?<packageName>[^\\s]+) currentValue=(?<currentValue>[^\\s]+)\\s+(?:template_ref|framework_ref):\\s*(?<currentDigest>[0-9a-f]{40})"
+        "# renovate: depName=(?<depName>[^\\s]+) packageName=(?<packageName>[^\\s]+) currentValue=(?<currentValue>[^\\s]+)\\s+(?:template_ref|framework_ref|source-ref):\\s*(?<currentDigest>[0-9a-f]{40})"
       ]
     }
   ],

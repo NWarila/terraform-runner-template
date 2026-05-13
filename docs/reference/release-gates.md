@@ -9,7 +9,7 @@ PRs to `main` on this template must pass:
 - `markdownlint` (docs)
 - `zizmor` (workflow security)
 - `audit-tools-smoke-test` (tooling sanity + template contract self-validation + template scaffold manifest schema)
-- `org-baseline / verify` (drift-gate against `nwarila-platform/.github` at pinned source-ref)
+- `org-baseline / verify` (drift-gate against `NWarila/.github` at pinned source-ref)
 - `Trivy (filesystem & secrets)`, `Gitleaks (secret scan)`, `zizmor (Actions security)` (security)
 - `CodeQL` (`security.yaml`)
 - `OpenSSF Scorecard` (`security.yaml`)
