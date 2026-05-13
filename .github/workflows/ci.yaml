@@ -1,8 +1,8 @@
 name: CI
 
-# Self-validation for NWarila/terraform-runner-template. Catches errors in
-# the template before they ship to consumer runner repos — typo'd workflow
-# YAML, broken contract validator, lint regressions, etc.
+# Self-validation for NWarila/terraform-runner-template. Mirrors the
+# terraform-framework-template check surface while preserving runner-specific
+# contract and integration coverage.
 
 on:
   push:
@@ -35,20 +35,8 @@ jobs:
           fail_level: error
           reporter: github-check
 
-  shellcheck:
-    name: shellcheck
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-      - name: Run shellcheck
-        run: shellcheck tools/install_ci_tools.sh
-
-  opa:
-    name: opa policy
+  workflow-helper-tests:
+    name: workflow helper tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -59,61 +47,13 @@ jobs:
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.12"
-      - name: Install OPA
-        # renovate: datasource=github-releases depName=open-policy-agent/opa
-        env:
-          OPA_VERSION: "1.10.0"
+      - name: Install ShellCheck
         run: |
           set -euo pipefail
-          curl -fsSL -o /usr/local/bin/opa \
-            "https://openpolicyagent.org/downloads/v${OPA_VERSION}/opa_linux_amd64_static"
-          chmod +x /usr/local/bin/opa
-          opa version
-      - name: Run OPA tests and policy
-        run: make policy
-
-  yamllint:
-    name: yamllint
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: "3.12"
-      - name: Install yamllint
-        run: python -m pip install --no-cache-dir yamllint==1.35.1
-      - name: Run yamllint
-        run: |
-          yamllint -d "{
-            extends: relaxed,
-            rules: {
-              line-length: disable,
-              document-start: disable,
-              comments: disable,
-              truthy: {check-keys: false}
-            }
-          }" .github/workflows/ contract/
-
-  ruff:
-    name: ruff
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: "3.12"
-      - name: Install ruff
-        run: python -m pip install --no-cache-dir ruff==0.13.0
-      - name: Run ruff check
-        run: ruff check tools/
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+      - name: Run workflow helper tests
+        run: python tools/verify.py workflow-helper-tests
 
   markdownlint:
     name: markdownlint
@@ -129,28 +69,8 @@ jobs:
         with:
           globs: "**/*.md"
 
-  zizmor:
-    name: zizmor (Actions security)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: "3.12"
-      - name: Install zizmor
-        # renovate: datasource=pypi depName=zizmor
-        run: python -m pip install --no-cache-dir zizmor==1.24.1
-      - name: Run zizmor
-        run: zizmor --persona regular .github/workflows/
-
-  integration:
-    name: runner integration
+  terraform-runner-verify:
+    name: terraform runner verify
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -165,67 +85,33 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: NWarila/terraform-framework-template
-          ref: 8c49f833b1b43716cc8d23ff059662701e027e16
+          ref: db6b94c6e6f6d8bd77e721bfc48f241e2a60eff3
           path: terraform-framework-template
           fetch-depth: 1
           persist-credentials: false
 
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+
       - name: Setup Terraform
+        # renovate: datasource=github-releases depName=hashicorp/terraform
         uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
         with:
           terraform_version: "1.15.1"
           terraform_wrapper: false
 
-      - name: Integration
+      - name: Install pinned CI tools
         working-directory: terraform-runner-template
-        run: python tools/verify.py integration
+        env:
+          # renovate: datasource=github-releases depName=terraform-linters/tflint
+          TFLINT_VERSION: "0.62.0"
+          # renovate: datasource=github-releases depName=terraform-docs/terraform-docs
+          TERRAFORM_DOCS_VERSION: "0.23.0"
+          # renovate: datasource=github-releases depName=open-policy-agent/opa
+          OPA_VERSION: "1.10.0"
+        run: bash tools/install_ci_tools.sh
 
-  audit-tools-smoke-test:
-    name: audit tools smoke test
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: "3.12"
-      - name: Install PyYAML
-        run: python -m pip install --no-cache-dir pyyaml==6.0.3
-      - name: check_template_contract.py imports
-        run: python tools/check_template_contract.py --help
-      - name: check_caller_workflows.py imports
-        run: python tools/check_caller_workflows.py --help
-      - name: Validate reference caller workflows
-        run: python tools/check_caller_workflows.py --repo-root .
-      - name: ADR schema and index
-        run: python tools/check_adr_schema.py
-      - name: Bash syntax check workflow run blocks
-        run: python tools/check_workflow_run_blocks.py .github/workflows
-      - name: Caller workflow validator fixtures
-        run: python tools/run_contract_tests.py
-      - name: Validate template contract against self
-        run: >-
-          python tools/check_template_contract.py
-          --repo-root .
-          --contract contract/runner-template-contract.yaml
-          --type template
-      - name: Contract YAML is well-formed (runner + template)
-        run: |
-          python -c "
-          import yaml
-          with open('contract/runner-template-contract.yaml') as fh:
-              spec = yaml.safe_load(fh)
-          assert spec['version'] == '2', f'unexpected contract version: {spec.get(\"version\")}'
-          assert 'universal' in spec, 'missing universal block'
-          assert 'types' in spec, 'missing types block'
-          assert 'runner' in spec['types'], 'missing types.runner'
-          assert 'template' in spec['types'], 'missing types.template'
-          assert 'framework' not in spec['types'], 'this template enforces only runner; framework type should not be present'
-          assert 'workflow_pinning' in spec, 'missing workflow_pinning'
-          print('runner-template contract manifest looks well-formed')
-          "
-      - name: Template-tier baseline-manifest.json is well-formed
-        run: python tools/check_baseline_manifest.py
+      - name: Verify
+        working-directory: terraform-runner-template
+        run: python tools/verify.py verify

@@ -118,9 +118,9 @@ secrets.
 
 ## Architecture
 
-This template participates in the three-tier ADR model formalised in [`nwarila-platform/.github` ADR-0001](docs/decision-records/org/0001-use-architecture-decision-records.md):
+This template participates in the three-tier ADR model formalised in [`NWarila/.github` ADR-0001](docs/decision-records/org/0001-use-architecture-decision-records.md):
 
-- **Org tier** — ADRs apply to every repo in the portfolio regardless of stack. Mirrored at [`docs/decision-records/org/`](docs/decision-records/org/) byte-identical with [`nwarila-platform/.github`](https://github.com/nwarila-platform/.github). Drift-gated.
+- **Org tier** — ADRs apply to every repo in the portfolio regardless of stack. Mirrored at [`docs/decision-records/org/`](docs/decision-records/org/) byte-identical with [`NWarila/.github`](https://github.com/NWarila/.github). Drift-gated.
 - **Template tier** — ADRs apply to every Terraform-runner consumer derived from this template. Master copies live at [`docs/decision-records/template/`](docs/decision-records/template/); first ADR is [`template/0001-pin-terraform-and-provider-versions-exactly.md`](docs/decision-records/template/0001-pin-terraform-and-provider-versions-exactly.md).
 - **Repo tier** — ADRs specific to one consumer repo, in that consumer's [`docs/decision-records/repo/`](docs/decision-records/repo/).
 
