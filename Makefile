@@ -2,12 +2,13 @@ PYTHON ?= python3
 FRAMEWORK_SOURCE ?= ../terraform-framework-template/terraform
 INTEGRATION_CASE ?= basic
 
-.PHONY: help setup ruff yamllint opa-test opa-policy opa-plan manifest-check contract-check contract-tests lint policy docs-check integration ci verify
+.PHONY: help setup ruff yamllint workflow-helper-tests opa-test opa-policy opa-plan manifest-check contract-check contract-tests lint policy docs-check integration ci verify
 
 help:
 	@printf "Targets:\\n"
 	@printf "  setup          Install local Python lint dependencies\\n"
 	@printf "  lint           Run Python/workflow lint checks\\n"
+	@printf "  workflow-helper-tests  Run workflow syntax and contract helper tests\\n"
 	@printf "  policy         Run OPA tests and policy evaluation\\n"
 	@printf "  docs-check     Check docs layout and ADR index\\n"
 	@printf "  ci             Run the repo-local quality gate\\n"
@@ -35,6 +36,9 @@ ruff:
 
 yamllint:
 	$(PYTHON) tools/verify.py yamllint
+
+workflow-helper-tests:
+	$(PYTHON) tools/verify.py workflow-helper-tests
 
 # OPA policy tests. Exercises every deny rule in
 # policies/opa/repo_hygiene.rego against pass + fail fixtures.

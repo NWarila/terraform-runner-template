@@ -64,6 +64,13 @@ on:
         required: false
         type: boolean
         default: false
+      run_lint_jobs:
+        description: |
+          Run the reusable workflow's standalone lint jobs. Template self-PRs
+          can set this false because CI already runs the same visible gates.
+        required: false
+        type: boolean
+        default: true
       framework_repo:
         description: |
           (mode: runner) `owner/repo` of the framework being deployed.
@@ -315,6 +322,7 @@ jobs:
 
   actionlint:
     name: actionlint
+    if: ${{ inputs.run_lint_jobs }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     continue-on-error: ${{ inputs.lint_advisory }}
@@ -337,6 +345,7 @@ jobs:
 
   shellcheck:
     name: shellcheck
+    if: ${{ inputs.run_lint_jobs }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     continue-on-error: ${{ inputs.lint_advisory }}
@@ -351,6 +360,7 @@ jobs:
 
   yamllint:
     name: yamllint
+    if: ${{ inputs.run_lint_jobs }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     continue-on-error: ${{ inputs.lint_advisory }}
@@ -379,6 +389,7 @@ jobs:
 
   ruff:
     name: ruff
+    if: ${{ inputs.run_lint_jobs }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     continue-on-error: ${{ inputs.lint_advisory }}
@@ -403,6 +414,7 @@ jobs:
 
   markdownlint:
     name: markdownlint
+    if: ${{ inputs.run_lint_jobs }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     continue-on-error: ${{ inputs.lint_advisory }}
