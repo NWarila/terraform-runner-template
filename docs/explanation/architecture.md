@@ -26,6 +26,6 @@ Renovate keeps both the `uses:` SHA on this template AND the `framework_ref` (th
 
 ## External dependencies
 
-- [`nwarila-platform/.github`](https://github.com/nwarila-platform/.github) — provides org-baseline policy files, ADR masters, and documentation layout sentinels. Mirrored into this template and every consumer runner; verified by [`drift-gate`](https://github.com/NWarila/drift-gate) on every PR.
+- [`NWarila/.github`](https://github.com/NWarila/.github) — provides org-baseline policy files, ADR masters, and documentation layout sentinels. Mirrored into this template and every consumer runner; verified by [`drift-gate`](https://github.com/NWarila/drift-gate) on every PR.
 - The runner's framework being deployed (e.g. [`NWarila/terraform-framework-template`](https://github.com/NWarila/terraform-framework-template) for the do-nothing reference, or [`nwarila-platform/proxmox-terraform-framework`](https://github.com/nwarila-platform/proxmox-terraform-framework) for a real framework) — provides the `reusable-terraform-deploy` workflow runners call. The framework is outside this template's scope; consumer runners pin to it directly.
 - [`NWarila/drift-gate`](https://github.com/NWarila/drift-gate) — composite GitHub Action invoked by every consumer's `drift-gate.yaml` workflow. SHA-pinned per ADR-0004's workflow-pinning rule.

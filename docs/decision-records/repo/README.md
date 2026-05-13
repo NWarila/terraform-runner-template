@@ -5,7 +5,7 @@ ADRs in this directory record decisions specific to
 consumer of this template live one level up at
 [`../0001-...md`, etc.](../) (template tier). Decisions that apply to every
 repo in the org live in [`../org/`](../org/) as byte-identical mirrors of
-`nwarila-platform/.github`.
+`NWarila/.github`.
 
 This template currently has **no** repo-specific ADRs — every decision in
 play is either template-tier or org-mirrored. The `.gitkeep` placeholder
@@ -22,4 +22,4 @@ generalize to other Terraform consumers):
 
 The `repo/` namespace is independent of both the `org/` namespace and the
 template namespace per
-[org ADR-0001](https://github.com/nwarila-platform/.github/blob/main/docs/decision-records/0001-use-architecture-decision-records.md).
+[org ADR-0001](https://github.com/NWarila/.github/blob/main/docs/decision-records/0001-use-architecture-decision-records.md).

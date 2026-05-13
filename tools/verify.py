@@ -223,6 +223,13 @@ def markdownlint() -> None:
     run_if_available("markdownlint-cli2", ["**/*.md"])
 
 
+def workflow_helper_tests() -> None:
+    shellcheck()
+    run([PYTHON, "tools/check_workflow_run_blocks.py", ".github/workflows"])
+    run([PYTHON, "tools/check_caller_workflows.py", "--repo-root", "."])
+    contract_tests()
+
+
 def opa_test() -> None:
     run(["opa", "test", "policies/opa"])
 
@@ -284,6 +291,7 @@ def build_steps(case: str, framework_source: str) -> dict[str, Step]:
         "actionlint": actionlint,
         "shellcheck": shellcheck,
         "markdownlint": markdownlint,
+        "workflow-helper-tests": workflow_helper_tests,
         "opa-test": opa_test,
         "opa-policy": opa_policy,
         "opa-plan": opa_plan,
@@ -298,10 +306,11 @@ def build_steps(case: str, framework_source: str) -> dict[str, Step]:
 
 
 TARGETS: dict[str, tuple[str, ...]] = {
-    "lint": ("ruff", "yamllint", "actionlint", "shellcheck", "markdownlint"),
+    "lint": ("ruff", "yamllint", "actionlint", "markdownlint"),
     "policy": ("opa-test", "opa-policy", "opa-plan"),
     "ci": (
         "lint",
+        "workflow-helper-tests",
         "policy",
         "docs-check",
         "adr-schema",

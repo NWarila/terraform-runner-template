@@ -48,6 +48,16 @@ def main() -> None:
     missing = [source for source in sources if not Path(source).is_file()]
     if missing:
         fail(f"sources missing: {missing}")
+
+    listed_sources = set(sources)
+    template_adrs = sorted(
+        path.as_posix()
+        for path in (Path("docs") / "decision-records" / "template").glob("[0-9][0-9][0-9][0-9]-*.md")
+    )
+    unlisted_template_adrs = [path for path in template_adrs if path not in listed_sources]
+    if unlisted_template_adrs:
+        fail(f"template ADRs missing from baseline manifest: {unlisted_template_adrs}")
+
     print(f"manifest: version={raw['version']}, files={len(files)}")
     print("all sources resolve on disk")
 
