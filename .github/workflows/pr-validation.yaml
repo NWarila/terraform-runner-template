@@ -19,14 +19,15 @@ concurrency:
 jobs:
   validate:
     name: runner validation
-    uses: NWarila/terraform-runner-template/.github/workflows/reusable-terraform-validation.yaml@6df726b98712aa4202741293b4af77ef06af823d
+    uses: NWarila/terraform-runner-template/.github/workflows/reusable-terraform-validation.yaml@c66675fe2d4ddfbd43da308c15ac28ca2272ea6d
     with:
       # renovate: datasource=github-releases depName=hashicorp/terraform extractVersion=^v(?<version>.*)$ versioning=hashicorp
       terraform_version: "1.15.1"
       # renovate: depName=NWarila/terraform-runner-template packageName=https://github.com/NWarila/terraform-runner-template currentValue=main
-      template_ref: 6df726b98712aa4202741293b4af77ef06af823d
+      template_ref: c66675fe2d4ddfbd43da308c15ac28ca2272ea6d
       mode: runner
       run_contract_check: true
+      run_lint_jobs: false
       lint_advisory: false
       framework_repo: NWarila/terraform-framework-template
       # renovate: depName=NWarila/terraform-framework-template packageName=https://github.com/NWarila/terraform-framework-template currentValue=main
