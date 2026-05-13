@@ -3,12 +3,9 @@
 PRs to `main` on this template must pass:
 
 - `actionlint` (workflow syntax)
-- `shellcheck` (shell scripts)
-- `yamllint` (workflows + manifests)
-- `ruff` (Python tools)
+- `workflow helper tests` (ShellCheck, workflow input binding checks, caller workflow checks, and contract tests)
 - `markdownlint` (docs)
-- `zizmor` (workflow security)
-- `audit-tools-smoke-test` (tooling sanity + template contract self-validation + template scaffold manifest schema)
+- `terraform runner verify` (`python tools/verify.py verify`, including runner contract, policy, docs, manifest, and integration)
 - `org-baseline / verify` (drift-gate against `NWarila/.github` at pinned source-ref)
 - `Trivy (filesystem & secrets)`, `Gitleaks (secret scan)`, `zizmor (Actions security)` (security)
 - `CodeQL` (`security.yaml`)
