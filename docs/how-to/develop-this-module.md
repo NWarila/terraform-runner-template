@@ -20,11 +20,11 @@ python tools/verify.py integration
 ## Editing org-baseline-mirrored files
 
 Org-baseline ADRs at `docs/decision-records/org/` are byte-mirrored from
-`nwarila-platform/.github`. Edits to those files would fail
+`NWarila/.github`. Edits to those files would fail
 [`drift-gate.yaml`](../../.github/workflows/drift-gate.yaml) on the next
 PR. To change the content of an org-baseline ADR:
 
-1. Land the change in `nwarila-platform/.github/main` first.
+1. Land the change in `NWarila/.github/main` first.
 2. Bump the `source-ref` SHA in this template's
    [`drift-gate.yaml`](../../.github/workflows/drift-gate.yaml) (Renovate
    does this automatically as the canonical advances).

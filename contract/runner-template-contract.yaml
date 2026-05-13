@@ -20,13 +20,13 @@ universal:
   - path: LICENSE
     rationale: Repository license is non-optional.
   - path: CODE_OF_CONDUCT.md
-    rationale: Local mirror of the org-owned code of conduct; drift-gated against nwarila-platform/.github.
+    rationale: Local mirror of the org-owned code of conduct; drift-gated against NWarila/.github.
   - path: CONTRIBUTING.md
-    rationale: Local mirror of the org-owned contribution guide; drift-gated against nwarila-platform/.github.
+    rationale: Local mirror of the org-owned contribution guide; drift-gated against NWarila/.github.
   - path: SECURITY.md
-    rationale: Local mirror of the org-owned security policy; drift-gated against nwarila-platform/.github.
+    rationale: Local mirror of the org-owned security policy; drift-gated against NWarila/.github.
   - path: SUPPORT.md
-    rationale: Local mirror of the org-owned support policy; drift-gated against nwarila-platform/.github.
+    rationale: Local mirror of the org-owned support policy; drift-gated against NWarila/.github.
   - path: Makefile
     rationale: Thin local wrapper around `python tools/verify.py`.
   - path: .editorconfig
