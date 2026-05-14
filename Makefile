@@ -18,10 +18,10 @@ help:
 setup:
 	$(PYTHON) -m pip install --upgrade pyyaml==6.0.3 ruff==0.13.0 yamllint==1.35.1
 
-# This is a META-TEMPLATE for Terraform-runner repos. It does not
-# contain a `terraform/` directory of its own — the runner pattern
-# is data-only (per ADR-template/0001 and the runner contract). The
-# Makefile here lints + validates the META-template's surface; CI
+# This is a META-TEMPLATE for Terraform-runner repos. Its local
+# `terraform/` directory contains only runner-owned inventory data; the
+# executable Terraform module still comes from the consumed framework.
+# The Makefile here lints + validates the META-template's surface; CI
 # (`.github/workflows/ci.yaml`) runs the same set, plus a few
 # checks that depend on workflow-level credentials.
 #
@@ -46,12 +46,12 @@ opa-test:
 	opa test policies/opa
 
 # OPA policy enforcement. Evaluates the policy against this repo's
-# actual workflows. Runner templates have no terraform/ tree, so the
-# policy's Terraform pinning rules are skipped here by design.
+# actual workflows. Runner templates do not own executable Terraform
+# module files, so the policy's Terraform pinning rules are skipped here by design.
 opa-policy:
 	$(PYTHON) tools/verify.py opa-policy
 
-# OPA plan enforcement. Runner templates do not own terraform/ directly,
+# OPA plan enforcement. Runner templates do not own the executable Terraform module directly,
 # so this target evaluates a normalized safe plan fixture against the
 # shared plan-aware package. Consumer runners evaluate their real plan JSON.
 opa-plan:

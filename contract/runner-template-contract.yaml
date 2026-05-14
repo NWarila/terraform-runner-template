@@ -70,21 +70,19 @@ universal:
     type: directory
 types:
   runner:
-    rationale: "Data-only deployer. Has no terraform/ of its own. Consumes a pinned\nframework at runtime.\
-      \ Its pr-validation must check out the framework\nat framework_ref, overlay the runner's repos/,\
-      \ and run `make ci` against\nthe assembled tree \u2014 true end-to-end coverage.\n"
+    rationale: "Data-only deployer. Owns repo inventory under terraform/{public,private}\nand consumes a pinned framework at runtime. Its pr-validation must check out\nthe framework at framework_ref, overlay the runner's inventory into the\nframework's terraform/repos/ runtime path, and run `make ci` against the\nassembled tree - true end-to-end coverage.\n"
     required_paths:
-    - path: repos/public/
+    - path: terraform/public/
       rationale: 'Public repo definitions overlaid onto the framework at deploy time.
 
         Directory must exist even if currently empty (use a .gitkeep).
 
         '
       type: directory
-    - path: repos/private/
+    - path: terraform/private/
       rationale: 'Private repo definitions. May be sourced from S3 at deploy time;
 
-        directory must still exist at the path the framework expects.
+        directory must still exist at the runner inventory path.
 
         '
       type: directory
@@ -128,9 +126,9 @@ types:
       type: directory
     content_rules:
     - file: .github/workflows/terraform-deploy.yaml
-      pattern: 'NWarila/terraform-framework-template/.github/workflows/reusable-terraform-deploy.yaml@[0-9a-f]{40}'
+      pattern: '(?:NWarila|nwarila-platform)/[A-Za-z0-9_.-]+/.github/workflows/reusable-terraform-deploy.yaml@[0-9a-f]{40}'
       must_match: true
-      rationale: Deploy callers must delegate to the SHA-pinned framework reusable deploy workflow.
+      rationale: Deploy callers must delegate to an approved SHA-pinned framework reusable deploy workflow.
     - file: .github/workflows/terraform-deploy.yaml
       pattern: AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY
       must_match: false
@@ -198,10 +196,10 @@ types:
       rationale: Unit tests for plan-aware OPA policy.
     - path: tools/build_plan_input.py
       rationale: Normalizes `terraform show -json` plan output for plan-aware OPA checks.
-    - path: repos/public/
+    - path: terraform/public/
       rationale: Seed public runner data directory inherited by consumers.
       type: directory
-    - path: repos/private/
+    - path: terraform/private/
       rationale: Seed private runner data directory inherited by consumers.
       type: directory
     - path: tests/fixtures/

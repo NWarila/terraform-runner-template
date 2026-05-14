@@ -18,9 +18,9 @@ name: Reusable Release Evidence
 # framework — runs `terraform fmt/init/validate/test` against `terraform/`
 #             and bundles the JSON outputs alongside the terraform-docs
 #             reference and the docs-layout check.
-# runner    — captures the `repos/` inventory plus the pinned
+# runner    — captures the `terraform/{public,private}` inventory plus the pinned
 #             framework_ref at the released SHA. No Terraform run.
-# template  — runner-shaped for evidence; captures the seed repos/
+# template  — runner-shaped for evidence; captures the seed terraform/
 #             inventory and reference framework pin.
 #
 # Caller pattern (every consumer):
@@ -184,21 +184,21 @@ jobs:
           REPO_TYPE: ${{ steps.type.outputs.type }}
         run: |
           set -euo pipefail
-          mkdir -p "$OUT/repos"
+          mkdir -p "$OUT/terraform"
           echo "${REPO_TYPE}" > "$OUT/repo-type.txt"
 
           # Capture the public repo inventory at this tag.
-          if [ -d repos/public ]; then
-            (cd repos/public && find . -type f -name '*.yml' -o -name '*.yaml' | sort) \
-              > "$OUT/repos/public-inventory.txt"
-            tar -C repos/public -czf "$OUT/repos/public-snapshot.tar.gz" .
+          if [ -d terraform/public ]; then
+            (cd terraform/public && find . -type f -name '*.yml' -o -name '*.yaml' | sort) \
+              > "$OUT/terraform/public-inventory.txt"
+            tar -C terraform/public -czf "$OUT/terraform/public-snapshot.tar.gz" .
           fi
 
           # Private repo definitions live in S3, so we can only assert that
           # the directory marker is committed.
-          if [ -d repos/private ]; then
-            (cd repos/private && find . -type f | sort) \
-              > "$OUT/repos/private-inventory.txt"
+          if [ -d terraform/private ]; then
+            (cd terraform/private && find . -type f | sort) \
+              > "$OUT/terraform/private-inventory.txt"
           fi
 
           # Pinned framework_ref from pr-validation.yaml — proves which

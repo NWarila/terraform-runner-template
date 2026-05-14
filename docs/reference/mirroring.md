@@ -16,7 +16,7 @@ should remain byte-identical across runners.
 
 ## Repo-Owned Layer
 
-The runner owns `repos/public/`, `repos/private/`, deploy inputs, template pins,
+The runner owns `terraform/public/`, `terraform/private/`, deploy inputs, template pins,
 framework pins, and repo-specific ADRs. Those files are validated for shape and
 safety, not byte-mirrored.
 
@@ -41,7 +41,7 @@ state key.
 ## New Runner Checklist
 
 1. Rewrite `README.md` for the real runner.
-2. Fill `repos/public/` and configure how `repos/private/` is sourced.
+2. Fill `terraform/public/` and configure how `terraform/private/` is sourced.
 3. Pin `pr-validation.yaml` and `terraform-deploy.yaml` to the intended template
    and framework SHAs.
 4. Decide whether to keep the optional release layer.

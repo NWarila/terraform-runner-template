@@ -205,7 +205,7 @@ runner workflow settings.
 
 ### Private inventory permissions
 
-If `repos/private/` is populated from S3 before deploy, grant read access only
+If `terraform/private/` is populated from S3 before deploy, grant read access only
 to that inventory object or prefix:
 
 ```json
@@ -213,7 +213,7 @@ to that inventory object or prefix:
   "Sid": "ReadPrivateRunnerInventory",
   "Effect": "Allow",
   "Action": "s3:GetObject",
-  "Resource": "arn:aws:s3:::<inventory-bucket>/<runner-repo>/repos/private/*"
+  "Resource": "arn:aws:s3:::<inventory-bucket>/<runner-repo>/terraform/private/*"
 }
 ```
 
