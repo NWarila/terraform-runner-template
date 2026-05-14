@@ -28,9 +28,9 @@ jobs:
       # renovate: depName=NWarila/terraform-framework-template packageName=https://github.com/NWarila/terraform-framework-template currentValue=main
       framework_ref: db6b94c6e6f6d8bd77e721bfc48f241e2a60eff3
       overlay_paths: |
-        repos/public => terraform/repos/public
-        repos/private => terraform/repos/private
-      tfvars_file: repos/public/sample-environments.tfvars
+        terraform/public => terraform/repos/public
+        terraform/private => terraform/repos/private
+      tfvars_file: terraform/public/sample-environments.tfvars
       backend_mode: s3
       backend_key_prefix: nwarila/terraform-runner-template
       upload_plan_artifact: false
