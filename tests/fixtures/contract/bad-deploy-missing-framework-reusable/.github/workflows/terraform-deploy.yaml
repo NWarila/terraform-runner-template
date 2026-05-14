@@ -8,11 +8,11 @@ permissions:
 
 jobs:
   deploy:
-    uses: NWarila/mock-framework-template/.github/workflows/reusable-terraform-deploy.yaml@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+    uses: example-org/mock-framework-template/.github/workflows/reusable-terraform-deploy.yaml@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
     with:
       framework_ref: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
       overlay_paths: |
-        repos/public => terraform/repos/public
-        repos/private => terraform/repos/private
-      tfvars_file: repos/public/sample-environments.tfvars
+        terraform/public => terraform/repos/public
+        terraform/private => terraform/repos/private
+      tfvars_file: terraform/public/sample-environments.tfvars
       apply: false

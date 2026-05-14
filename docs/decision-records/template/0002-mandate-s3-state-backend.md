@@ -66,7 +66,7 @@ In every Terraform-runner consumer derived from this template:
 - The S3 bucket itself is provisioned out-of-band (typically by a "bootstrap" Terraform configuration that's NOT a runner — the bucket can't be created by the runner whose state lives in it; that's circular). The bucket MUST have versioning enabled, server-side encryption (SSE-S3 or SSE-KMS), and either access logging to a separate logging bucket or CloudTrail data-events on the bucket.
 - Per-environment isolation uses distinct `key` values (e.g. `runners/<repo-name>/<environment>/terraform.tfstate`), not Terraform workspaces. Workspaces share the same backend config and are easy to confuse; explicit per-env keys are unambiguous.
 
-The framework being deployed (e.g. `NWarila/terraform-framework-template` for the do-nothing reference) declares its own `backend "s3" {}` block. The runner's PR-validation workflow checks out the framework, overlays the runner's `repos/` data, and runs `terraform init` against the framework's backend with the consumer's `-backend-config`. That backend block is what this ADR governs.
+The framework being deployed (e.g. `NWarila/terraform-framework-template` for the do-nothing reference) declares its own `backend "s3" {}` block. The runner's PR-validation workflow checks out the framework, overlays the runner's `terraform/{public,private}` inventory, and runs `terraform init` against the framework's backend with the consumer's `-backend-config`. That backend block is what this ADR governs.
 
 ## Pros and Cons of the Options
 

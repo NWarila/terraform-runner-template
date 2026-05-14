@@ -94,8 +94,8 @@ on:
           paths are interpreted relative to each repo's root.
 
           Example:
-            repos/public=>terraform/repos/public
-            tests/fixtures/private=>terraform/repos/private
+            terraform/public=>terraform/repos/public
+            tests/fixtures/terraform/private=>terraform/repos/private
 
           Directory sources are copied as contents, including dotfiles.
           Trailing slashes are accepted for readability but have no
