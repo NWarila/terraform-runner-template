@@ -1,5 +1,5 @@
 # Sample tfvars file demonstrating the data shape a Terraform-runner
-# consumer carries in repos/public/. Each entry in `all_environments`
+# consumer carries in terraform/public/. Each entry in `all_environments`
 # describes one synthetic environment the consumed framework
 # (NWarila/terraform-framework-template) will produce on apply.
 #

@@ -7,5 +7,5 @@ framework_source = "../terraform-framework-template/terraform"
 name = "basic"
 overlay_dir = "fixtures/integration/basic"
 module_path = "modules/framework"
-tfvars_source = "repos/public/sample-environments.tfvars"
+tfvars_source = "terraform/public/sample-environments.tfvars"
 test_var_file = true

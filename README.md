@@ -20,7 +20,7 @@ python tools/verify.py ci
 python tools/verify.py integration --framework-source ../terraform-framework-template/terraform
 ```
 
-For a real runner derived from this template, update `repos/public/`, the private inventory source, `.github/workflows/pr-validation.yaml`, `.github/workflows/terraform-deploy.yaml`, and any repo-local decisions under `docs/decision-records/repo/`. The mirroring rules live in [`docs/reference/mirroring.md`](docs/reference/mirroring.md); AWS bootstrap expectations live in [`docs/reference/aws-bootstrap-requirements.md`](docs/reference/aws-bootstrap-requirements.md).
+For a real runner derived from this template, update `terraform/public/`, the private inventory source, `.github/workflows/pr-validation.yaml`, `.github/workflows/terraform-deploy.yaml`, and any repo-local decisions under `docs/decision-records/repo/`. The mirroring rules live in [`docs/reference/mirroring.md`](docs/reference/mirroring.md); AWS bootstrap expectations live in [`docs/reference/aws-bootstrap-requirements.md`](docs/reference/aws-bootstrap-requirements.md).
 
 ## Normalized repo interface
 
@@ -43,7 +43,7 @@ python tools/verify.py integration
 python tools/verify.py integration --framework-source ../terraform-framework-template/terraform
 ```
 
-The shared CI harness lives in `tools/ci/`; the runner-specific fixture lives in `fixtures/integration/basic/`. That mirrors the framework repo's shape while preserving the rule that runners do not own a top-level `terraform/` directory.
+The shared CI harness lives in `tools/ci/`; the runner-specific fixture lives in `fixtures/integration/basic/`. Runner-owned inventory lives under `terraform/{public,private}` while the consumed framework still owns the executable Terraform module.
 
 ## What this template provides
 
@@ -70,8 +70,8 @@ jobs:
       framework_repo: NWarila/terraform-framework-template
       framework_ref: <pinned-framework-sha>
       overlay_paths: |
-        repos/public => terraform/repos/public
-        tests/fixtures/repos/private => terraform/repos/private
+        terraform/public => terraform/repos/public
+        tests/fixtures/terraform/private => terraform/repos/private
       # ...tool versions...
 ```
 
@@ -94,7 +94,7 @@ jobs:
     with:
       framework_ref: <pinned-framework-sha>
       overlay_paths: |
-        repos/public => terraform/repos/public
+        terraform/public => terraform/repos/public
       backend_mode: s3
       backend_key_prefix: <reviewed-state-prefix>
       upload_plan_artifact: false
@@ -107,7 +107,7 @@ jobs:
 
 Overlay paths are always copied as directory contents when the source is a
 directory. A trailing slash is accepted for readability but has no separate
-meaning; `repos/public` and `repos/public/` behave the same way.
+meaning; `terraform/public` and `terraform/public/` behave the same way.
 
 Renovate keeps both the `uses:` SHAs and the `framework_ref` inputs current.
 The runner's `pr-validation.yaml` handles credential-free pull request

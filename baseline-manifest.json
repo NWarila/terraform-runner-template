@@ -182,24 +182,24 @@
       "target": "policies/opa/terraform_plan_test.rego"
     },
     {
-      "source": "repos/public/.gitkeep",
-      "target": "repos/public/.gitkeep"
+      "source": "terraform/public/.gitkeep",
+      "target": "terraform/public/.gitkeep"
     },
     {
-      "source": "repos/private/.gitkeep",
-      "target": "repos/private/.gitkeep"
+      "source": "terraform/private/.gitkeep",
+      "target": "terraform/private/.gitkeep"
     },
     {
       "source": "tests/fixtures/.gitkeep",
       "target": "tests/fixtures/.gitkeep"
     },
     {
-      "source": "tests/fixtures/repos/public/.gitkeep",
-      "target": "tests/fixtures/repos/public/.gitkeep"
+      "source": "tests/fixtures/terraform/public/.gitkeep",
+      "target": "tests/fixtures/terraform/public/.gitkeep"
     },
     {
-      "source": "tests/fixtures/repos/private/.gitkeep",
-      "target": "tests/fixtures/repos/private/.gitkeep"
+      "source": "tests/fixtures/terraform/private/.gitkeep",
+      "target": "tests/fixtures/terraform/private/.gitkeep"
     },
     {
       "source": "fixtures/integration/basic/versions.tf",
