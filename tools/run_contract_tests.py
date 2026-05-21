@@ -12,14 +12,21 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-EXPECTED_BAD_FAILURES: dict[str, tuple[str, ...]] = {
-    "bad-template-ref-tag": (".github/workflows/pr-validation.yaml",),
+# Each marker is a tuple of substrings that must all appear in the same
+# `[FAIL]` line emitted by the validator. Single-element tuples match a
+# single substring; multi-element tuples let a fixture pin specific parts
+# of a fail line without coupling to the full message format.
+Marker = tuple[str, ...]
+
+EXPECTED_BAD_FAILURES: dict[str, tuple[Marker, ...]] = {
+    "bad-template-ref-tag": (
+        (".github/workflows/pr-validation.yaml",),
+    ),
 }
 
-EXPECTED_BAD_CONTRACT_FAILURES: dict[str, tuple[str, ...]] = {
+EXPECTED_BAD_CONTRACT_FAILURES: dict[str, tuple[Marker, ...]] = {
     "bad-deploy-missing-framework-reusable": (
-        "content:.github/workflows/terraform-deploy.yaml:"
-        "(?:NWarila|nwarila-platform)/[A-Za-z0-9_.-]+/.github/workflows/reusable-terraform-deploy.yaml@[0-9a-f]{40}",
+        ("content:.github/workflows/terraform-deploy.yaml", "required pattern not found"),
     ),
 }
 
@@ -29,7 +36,7 @@ class Fixture:
     name: str
     path: Path
     should_pass: bool
-    expected_failures: tuple[str, ...] = ()
+    expected_failures: tuple[Marker, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -43,7 +50,7 @@ class FixtureRun:
 
 
 def discover_fixtures(
-    fixtures_root: Path, expected_failures: dict[str, tuple[str, ...]]
+    fixtures_root: Path, expected_failures: dict[str, tuple[Marker, ...]]
 ) -> tuple[list[Fixture], list[str]]:
     if not fixtures_root.is_dir():
         return [], [f"fixtures root not found: {fixtures_root}"]
@@ -83,6 +90,17 @@ def discover_fixtures(
     return fixtures, errors
 
 
+def missing_expected_failures(
+    stdout: str, expected_failures: tuple[Marker, ...]
+) -> list[str]:
+    fail_lines = [line for line in stdout.splitlines() if line.startswith("[FAIL] ")]
+    missing: list[str] = []
+    for fragments in expected_failures:
+        if not any(all(fragment in line for fragment in fragments) for line in fail_lines):
+            missing.append(" + ".join(fragments))
+    return missing
+
+
 def run_fixture(repo_root: Path, validator: Path, fixture: Fixture) -> FixtureRun:
     completed = subprocess.run(
         [
@@ -103,10 +121,7 @@ def run_fixture(repo_root: Path, validator: Path, fixture: Fixture) -> FixtureRu
         if not passed:
             detail = f"expected success, got exit {completed.returncode}"
     else:
-        expected_failure_lines = [f"[FAIL] {name}" for name in fixture.expected_failures]
-        missing = [
-            line for line in expected_failure_lines if line not in completed.stdout
-        ]
+        missing = missing_expected_failures(completed.stdout, fixture.expected_failures)
         passed = completed.returncode != 0 and not missing
         detail = "expected failure"
         if completed.returncode == 0:
@@ -172,10 +187,7 @@ def run_contract_fixture(
         if not passed:
             detail = f"expected success, got exit {completed.returncode}"
     else:
-        expected_failure_lines = [f"[FAIL] {name}" for name in fixture.expected_failures]
-        missing = [
-            line for line in expected_failure_lines if line not in completed.stdout
-        ]
+        missing = missing_expected_failures(completed.stdout, fixture.expected_failures)
         passed = completed.returncode != 0 and not missing
         detail = "expected failure"
         if completed.returncode == 0:
