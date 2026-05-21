@@ -72,9 +72,10 @@
       ]
     },
     {
-      // Track SHA body inputs that must move with reusable workflow `uses:`
-      // pins. Renovate's git-refs datasource treats the branch name as
-      // currentValue and the checked-in 40-char SHA as currentDigest.
+      // Track SHA body inputs and annotated checkout refs that must move with
+      // reusable workflow `uses:` pins. Renovate's git-refs datasource treats
+      // the branch name as currentValue and the checked-in 40-char SHA as
+      // currentDigest.
       "customType": "regex",
       "managerFilePatterns": [
         "/^\\.github/workflows/.*\\.ya?ml$/"
@@ -82,7 +83,7 @@
       "datasourceTemplate": "git-refs",
       "versioningTemplate": "loose",
       "matchStrings": [
-        "# renovate: depName=(?<depName>[^\\s]+) packageName=(?<packageName>[^\\s]+) currentValue=(?<currentValue>[^\\s]+)\\s+(?:template_ref|framework_ref|source-ref):\\s*(?<currentDigest>[0-9a-f]{40})"
+        "# renovate: depName=(?<depName>[^\\s]+) packageName=(?<packageName>[^\\s]+) currentValue=(?<currentValue>[^\\s]+)\\s+(?:template_ref|framework_ref|source-ref|ref):\\s*(?<currentDigest>[0-9a-f]{40})"
       ]
     }
   ],
