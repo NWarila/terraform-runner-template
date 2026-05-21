@@ -9,6 +9,6 @@
 ## Test plan
 
 - [ ] CI passes locally / in PR
-- [ ] If touching baseline-mirrored files: confirm `baseline-manifest.json` reflects the intended source of truth, or plan the upstream change before syncing forward
+- [ ] If touching drift-gated files: confirm the source template manifest reflects the intended source of truth, or plan the upstream change before syncing forward
 - [ ] If touching contract: run `make contract-check` and update the existing consumer fixtures when expectations change
 - [ ] Documentation reflects the change (when applicable)

@@ -38,10 +38,6 @@
       "target": ".github/workflows/reusable-scorecard.yaml"
     },
     {
-      "source": ".github/workflows/reusable-terraform-validation.yaml",
-      "target": ".github/workflows/reusable-terraform-validation.yaml"
-    },
-    {
       "source": ".github/workflows/security.yaml",
       "target": ".github/workflows/security.yaml"
     },
@@ -50,36 +46,12 @@
       "target": ".markdownlint-cli2.jsonc"
     },
     {
-      "source": ".pre-commit-config.yaml",
-      "target": ".pre-commit-config.yaml"
-    },
-    {
       "source": "LICENSE",
       "target": "LICENSE"
     },
     {
-      "source": "Makefile",
-      "target": "Makefile"
-    },
-    {
       "source": "docs/decision-records/repo/.gitkeep",
       "target": "docs/decision-records/repo/.gitkeep"
-    },
-    {
-      "source": "docs/decision-records/template/.gitkeep",
-      "target": "docs/decision-records/template/.gitkeep"
-    },
-    {
-      "source": "docs/decision-records/template/0001-pin-terraform-and-provider-versions-exactly.md",
-      "target": "docs/decision-records/template/0001-pin-terraform-and-provider-versions-exactly.md"
-    },
-    {
-      "source": "docs/decision-records/template/0002-mandate-s3-state-backend.md",
-      "target": "docs/decision-records/template/0002-mandate-s3-state-backend.md"
-    },
-    {
-      "source": "docs/decision-records/template/0004-isolate-pull-request-target-triggers.md",
-      "target": "docs/decision-records/template/0004-isolate-pull-request-target-triggers.md"
     },
     {
       "source": "docs/explanation/.gitkeep",
@@ -94,32 +66,8 @@
       "target": "docs/reference/.gitkeep"
     },
     {
-      "source": "docs/reference/mirroring.md",
-      "target": "docs/reference/mirroring.md"
-    },
-    {
       "source": "docs/tutorials/.gitkeep",
       "target": "docs/tutorials/.gitkeep"
-    },
-    {
-      "source": "policies/opa/.gitkeep",
-      "target": "policies/opa/.gitkeep"
-    },
-    {
-      "source": "policies/opa/repo_hygiene.rego",
-      "target": "policies/opa/repo_hygiene.rego"
-    },
-    {
-      "source": "policies/opa/repo_hygiene_test.rego",
-      "target": "policies/opa/repo_hygiene_test.rego"
-    },
-    {
-      "source": "policies/opa/terraform_plan.rego",
-      "target": "policies/opa/terraform_plan.rego"
-    },
-    {
-      "source": "policies/opa/terraform_plan_test.rego",
-      "target": "policies/opa/terraform_plan_test.rego"
     },
     {
       "source": "terraform/private/.gitkeep",
@@ -330,6 +278,58 @@
     {
       "source": "tools/verify.py",
       "target": "tools/verify.py"
+    },
+    {
+      "source": ".github/workflows/reusable-terraform-validation.yaml",
+      "target": ".github/workflows/reusable-terraform-validation.yaml"
+    },
+    {
+      "source": ".pre-commit-config.yaml",
+      "target": ".pre-commit-config.yaml"
+    },
+    {
+      "source": "Makefile",
+      "target": "Makefile"
+    },
+    {
+      "source": "docs/decision-records/template/.gitkeep",
+      "target": "docs/decision-records/template/.gitkeep"
+    },
+    {
+      "source": "docs/decision-records/template/0001-pin-terraform-and-provider-versions-exactly.md",
+      "target": "docs/decision-records/template/0001-pin-terraform-and-provider-versions-exactly.md"
+    },
+    {
+      "source": "docs/decision-records/template/0002-mandate-s3-state-backend.md",
+      "target": "docs/decision-records/template/0002-mandate-s3-state-backend.md"
+    },
+    {
+      "source": "docs/decision-records/template/0004-isolate-pull-request-target-triggers.md",
+      "target": "docs/decision-records/template/0004-isolate-pull-request-target-triggers.md"
+    },
+    {
+      "source": "docs/reference/mirroring.md",
+      "target": "docs/reference/mirroring.md"
+    },
+    {
+      "source": "policies/opa/.gitkeep",
+      "target": "policies/opa/.gitkeep"
+    },
+    {
+      "source": "policies/opa/repo_hygiene.rego",
+      "target": "policies/opa/repo_hygiene.rego"
+    },
+    {
+      "source": "policies/opa/repo_hygiene_test.rego",
+      "target": "policies/opa/repo_hygiene_test.rego"
+    },
+    {
+      "source": "policies/opa/terraform_plan.rego",
+      "target": "policies/opa/terraform_plan.rego"
+    },
+    {
+      "source": "policies/opa/terraform_plan_test.rego",
+      "target": "policies/opa/terraform_plan_test.rego"
     }
   ]
 }

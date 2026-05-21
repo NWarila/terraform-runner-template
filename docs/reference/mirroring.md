@@ -7,8 +7,8 @@ runner repos small enough to operate without ceremony.
 
 A runner consumer must keep the contract-critical files: community health files,
 `.github/CODEOWNERS`, Renovate config, `pr-validation.yaml`, `drift-gate.yaml`,
-`security.yaml`, `terraform-deploy.yaml`, the docs skeleton, `Makefile`,
-`tools/verify.py`, and the runner inventory directories.
+`security.yaml`, `terraform-deploy.yaml`, the docs skeleton, and the runner
+inventory directories.
 
 The contract validator checks the required paths and the caller-workflow wiring.
 The template-tier drift manifest mirrors only the stable scaffold files that
@@ -29,9 +29,12 @@ for runners that only deploy inventory.
 
 ## Template-Maintainer Layer
 
-Reusable workflows, OPA policy tests, generated contract fixtures, and contract
-tooling are template-maintainer machinery. They are valuable portfolio signal,
-but new runner repos should only touch them when changing the baseline itself.
+The local contract validator, OPA policy tests, generated contract fixtures,
+integration fixture, and `tools/verify.py` are template-maintainer machinery.
+They are valuable in this template repo because `ci.yaml` executes them on
+every PR, but they are not required in runner repos. Runner PRs exercise the
+same controls through the pinned reusable validation workflow from this
+template checkout.
 Template-only self-validation workflows such as `ci.yaml` are not byte-mirrored
 into consumers. The normal `terraform-deploy.yaml` caller is mirrored because it
 is the regular runner deploy example: `pr-validation.yaml` plans locally, while
@@ -45,4 +48,6 @@ state key.
 3. Pin `pr-validation.yaml` and `terraform-deploy.yaml` to the intended template
    and framework SHAs.
 4. Decide whether to keep the optional release layer.
-5. Run `python tools/verify.py verify`.
+5. Run the runner's PR validation workflow, or run this template's
+   `reusable-terraform-validation.yaml` from a scratch branch pinned to the
+   candidate template SHA.
