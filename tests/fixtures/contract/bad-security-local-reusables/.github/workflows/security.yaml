@@ -1,0 +1,17 @@
+name: Security
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  iac:
+    uses: ./.github/workflows/reusable-iac-security.yaml
+
+  codeql:
+    uses: ./.github/workflows/reusable-codeql.yaml
+
+  scorecard:
+    uses: ./.github/workflows/reusable-scorecard.yaml

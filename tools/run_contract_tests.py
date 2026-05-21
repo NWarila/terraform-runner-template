@@ -28,6 +28,21 @@ EXPECTED_BAD_CONTRACT_FAILURES: dict[str, tuple[Marker, ...]] = {
     "bad-deploy-missing-framework-reusable": (
         ("content:.github/workflows/terraform-deploy.yaml", "required pattern not found"),
     ),
+    "bad-local-reusable-workflow": (
+        ("forbidden:.github/workflows/reusable-*.yaml", "reusable-codeql.yaml"),
+    ),
+    "bad-security-local-reusables": (
+        (
+            "content:.github/workflows/security.yaml",
+            "reusable-iac-security",
+            "required pattern not found",
+        ),
+        (
+            "content:.github/workflows/security.yaml",
+            "reusable-(iac-security|codeql|scorecard)",
+            "forbidden pattern present",
+        ),
+    ),
 }
 
 
@@ -155,8 +170,29 @@ def prepare_contract_repo(repo_root: Path, fixture: Fixture, temp_root: Path) ->
             "__pycache__",
         ),
     )
+    prune_template_only_runner_paths(target)
     shutil.copytree(fixture.path, target, dirs_exist_ok=True)
     return target
+
+
+def prune_template_only_runner_paths(target: Path) -> None:
+    """Remove template-owned ballast before runner contract fixture overlays."""
+    for rel in ("tools", "policies"):
+        path = target / rel
+        if path.exists():
+            shutil.rmtree(path)
+
+    makefile = target / "Makefile"
+    if makefile.exists():
+        makefile.unlink()
+
+    workflows = target / ".github" / "workflows"
+    if not workflows.is_dir():
+        return
+    for path in workflows.glob("reusable-*.y*ml"):
+        if path.name == "reusable-auto-merge.yaml":
+            continue
+        path.unlink()
 
 
 def run_contract_fixture(
@@ -172,6 +208,8 @@ def run_contract_fixture(
                 str(fixture_repo),
                 "--contract",
                 str(contract),
+                "--template-root",
+                str(repo_root),
                 "--type",
                 "runner",
             ],

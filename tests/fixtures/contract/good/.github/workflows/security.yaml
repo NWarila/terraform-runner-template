@@ -1,0 +1,30 @@
+name: Security
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  iac:
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    uses: NWarila/terraform-runner-template/.github/workflows/reusable-iac-security.yaml@6c4e189847ac5a045889528257452776f33671be
+
+  codeql:
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    uses: NWarila/terraform-runner-template/.github/workflows/reusable-codeql.yaml@6c4e189847ac5a045889528257452776f33671be
+
+  scorecard:
+    permissions:
+      security-events: write
+      id-token: write
+      actions: read
+      contents: read
+    uses: NWarila/terraform-runner-template/.github/workflows/reusable-scorecard.yaml@6c4e189847ac5a045889528257452776f33671be
