@@ -98,10 +98,6 @@
       "target": "docs/reference/mirroring.md"
     },
     {
-      "source": "docs/reference/quality-gates.md",
-      "target": "docs/reference/quality-gates.md"
-    },
-    {
       "source": "docs/tutorials/.gitkeep",
       "target": "docs/tutorials/.gitkeep"
     },
@@ -132,70 +128,6 @@
     {
       "source": "terraform/public/.gitkeep",
       "target": "terraform/public/.gitkeep"
-    },
-    {
-      "source": "terraform/public/sample-environments.tfvars",
-      "target": "terraform/public/sample-environments.tfvars"
-    },
-    {
-      "source": "tools/build_opa_input.py",
-      "target": "tools/build_opa_input.py"
-    },
-    {
-      "source": "tools/build_plan_input.py",
-      "target": "tools/build_plan_input.py"
-    },
-    {
-      "source": "tools/check_adr_schema.py",
-      "target": "tools/check_adr_schema.py"
-    },
-    {
-      "source": "tools/check_baseline_manifest.py",
-      "target": "tools/check_baseline_manifest.py"
-    },
-    {
-      "source": "tools/check_caller_workflows.py",
-      "target": "tools/check_caller_workflows.py"
-    },
-    {
-      "source": "tools/check_docs_layout.py",
-      "target": "tools/check_docs_layout.py"
-    },
-    {
-      "source": "tools/check_privileged_workflows.py",
-      "target": "tools/check_privileged_workflows.py"
-    },
-    {
-      "source": "tools/check_template_contract.py",
-      "target": "tools/check_template_contract.py"
-    },
-    {
-      "source": "tools/check_workflow_run_blocks.py",
-      "target": "tools/check_workflow_run_blocks.py"
-    },
-    {
-      "source": "tools/ci/config.toml",
-      "target": "tools/ci/config.toml"
-    },
-    {
-      "source": "tools/ci/run_integration.py",
-      "target": "tools/ci/run_integration.py"
-    },
-    {
-      "source": "tools/install_ci_tools.sh",
-      "target": "tools/install_ci_tools.sh"
-    },
-    {
-      "source": "tools/run_contract_tests.py",
-      "target": "tools/run_contract_tests.py"
-    },
-    {
-      "source": "tools/run_privileged_workflow_tests.py",
-      "target": "tools/run_privileged_workflow_tests.py"
-    },
-    {
-      "source": "tools/verify.py",
-      "target": "tools/verify.py"
     }
   ],
   "scaffold_starter": [
@@ -220,6 +152,10 @@
       "target": "contract/runner-template-contract.yaml"
     },
     {
+      "source": "docs/reference/quality-gates.md",
+      "target": "docs/reference/quality-gates.md"
+    },
+    {
       "source": "fixtures/integration/basic/main.tf",
       "target": "fixtures/integration/basic/main.tf"
     },
@@ -234,6 +170,10 @@
     {
       "source": "fixtures/integration/basic/versions.tf",
       "target": "fixtures/integration/basic/versions.tf"
+    },
+    {
+      "source": "terraform/public/sample-environments.tfvars",
+      "target": "terraform/public/sample-environments.tfvars"
     },
     {
       "source": "tests/fixtures/.gitkeep",
@@ -330,6 +270,66 @@
     {
       "source": "tests/fixtures/terraform/public/.gitkeep",
       "target": "tests/fixtures/terraform/public/.gitkeep"
+    },
+    {
+      "source": "tools/build_opa_input.py",
+      "target": "tools/build_opa_input.py"
+    },
+    {
+      "source": "tools/build_plan_input.py",
+      "target": "tools/build_plan_input.py"
+    },
+    {
+      "source": "tools/check_adr_schema.py",
+      "target": "tools/check_adr_schema.py"
+    },
+    {
+      "source": "tools/check_baseline_manifest.py",
+      "target": "tools/check_baseline_manifest.py"
+    },
+    {
+      "source": "tools/check_caller_workflows.py",
+      "target": "tools/check_caller_workflows.py"
+    },
+    {
+      "source": "tools/check_docs_layout.py",
+      "target": "tools/check_docs_layout.py"
+    },
+    {
+      "source": "tools/check_privileged_workflows.py",
+      "target": "tools/check_privileged_workflows.py"
+    },
+    {
+      "source": "tools/check_template_contract.py",
+      "target": "tools/check_template_contract.py"
+    },
+    {
+      "source": "tools/check_workflow_run_blocks.py",
+      "target": "tools/check_workflow_run_blocks.py"
+    },
+    {
+      "source": "tools/ci/config.toml",
+      "target": "tools/ci/config.toml"
+    },
+    {
+      "source": "tools/ci/run_integration.py",
+      "target": "tools/ci/run_integration.py"
+    },
+    {
+      "source": "tools/install_ci_tools.sh",
+      "target": "tools/install_ci_tools.sh"
+    },
+    {
+      "source": "tools/run_contract_tests.py",
+      "target": "tools/run_contract_tests.py"
+    },
+    {
+      "source": "tools/run_privileged_workflow_tests.py",
+      "target": "tools/run_privileged_workflow_tests.py"
+    },
+    {
+      "source": "tools/verify.py",
+      "target": "tools/verify.py"
     }
   ]
 }
