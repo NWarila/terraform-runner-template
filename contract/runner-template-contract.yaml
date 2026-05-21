@@ -90,6 +90,8 @@ types:
         actual `terraform apply` workflow; pr-validation is plan-only.
 
         '
+    - path: .github/workflows/release.yaml
+      rationale: Optional release entrypoint must delegate release automation and evidence to template-owned reusable workflows.
     - path: tests/fixtures/terraform/private/
       rationale: 'Public-safe private inventory fixtures used by pr-validation when the production
 
@@ -126,6 +128,18 @@ types:
       pattern: '\./\.github/workflows/reusable-(iac-security|codeql|scorecard)\.yaml'
       must_match: false
       rationale: Runner repos must not hide security implementation in local reusable workflow copies.
+    - file: .github/workflows/release.yaml
+      pattern: 'NWarila/terraform-runner-template/.github/workflows/reusable-release-please.yaml@[0-9a-f]{40}'
+      must_match: true
+      rationale: Runner release callers must consume the template-owned release-please reusable by immutable SHA.
+    - file: .github/workflows/release.yaml
+      pattern: 'NWarila/terraform-runner-template/.github/workflows/reusable-release-evidence.yaml@[0-9a-f]{40}'
+      must_match: true
+      rationale: Runner release callers must consume the template-owned release evidence reusable by immutable SHA.
+    - file: .github/workflows/release.yaml
+      pattern: '\./\.github/workflows/reusable-release-(please|evidence)\.ya?ml'
+      must_match: false
+      rationale: Runner repos must not hide release implementation in local reusable workflow copies.
     forbidden_paths:
     - path: tools/
       rationale: Runner repos are data-only deployers; template-maintainer tooling belongs in terraform-runner-template.
@@ -139,6 +153,8 @@ types:
       rationale: 'Local reusable workflow implementations are template-owned, except
         the privileged auto-merge reusable, which stays local so the
         pull_request_target static analyzer can inspect the complete call graph.'
+    - glob: .github/workflows/reusable-*.yml
+      rationale: Non-auto local reusable workflow implementations are forbidden with either GitHub Actions extension.
   template:
     rationale: 'Self-validation shape for this type-template repository. It owns
       reusable workflows, contract tooling, drift-gate metadata, and the seed

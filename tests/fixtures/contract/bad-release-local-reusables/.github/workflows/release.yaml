@@ -1,0 +1,24 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        required: true
+        type: choice
+        default: release-please
+        options:
+          - release-please
+          - release-evidence
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    if: ${{ inputs.task == 'release-please' }}
+    uses: ./.github/workflows/reusable-release-please.yaml
+
+  evidence:
+    if: ${{ inputs.task == 'release-evidence' }}
+    uses: ./.github/workflows/reusable-release-evidence.yaml

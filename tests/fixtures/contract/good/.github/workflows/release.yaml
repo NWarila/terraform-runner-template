@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        required: true
+        type: choice
+        default: release-please
+        options:
+          - release-please
+          - release-evidence
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    if: ${{ inputs.task == 'release-please' }}
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: write
+    uses: NWarila/terraform-runner-template/.github/workflows/reusable-release-please.yaml@4487471f0dc181a600ac6bf542eb0a90fd320979
+
+  evidence:
+    if: ${{ inputs.task == 'release-evidence' }}
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
+    uses: NWarila/terraform-runner-template/.github/workflows/reusable-release-evidence.yaml@4487471f0dc181a600ac6bf542eb0a90fd320979
+    with:
+      terraform_version: "1.15.1"
+      repo_type: runner
