@@ -10,30 +10,6 @@
       "target": ".gitattributes"
     },
     {
-      "source": ".gitignore",
-      "target": ".gitignore"
-    },
-    {
-      "source": ".markdownlint-cli2.jsonc",
-      "target": ".markdownlint-cli2.jsonc"
-    },
-    {
-      "source": ".pre-commit-config.yaml",
-      "target": ".pre-commit-config.yaml"
-    },
-    {
-      "source": "LICENSE",
-      "target": "LICENSE"
-    },
-    {
-      "source": "Makefile",
-      "target": "Makefile"
-    },
-    {
-      "source": "baseline-manifest.json",
-      "target": "baseline-manifest.json"
-    },
-    {
       "source": ".github/CODEOWNERS",
       "target": ".github/CODEOWNERS"
     },
@@ -78,8 +54,40 @@
       "target": ".github/workflows/security.yaml"
     },
     {
+      "source": ".gitignore",
+      "target": ".gitignore"
+    },
+    {
+      "source": ".markdownlint-cli2.jsonc",
+      "target": ".markdownlint-cli2.jsonc"
+    },
+    {
+      "source": ".pre-commit-config.yaml",
+      "target": ".pre-commit-config.yaml"
+    },
+    {
+      "source": "LICENSE",
+      "target": "LICENSE"
+    },
+    {
+      "source": "Makefile",
+      "target": "Makefile"
+    },
+    {
+      "source": "baseline-manifest.json",
+      "target": "baseline-manifest.json"
+    },
+    {
       "source": "contract/runner-template-contract.yaml",
       "target": "contract/runner-template-contract.yaml"
+    },
+    {
+      "source": "docs/decision-records/repo/.gitkeep",
+      "target": "docs/decision-records/repo/.gitkeep"
+    },
+    {
+      "source": "docs/decision-records/template/.gitkeep",
+      "target": "docs/decision-records/template/.gitkeep"
     },
     {
       "source": "docs/decision-records/template/0001-pin-terraform-and-provider-versions-exactly.md",
@@ -92,14 +100,6 @@
     {
       "source": "docs/decision-records/template/0004-isolate-pull-request-target-triggers.md",
       "target": "docs/decision-records/template/0004-isolate-pull-request-target-triggers.md"
-    },
-    {
-      "source": "docs/decision-records/template/.gitkeep",
-      "target": "docs/decision-records/template/.gitkeep"
-    },
-    {
-      "source": "docs/decision-records/repo/.gitkeep",
-      "target": "docs/decision-records/repo/.gitkeep"
     },
     {
       "source": "docs/explanation/.gitkeep",
@@ -126,64 +126,20 @@
       "target": "docs/tutorials/.gitkeep"
     },
     {
-      "source": "tools/build_opa_input.py",
-      "target": "tools/build_opa_input.py"
+      "source": "fixtures/integration/basic/main.tf",
+      "target": "fixtures/integration/basic/main.tf"
     },
     {
-      "source": "tools/build_plan_input.py",
-      "target": "tools/build_plan_input.py"
+      "source": "fixtures/integration/basic/tests/runner_consumes_framework.tftest.hcl",
+      "target": "fixtures/integration/basic/tests/runner_consumes_framework.tftest.hcl"
     },
     {
-      "source": "tools/check_baseline_manifest.py",
-      "target": "tools/check_baseline_manifest.py"
+      "source": "fixtures/integration/basic/variables.tf",
+      "target": "fixtures/integration/basic/variables.tf"
     },
     {
-      "source": "tools/check_adr_schema.py",
-      "target": "tools/check_adr_schema.py"
-    },
-    {
-      "source": "tools/check_caller_workflows.py",
-      "target": "tools/check_caller_workflows.py"
-    },
-    {
-      "source": "tools/check_docs_layout.py",
-      "target": "tools/check_docs_layout.py"
-    },
-    {
-      "source": "tools/check_privileged_workflows.py",
-      "target": "tools/check_privileged_workflows.py"
-    },
-    {
-      "source": "tools/check_template_contract.py",
-      "target": "tools/check_template_contract.py"
-    },
-    {
-      "source": "tools/check_workflow_run_blocks.py",
-      "target": "tools/check_workflow_run_blocks.py"
-    },
-    {
-      "source": "tools/run_contract_tests.py",
-      "target": "tools/run_contract_tests.py"
-    },
-    {
-      "source": "tools/run_privileged_workflow_tests.py",
-      "target": "tools/run_privileged_workflow_tests.py"
-    },
-    {
-      "source": "tools/verify.py",
-      "target": "tools/verify.py"
-    },
-    {
-      "source": "tools/install_ci_tools.sh",
-      "target": "tools/install_ci_tools.sh"
-    },
-    {
-      "source": "tools/ci/config.toml",
-      "target": "tools/ci/config.toml"
-    },
-    {
-      "source": "tools/ci/run_integration.py",
-      "target": "tools/ci/run_integration.py"
+      "source": "fixtures/integration/basic/versions.tf",
+      "target": "fixtures/integration/basic/versions.tf"
     },
     {
       "source": "policies/opa/.gitkeep",
@@ -206,24 +162,20 @@
       "target": "policies/opa/terraform_plan_test.rego"
     },
     {
-      "source": "repos/public/.gitkeep",
-      "target": "repos/public/.gitkeep"
+      "source": "terraform/private/.gitkeep",
+      "target": "terraform/private/.gitkeep"
     },
     {
-      "source": "repos/private/.gitkeep",
-      "target": "repos/private/.gitkeep"
+      "source": "terraform/public/.gitkeep",
+      "target": "terraform/public/.gitkeep"
+    },
+    {
+      "source": "terraform/public/sample-environments.tfvars",
+      "target": "terraform/public/sample-environments.tfvars"
     },
     {
       "source": "tests/fixtures/.gitkeep",
       "target": "tests/fixtures/.gitkeep"
-    },
-    {
-      "source": "tests/fixtures/consumers/bad-duplicate/.github/workflows/pr-validation.yaml",
-      "target": "tests/fixtures/consumers/bad-duplicate/.github/workflows/pr-validation.yaml"
-    },
-    {
-      "source": "tests/fixtures/consumers/bad-duplicate/repos/public/repositories.yaml",
-      "target": "tests/fixtures/consumers/bad-duplicate/repos/public/repositories.yaml"
     },
     {
       "source": "tests/fixtures/consumers/bad-mutable-framework-ref/.github/workflows/pr-validation.yaml",
@@ -238,36 +190,20 @@
       "target": "tests/fixtures/consumers/bad-template-ref-tag/.github/workflows/terraform-deploy.yaml"
     },
     {
-      "source": "tests/fixtures/consumers/bad-template-ref-tag/repos/private/.gitkeep",
-      "target": "tests/fixtures/consumers/bad-template-ref-tag/repos/private/.gitkeep"
+      "source": "tests/fixtures/consumers/bad-template-ref-tag/terraform/private/.gitkeep",
+      "target": "tests/fixtures/consumers/bad-template-ref-tag/terraform/private/.gitkeep"
     },
     {
-      "source": "tests/fixtures/consumers/bad-template-ref-tag/repos/public/.gitkeep",
-      "target": "tests/fixtures/consumers/bad-template-ref-tag/repos/public/.gitkeep"
+      "source": "tests/fixtures/consumers/bad-template-ref-tag/terraform/public/.gitkeep",
+      "target": "tests/fixtures/consumers/bad-template-ref-tag/terraform/public/.gitkeep"
     },
     {
       "source": "tests/fixtures/consumers/bad-template-ref-tag/tests/fixtures/.gitkeep",
       "target": "tests/fixtures/consumers/bad-template-ref-tag/tests/fixtures/.gitkeep"
     },
     {
-      "source": "tests/fixtures/consumers/bad-topics/.github/workflows/pr-validation.yaml",
-      "target": "tests/fixtures/consumers/bad-topics/.github/workflows/pr-validation.yaml"
-    },
-    {
-      "source": "tests/fixtures/consumers/bad-topics/repos/public/repositories.yaml",
-      "target": "tests/fixtures/consumers/bad-topics/repos/public/repositories.yaml"
-    },
-    {
       "source": "tests/fixtures/consumers/bad-unsafe-overlay/.github/workflows/pr-validation.yaml",
       "target": "tests/fixtures/consumers/bad-unsafe-overlay/.github/workflows/pr-validation.yaml"
-    },
-    {
-      "source": "tests/fixtures/consumers/bad-visibility/.github/workflows/pr-validation.yaml",
-      "target": "tests/fixtures/consumers/bad-visibility/.github/workflows/pr-validation.yaml"
-    },
-    {
-      "source": "tests/fixtures/consumers/bad-visibility/repos/public/repositories.yaml",
-      "target": "tests/fixtures/consumers/bad-visibility/repos/public/repositories.yaml"
     },
     {
       "source": "tests/fixtures/consumers/good/.github/workflows/pr-validation.yaml",
@@ -278,12 +214,12 @@
       "target": "tests/fixtures/consumers/good/.github/workflows/terraform-deploy.yaml"
     },
     {
-      "source": "tests/fixtures/consumers/good/repos/private/.gitkeep",
-      "target": "tests/fixtures/consumers/good/repos/private/.gitkeep"
+      "source": "tests/fixtures/consumers/good/terraform/private/.gitkeep",
+      "target": "tests/fixtures/consumers/good/terraform/private/.gitkeep"
     },
     {
-      "source": "tests/fixtures/consumers/good/repos/public/.gitkeep",
-      "target": "tests/fixtures/consumers/good/repos/public/.gitkeep"
+      "source": "tests/fixtures/consumers/good/terraform/public/.gitkeep",
+      "target": "tests/fixtures/consumers/good/terraform/public/.gitkeep"
     },
     {
       "source": "tests/fixtures/consumers/good/tests/fixtures/.gitkeep",
@@ -314,18 +250,6 @@
       "target": "tests/fixtures/privileged-workflows/reusable-bad/.github/workflows/reusable-pwn.yaml"
     },
     {
-      "source": "tests/fixtures/repos/public/.gitkeep",
-      "target": "tests/fixtures/repos/public/.gitkeep"
-    },
-    {
-      "source": "tests/fixtures/repos/private/.gitkeep",
-      "target": "tests/fixtures/repos/private/.gitkeep"
-    },
-    {
-      "source": "tests/fixtures/repos/private/sample-private-environments.tfvars",
-      "target": "tests/fixtures/repos/private/sample-private-environments.tfvars"
-    },
-    {
       "source": "tests/fixtures/terraform-plan/bad-plan.json",
       "target": "tests/fixtures/terraform-plan/bad-plan.json"
     },
@@ -334,20 +258,76 @@
       "target": "tests/fixtures/terraform-plan/safe-plan.json"
     },
     {
-      "source": "fixtures/integration/basic/versions.tf",
-      "target": "fixtures/integration/basic/versions.tf"
+      "source": "tests/fixtures/terraform/private/.gitkeep",
+      "target": "tests/fixtures/terraform/private/.gitkeep"
     },
     {
-      "source": "fixtures/integration/basic/variables.tf",
-      "target": "fixtures/integration/basic/variables.tf"
+      "source": "tests/fixtures/terraform/private/sample-private-environments.tfvars",
+      "target": "tests/fixtures/terraform/private/sample-private-environments.tfvars"
     },
     {
-      "source": "fixtures/integration/basic/main.tf",
-      "target": "fixtures/integration/basic/main.tf"
+      "source": "tests/fixtures/terraform/public/.gitkeep",
+      "target": "tests/fixtures/terraform/public/.gitkeep"
     },
     {
-      "source": "fixtures/integration/basic/tests/runner_consumes_framework.tftest.hcl",
-      "target": "fixtures/integration/basic/tests/runner_consumes_framework.tftest.hcl"
+      "source": "tools/build_opa_input.py",
+      "target": "tools/build_opa_input.py"
+    },
+    {
+      "source": "tools/build_plan_input.py",
+      "target": "tools/build_plan_input.py"
+    },
+    {
+      "source": "tools/check_adr_schema.py",
+      "target": "tools/check_adr_schema.py"
+    },
+    {
+      "source": "tools/check_baseline_manifest.py",
+      "target": "tools/check_baseline_manifest.py"
+    },
+    {
+      "source": "tools/check_caller_workflows.py",
+      "target": "tools/check_caller_workflows.py"
+    },
+    {
+      "source": "tools/check_docs_layout.py",
+      "target": "tools/check_docs_layout.py"
+    },
+    {
+      "source": "tools/check_privileged_workflows.py",
+      "target": "tools/check_privileged_workflows.py"
+    },
+    {
+      "source": "tools/check_template_contract.py",
+      "target": "tools/check_template_contract.py"
+    },
+    {
+      "source": "tools/check_workflow_run_blocks.py",
+      "target": "tools/check_workflow_run_blocks.py"
+    },
+    {
+      "source": "tools/ci/config.toml",
+      "target": "tools/ci/config.toml"
+    },
+    {
+      "source": "tools/ci/run_integration.py",
+      "target": "tools/ci/run_integration.py"
+    },
+    {
+      "source": "tools/install_ci_tools.sh",
+      "target": "tools/install_ci_tools.sh"
+    },
+    {
+      "source": "tools/run_contract_tests.py",
+      "target": "tools/run_contract_tests.py"
+    },
+    {
+      "source": "tools/run_privileged_workflow_tests.py",
+      "target": "tools/run_privileged_workflow_tests.py"
+    },
+    {
+      "source": "tools/verify.py",
+      "target": "tools/verify.py"
     }
   ],
   "scaffold_starter": []
