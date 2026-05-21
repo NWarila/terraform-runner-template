@@ -31,6 +31,21 @@ EXPECTED_BAD_CONTRACT_FAILURES: dict[str, tuple[Marker, ...]] = {
     "bad-local-reusable-workflow": (
         ("forbidden:.github/workflows/reusable-*.yaml", "reusable-codeql.yaml"),
     ),
+    "bad-local-reusable-workflow-yml": (
+        ("forbidden:.github/workflows/reusable-*.yml", "reusable-codeql.yml"),
+    ),
+    "bad-release-local-reusables": (
+        (
+            "content:.github/workflows/release.yaml",
+            "reusable-release-please",
+            "required pattern not found",
+        ),
+        (
+            "content:.github/workflows/release.yaml",
+            "reusable-release-(please|evidence)",
+            "forbidden pattern present",
+        ),
+    ),
     "bad-security-local-reusables": (
         (
             "content:.github/workflows/security.yaml",
@@ -296,6 +311,62 @@ def run_contract_fixtures(
     return 0 if not failures else 1
 
 
+def run_malformed_contract_check(
+    fixtures: list[Fixture], validator: Path, contract: Path, repo_root: Path
+) -> int:
+    good = next((fixture for fixture in fixtures if fixture.name == "good"), None)
+    if good is None:
+        print("[FAIL] contract/malformed-forbidden-path: missing good fixture")
+        return 1
+
+    text = contract.read_text(encoding="utf-8")
+    malformed = text.replace(
+        "    - path: tools/\n",
+        "    - name: malformed-forbidden-entry\n    - path: tools/\n",
+        1,
+    )
+    if malformed == text:
+        print("[FAIL] contract/malformed-forbidden-path: insertion point not found")
+        return 1
+
+    with tempfile.TemporaryDirectory(prefix="runner-contract-malformed-") as temp:
+        temp_root = Path(temp)
+        malformed_contract = temp_root / "runner-template-contract.yaml"
+        malformed_contract.write_text(malformed, encoding="utf-8")
+        fixture_repo = prepare_contract_repo(repo_root, good, temp_root)
+        completed = subprocess.run(
+            [
+                sys.executable,
+                str(validator),
+                "--repo-root",
+                str(fixture_repo),
+                "--contract",
+                str(malformed_contract),
+                "--template-root",
+                str(repo_root),
+                "--type",
+                "runner",
+            ],
+            cwd=repo_root,
+            capture_output=True,
+            check=False,
+            text=True,
+        )
+
+    expected_marker = "forbidden:<malformed-entry>"
+    passed = completed.returncode != 0 and expected_marker in completed.stdout
+    marker = "PASS" if passed else "FAIL"
+    detail = "expected malformed forbidden_paths failure"
+    if not passed:
+        detail = f"missing expected marker: {expected_marker}"
+    print(f"[{marker}] contract/malformed-forbidden-path: {detail}")
+    if not passed:
+        print_stream("contract/malformed-forbidden-path stdout", completed.stdout)
+        print_stream("contract/malformed-forbidden-path stderr", completed.stderr)
+    print()
+    return 0 if passed else 1
+
+
 def main() -> int:
     repo_root = Path(__file__).resolve().parent.parent
     default_caller_validator = repo_root / "tools" / "check_caller_workflows.py"
@@ -367,7 +438,10 @@ def main() -> int:
     contract_rc = run_contract_fixtures(
         contract_fixtures, contract_validator, contract, repo_root
     )
-    return caller_rc or contract_rc
+    malformed_contract_rc = run_malformed_contract_check(
+        contract_fixtures, contract_validator, contract, repo_root
+    )
+    return caller_rc or contract_rc or malformed_contract_rc
 
 
 if __name__ == "__main__":
