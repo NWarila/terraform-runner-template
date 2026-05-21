@@ -227,7 +227,14 @@ def workflow_helper_tests() -> None:
     shellcheck()
     run([PYTHON, "tools/check_workflow_run_blocks.py", ".github/workflows"])
     run([PYTHON, "tools/check_caller_workflows.py", "--repo-root", "."])
+    privileged_workflows()
     contract_tests()
+
+
+def privileged_workflows() -> None:
+    install("pyyaml==6.0.3")
+    run([PYTHON, "tools/check_privileged_workflows.py", "--repo-root", "."])
+    run([PYTHON, "tools/run_privileged_workflow_tests.py"])
 
 
 def opa_test() -> None:
@@ -235,7 +242,7 @@ def opa_test() -> None:
 
 
 def manifest_check() -> None:
-    run([PYTHON, "tools/check_baseline_manifest.py"])
+    run([PYTHON, "tools/check_baseline_manifest.py", "--check-present-sources"])
 
 
 def contract_check() -> None:
@@ -292,6 +299,7 @@ def build_steps(case: str, framework_source: str) -> dict[str, Step]:
         "shellcheck": shellcheck,
         "markdownlint": markdownlint,
         "workflow-helper-tests": workflow_helper_tests,
+        "privileged-workflows": privileged_workflows,
         "opa-test": opa_test,
         "opa-policy": opa_policy,
         "opa-plan": opa_plan,
