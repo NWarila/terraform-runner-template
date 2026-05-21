@@ -357,13 +357,32 @@ def check_sync_drift(
                     detail=f"baseline manifest is not valid JSON: {exc}",
                 )
             ]
-        entries = spec.get("files", [])
-        if spec.get("version") != "1" or not isinstance(entries, list):
+        version = spec.get("version")
+        if version == "1":
+            entries = spec.get("files", [])
+        elif version == "2":
+            entries = spec.get("byte_identical", [])
+        else:
             return [
                 RuleResult(
                     name="sync_drift",
                     passed=False,
-                    detail="baseline manifest must use version 1 with a files list",
+                    detail=(
+                        "baseline manifest must declare version=\"1\" "
+                        "(with a files list) or version=\"2\" "
+                        "(with a byte_identical list)"
+                    ),
+                )
+            ]
+        if not isinstance(entries, list):
+            return [
+                RuleResult(
+                    name="sync_drift",
+                    passed=False,
+                    detail=(
+                        f"baseline manifest version={version!r} entry list "
+                        "is missing or not a list"
+                    ),
                 )
             ]
 
