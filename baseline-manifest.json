@@ -18,30 +18,6 @@
       "target": ".github/workflows/reusable-auto-merge.yaml"
     },
     {
-      "source": ".github/workflows/reusable-codeql.yaml",
-      "target": ".github/workflows/reusable-codeql.yaml"
-    },
-    {
-      "source": ".github/workflows/reusable-iac-security.yaml",
-      "target": ".github/workflows/reusable-iac-security.yaml"
-    },
-    {
-      "source": ".github/workflows/reusable-release-evidence.yaml",
-      "target": ".github/workflows/reusable-release-evidence.yaml"
-    },
-    {
-      "source": ".github/workflows/reusable-release-please.yaml",
-      "target": ".github/workflows/reusable-release-please.yaml"
-    },
-    {
-      "source": ".github/workflows/reusable-scorecard.yaml",
-      "target": ".github/workflows/reusable-scorecard.yaml"
-    },
-    {
-      "source": ".github/workflows/security.yaml",
-      "target": ".github/workflows/security.yaml"
-    },
-    {
       "source": ".markdownlint-cli2.jsonc",
       "target": ".markdownlint-cli2.jsonc"
     },
@@ -180,8 +156,20 @@
       "target": "tests/fixtures/contract/bad-deploy-missing-framework-reusable/.github/workflows/terraform-deploy.yaml"
     },
     {
+      "source": "tests/fixtures/contract/bad-local-reusable-workflow/.github/workflows/reusable-codeql.yaml",
+      "target": "tests/fixtures/contract/bad-local-reusable-workflow/.github/workflows/reusable-codeql.yaml"
+    },
+    {
+      "source": "tests/fixtures/contract/bad-security-local-reusables/.github/workflows/security.yaml",
+      "target": "tests/fixtures/contract/bad-security-local-reusables/.github/workflows/security.yaml"
+    },
+    {
       "source": "tests/fixtures/contract/good/.github/workflows/terraform-deploy.yaml",
       "target": "tests/fixtures/contract/good/.github/workflows/terraform-deploy.yaml"
+    },
+    {
+      "source": "tests/fixtures/contract/good/.github/workflows/security.yaml",
+      "target": "tests/fixtures/contract/good/.github/workflows/security.yaml"
     },
     {
       "source": "tests/fixtures/privileged-workflows/bad/.github/workflows/auto-merge.yaml",
@@ -280,8 +268,32 @@
       "target": "tools/verify.py"
     },
     {
+      "source": ".github/workflows/reusable-codeql.yaml",
+      "target": ".github/workflows/reusable-codeql.yaml"
+    },
+    {
+      "source": ".github/workflows/reusable-iac-security.yaml",
+      "target": ".github/workflows/reusable-iac-security.yaml"
+    },
+    {
+      "source": ".github/workflows/reusable-release-evidence.yaml",
+      "target": ".github/workflows/reusable-release-evidence.yaml"
+    },
+    {
+      "source": ".github/workflows/reusable-release-please.yaml",
+      "target": ".github/workflows/reusable-release-please.yaml"
+    },
+    {
+      "source": ".github/workflows/reusable-scorecard.yaml",
+      "target": ".github/workflows/reusable-scorecard.yaml"
+    },
+    {
       "source": ".github/workflows/reusable-terraform-validation.yaml",
       "target": ".github/workflows/reusable-terraform-validation.yaml"
+    },
+    {
+      "source": ".github/workflows/security.yaml",
+      "target": ".github/workflows/security.yaml"
     },
     {
       "source": ".pre-commit-config.yaml",
