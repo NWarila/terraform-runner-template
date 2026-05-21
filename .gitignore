@@ -162,3 +162,14 @@
 !/tools/install_ci_tools.sh
 !/tools/run_contract_tests.py
 !/tools/verify.py
+
+# Salvaged from pre-2026-05-21 working tree
+!/docs/reference/quality-gates.md
+!/tests/fixtures/consumers/bad-mutable-framework-ref/
+!/tests/fixtures/consumers/bad-mutable-framework-ref/**
+!/tests/fixtures/consumers/bad-unsafe-overlay/
+!/tests/fixtures/consumers/bad-unsafe-overlay/**
+!/tests/fixtures/privileged-workflows/
+!/tests/fixtures/privileged-workflows/**
+!/tools/check_privileged_workflows.py
+!/tools/run_privileged_workflow_tests.py

@@ -39,6 +39,9 @@ except ImportError:
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 USES_LINE_RE = re.compile(r"^\s*(?:-\s*)?uses:\s*([^\s#]+)")
 CONTRACT_TYPES = ("runner", "template")
+REPO_NAME_RE = re.compile(r"^[a-z][a-z0-9-]{0,99}$")
+TOPIC_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,49}$")
+ALLOWED_VISIBILITIES = {"public", "private", "internal"}
 
 
 @dataclass
@@ -187,6 +190,123 @@ def check_workflow_pinning(repo_root: Path, settings: dict) -> list[RuleResult]:
                 )
     if not results:
         results.append(RuleResult(name="workflow_pinning", passed=True))
+    return results
+
+
+def inventory_files(repo_root: Path) -> list[Path]:
+    roots = [repo_root / "repos" / "public", repo_root / "repos" / "private"]
+    paths: list[Path] = []
+    for root in roots:
+        if root.is_dir():
+            paths.extend(root.rglob("*.yaml"))
+            paths.extend(root.rglob("*.yml"))
+    return sorted(set(paths))
+
+
+def check_runner_inventory(repo_root: Path, yaml_mod) -> list[RuleResult]:
+    results: list[RuleResult] = []
+    seen_names: dict[str, str] = {}
+
+    for path in inventory_files(repo_root):
+        rel = path.relative_to(repo_root).as_posix()
+        try:
+            raw = yaml_mod.safe_load(path.read_text(encoding="utf-8"))
+        except Exception as exc:  # noqa: BLE001 - surface parser detail in the rule result.
+            results.append(
+                RuleResult(
+                    name=f"inventory:parse:{rel}",
+                    passed=False,
+                    detail=str(exc),
+                )
+            )
+            continue
+
+        if not isinstance(raw, dict) or "repositories" not in raw:
+            continue
+        repositories = raw.get("repositories")
+        if not isinstance(repositories, list):
+            results.append(
+                RuleResult(
+                    name=f"inventory:repositories:{rel}",
+                    passed=False,
+                    detail="repositories must be a list",
+                )
+            )
+            continue
+
+        for idx, repo in enumerate(repositories):
+            if not isinstance(repo, dict):
+                results.append(
+                    RuleResult(
+                        name=f"inventory:entry:{rel}:{idx}",
+                        passed=False,
+                        detail="repository entry must be a mapping",
+                    )
+                )
+                continue
+
+            name = repo.get("name")
+            label = name if isinstance(name, str) and name else str(idx)
+            if not isinstance(name, str) or not REPO_NAME_RE.match(name):
+                results.append(
+                    RuleResult(
+                        name=f"inventory:name:{rel}:{label}",
+                        passed=False,
+                        detail="name must match ^[a-z][a-z0-9-]{0,99}$",
+                    )
+                )
+            else:
+                previous = seen_names.get(name)
+                if previous is not None:
+                    results.append(
+                        RuleResult(
+                            name=f"inventory:duplicate-repo-name:{name}",
+                            passed=False,
+                            detail=f"already defined in {previous}; duplicate in {rel}",
+                        )
+                    )
+                else:
+                    seen_names[name] = rel
+
+            visibility = repo.get("visibility")
+            if visibility not in ALLOWED_VISIBILITIES:
+                results.append(
+                    RuleResult(
+                        name=f"inventory:visibility:{rel}:{label}",
+                        passed=False,
+                        detail=(
+                            "visibility must be one of: "
+                            + ", ".join(sorted(ALLOWED_VISIBILITIES))
+                        ),
+                    )
+                )
+
+            topics = repo.get("topics", [])
+            invalid_topics: list[str] = []
+            if topics is None:
+                topics = []
+            if not isinstance(topics, list):
+                invalid_topics.append("<not-a-list>")
+            else:
+                invalid_topics.extend(
+                    topic
+                    for topic in topics
+                    if not isinstance(topic, str) or not TOPIC_RE.match(topic)
+                )
+            if invalid_topics:
+                results.append(
+                    RuleResult(
+                        name=f"inventory:topics:{rel}:{label}",
+                        passed=False,
+                        detail=(
+                            "topics must be lowercase GitHub topic slugs: "
+                            + ", ".join(str(topic) for topic in invalid_topics)
+                        ),
+                    )
+                )
+
+    if not results:
+        results.append(RuleResult(name="inventory:repo-definitions", passed=True))
     return results
 
 
@@ -375,6 +495,9 @@ def main() -> int:
     pinning = contract.get("workflow_pinning")
     if pinning and pinning.get("enforce_sha_pin"):
         results.extend(check_workflow_pinning(repo_root, pinning))
+
+    if repo_type == "runner":
+        results.extend(check_runner_inventory(repo_root, yaml_mod))
 
     if args.template_root is not None:
         template_root = args.template_root.resolve()
