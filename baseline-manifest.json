@@ -10,16 +10,8 @@
       "target": ".gitattributes"
     },
     {
-      "source": ".github/CODEOWNERS",
-      "target": ".github/CODEOWNERS"
-    },
-    {
       "source": ".github/PULL_REQUEST_TEMPLATE.md",
       "target": ".github/PULL_REQUEST_TEMPLATE.md"
-    },
-    {
-      "source": ".github/renovate.json5",
-      "target": ".github/renovate.json5"
     },
     {
       "source": ".github/workflows/reusable-auto-merge.yaml",
@@ -54,10 +46,6 @@
       "target": ".github/workflows/security.yaml"
     },
     {
-      "source": ".gitignore",
-      "target": ".gitignore"
-    },
-    {
       "source": ".markdownlint-cli2.jsonc",
       "target": ".markdownlint-cli2.jsonc"
     },
@@ -72,14 +60,6 @@
     {
       "source": "Makefile",
       "target": "Makefile"
-    },
-    {
-      "source": "baseline-manifest.json",
-      "target": "baseline-manifest.json"
-    },
-    {
-      "source": "contract/runner-template-contract.yaml",
-      "target": "contract/runner-template-contract.yaml"
     },
     {
       "source": "docs/decision-records/repo/.gitkeep",
@@ -126,22 +106,6 @@
       "target": "docs/tutorials/.gitkeep"
     },
     {
-      "source": "fixtures/integration/basic/main.tf",
-      "target": "fixtures/integration/basic/main.tf"
-    },
-    {
-      "source": "fixtures/integration/basic/tests/runner_consumes_framework.tftest.hcl",
-      "target": "fixtures/integration/basic/tests/runner_consumes_framework.tftest.hcl"
-    },
-    {
-      "source": "fixtures/integration/basic/variables.tf",
-      "target": "fixtures/integration/basic/variables.tf"
-    },
-    {
-      "source": "fixtures/integration/basic/versions.tf",
-      "target": "fixtures/integration/basic/versions.tf"
-    },
-    {
       "source": "policies/opa/.gitkeep",
       "target": "policies/opa/.gitkeep"
     },
@@ -172,6 +136,104 @@
     {
       "source": "terraform/public/sample-environments.tfvars",
       "target": "terraform/public/sample-environments.tfvars"
+    },
+    {
+      "source": "tools/build_opa_input.py",
+      "target": "tools/build_opa_input.py"
+    },
+    {
+      "source": "tools/build_plan_input.py",
+      "target": "tools/build_plan_input.py"
+    },
+    {
+      "source": "tools/check_adr_schema.py",
+      "target": "tools/check_adr_schema.py"
+    },
+    {
+      "source": "tools/check_baseline_manifest.py",
+      "target": "tools/check_baseline_manifest.py"
+    },
+    {
+      "source": "tools/check_caller_workflows.py",
+      "target": "tools/check_caller_workflows.py"
+    },
+    {
+      "source": "tools/check_docs_layout.py",
+      "target": "tools/check_docs_layout.py"
+    },
+    {
+      "source": "tools/check_privileged_workflows.py",
+      "target": "tools/check_privileged_workflows.py"
+    },
+    {
+      "source": "tools/check_template_contract.py",
+      "target": "tools/check_template_contract.py"
+    },
+    {
+      "source": "tools/check_workflow_run_blocks.py",
+      "target": "tools/check_workflow_run_blocks.py"
+    },
+    {
+      "source": "tools/ci/config.toml",
+      "target": "tools/ci/config.toml"
+    },
+    {
+      "source": "tools/ci/run_integration.py",
+      "target": "tools/ci/run_integration.py"
+    },
+    {
+      "source": "tools/install_ci_tools.sh",
+      "target": "tools/install_ci_tools.sh"
+    },
+    {
+      "source": "tools/run_contract_tests.py",
+      "target": "tools/run_contract_tests.py"
+    },
+    {
+      "source": "tools/run_privileged_workflow_tests.py",
+      "target": "tools/run_privileged_workflow_tests.py"
+    },
+    {
+      "source": "tools/verify.py",
+      "target": "tools/verify.py"
+    }
+  ],
+  "scaffold_starter": [
+    {
+      "source": ".github/CODEOWNERS",
+      "target": ".github/CODEOWNERS"
+    },
+    {
+      "source": ".github/renovate.json5",
+      "target": ".github/renovate.json5"
+    },
+    {
+      "source": ".gitignore",
+      "target": ".gitignore"
+    },
+    {
+      "source": "baseline-manifest.json",
+      "target": "baseline-manifest.json"
+    },
+    {
+      "source": "contract/runner-template-contract.yaml",
+      "target": "contract/runner-template-contract.yaml"
+    },
+    {
+      "source": "fixtures/integration/basic/main.tf",
+      "target": "fixtures/integration/basic/main.tf"
+    },
+    {
+      "source": "fixtures/integration/basic/tests/runner_consumes_framework.tftest.hcl",
+      "target": "fixtures/integration/basic/tests/runner_consumes_framework.tftest.hcl"
+    },
+    {
+      "source": "fixtures/integration/basic/variables.tf",
+      "target": "fixtures/integration/basic/variables.tf"
+    },
+    {
+      "source": "fixtures/integration/basic/versions.tf",
+      "target": "fixtures/integration/basic/versions.tf"
     },
     {
       "source": "tests/fixtures/.gitkeep",
@@ -268,67 +330,6 @@
     {
       "source": "tests/fixtures/terraform/public/.gitkeep",
       "target": "tests/fixtures/terraform/public/.gitkeep"
-    },
-    {
-      "source": "tools/build_opa_input.py",
-      "target": "tools/build_opa_input.py"
-    },
-    {
-      "source": "tools/build_plan_input.py",
-      "target": "tools/build_plan_input.py"
-    },
-    {
-      "source": "tools/check_adr_schema.py",
-      "target": "tools/check_adr_schema.py"
-    },
-    {
-      "source": "tools/check_baseline_manifest.py",
-      "target": "tools/check_baseline_manifest.py"
-    },
-    {
-      "source": "tools/check_caller_workflows.py",
-      "target": "tools/check_caller_workflows.py"
-    },
-    {
-      "source": "tools/check_docs_layout.py",
-      "target": "tools/check_docs_layout.py"
-    },
-    {
-      "source": "tools/check_privileged_workflows.py",
-      "target": "tools/check_privileged_workflows.py"
-    },
-    {
-      "source": "tools/check_template_contract.py",
-      "target": "tools/check_template_contract.py"
-    },
-    {
-      "source": "tools/check_workflow_run_blocks.py",
-      "target": "tools/check_workflow_run_blocks.py"
-    },
-    {
-      "source": "tools/ci/config.toml",
-      "target": "tools/ci/config.toml"
-    },
-    {
-      "source": "tools/ci/run_integration.py",
-      "target": "tools/ci/run_integration.py"
-    },
-    {
-      "source": "tools/install_ci_tools.sh",
-      "target": "tools/install_ci_tools.sh"
-    },
-    {
-      "source": "tools/run_contract_tests.py",
-      "target": "tools/run_contract_tests.py"
-    },
-    {
-      "source": "tools/run_privileged_workflow_tests.py",
-      "target": "tools/run_privileged_workflow_tests.py"
-    },
-    {
-      "source": "tools/verify.py",
-      "target": "tools/verify.py"
     }
-  ],
-  "scaffold_starter": []
+  ]
 }
