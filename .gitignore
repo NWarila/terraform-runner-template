@@ -67,6 +67,12 @@
 !/tests/fixtures/contract/bad-local-reusable-workflow/
 !/tests/fixtures/contract/bad-local-reusable-workflow/.github/
 !/tests/fixtures/contract/bad-local-reusable-workflow/.github/workflows/
+!/tests/fixtures/contract/bad-local-reusable-workflow-yml/
+!/tests/fixtures/contract/bad-local-reusable-workflow-yml/.github/
+!/tests/fixtures/contract/bad-local-reusable-workflow-yml/.github/workflows/
+!/tests/fixtures/contract/bad-release-local-reusables/
+!/tests/fixtures/contract/bad-release-local-reusables/.github/
+!/tests/fixtures/contract/bad-release-local-reusables/.github/workflows/
 !/tests/fixtures/contract/bad-security-local-reusables/
 !/tests/fixtures/contract/bad-security-local-reusables/.github/
 !/tests/fixtures/contract/bad-security-local-reusables/.github/workflows/
@@ -150,7 +156,10 @@
 !/tests/fixtures/consumers/good/tests/fixtures/.gitkeep
 !/tests/fixtures/contract/bad-deploy-missing-framework-reusable/.github/workflows/terraform-deploy.yaml
 !/tests/fixtures/contract/bad-local-reusable-workflow/.github/workflows/reusable-codeql.yaml
+!/tests/fixtures/contract/bad-local-reusable-workflow-yml/.github/workflows/reusable-codeql.yml
+!/tests/fixtures/contract/bad-release-local-reusables/.github/workflows/release.yaml
 !/tests/fixtures/contract/bad-security-local-reusables/.github/workflows/security.yaml
+!/tests/fixtures/contract/good/.github/workflows/release.yaml
 !/tests/fixtures/contract/good/.github/workflows/security.yaml
 !/tests/fixtures/contract/good/.github/workflows/terraform-deploy.yaml
 !/tests/fixtures/terraform/private/.gitkeep
