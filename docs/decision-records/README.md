@@ -8,9 +8,9 @@ ADRs are organized into three scopes per
 
 - `docs/decision-records/template/` — **template-tier master copies.**
   Decisions that apply to every repository derived from this Terraform-runner
-  template (but not necessarily to non-Terraform repos in the org). Mirrored
-  byte-identical into every consumer's `docs/decision-records/template/` via
-  drift-gate.
+  template (but not necessarily to non-Terraform repos in the org). Runner
+  consumers may mirror these for local documentation, but template-tier ADRs
+  are no longer part of the byte-identical runner drift gate.
 - `docs/decision-records/org/` — byte-identical mirrors of org-baseline ADRs
   from `NWarila/.github`. Apply to every repo in the org regardless
   of stack.
@@ -52,11 +52,11 @@ against the canonical:
   The check reads that repo's `baseline-manifest.json` and compares each
   listed file against the mirror in this repo. Configured in
   [`.github/workflows/drift-gate.yaml`](../../.github/workflows/drift-gate.yaml).
-- For template-tier content: this repo IS the source of truth. The
+- For template-tier content: this repo is the source of truth. The
   `baseline-manifest.json` at the root of this repo enumerates the
-  standardized runner scaffold derivative consumers must mirror: shared
-  tooling, policy, reusable/caller workflows, layout sentinels, and
-  template-tier ADRs.
+  standardized runner scaffold. Only `byte_identical` entries are enforced
+  in consumers; `scaffold_starter` entries are seed content that consumers
+  may customize or omit.
 
 When a consumer is created from this template, it inherits the
 `drift-gate.yaml` and the layout skeleton automatically. Each consumer adds a

@@ -39,7 +39,7 @@ except ImportError:
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 USES_LINE_RE = re.compile(r"^\s*(?:-\s*)?uses:\s*([^\s#]+)")
 CONTRACT_TYPES = ("runner", "template")
-REPO_NAME_RE = re.compile(r"^[a-z][a-z0-9-]{0,99}$")
+REPO_NAME_RE = re.compile(r"^[A-Za-z0-9_.-]{1,100}$")
 TOPIC_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,49}$")
 ALLOWED_VISIBILITIES = {"public", "private", "internal"}
 
@@ -194,7 +194,7 @@ def check_workflow_pinning(repo_root: Path, settings: dict) -> list[RuleResult]:
 
 
 def inventory_files(repo_root: Path) -> list[Path]:
-    roots = [repo_root / "repos" / "public", repo_root / "repos" / "private"]
+    roots = [repo_root / "terraform" / "public", repo_root / "terraform" / "private"]
     paths: list[Path] = []
     for root in roots:
         if root.is_dir():
@@ -221,38 +221,34 @@ def check_runner_inventory(repo_root: Path, yaml_mod) -> list[RuleResult]:
             )
             continue
 
-        if not isinstance(raw, dict) or "repositories" not in raw:
-            continue
-        repositories = raw.get("repositories")
-        if not isinstance(repositories, list):
+        if not isinstance(raw, dict):
             results.append(
                 RuleResult(
-                    name=f"inventory:repositories:{rel}",
+                    name=f"inventory:document:{rel}",
                     passed=False,
-                    detail="repositories must be a list",
+                    detail="inventory file must be a mapping of repository name to config",
                 )
             )
             continue
 
-        for idx, repo in enumerate(repositories):
+        for name, repo in raw.items():
             if not isinstance(repo, dict):
                 results.append(
                     RuleResult(
-                        name=f"inventory:entry:{rel}:{idx}",
+                        name=f"inventory:entry:{rel}:{name}",
                         passed=False,
-                        detail="repository entry must be a mapping",
+                        detail="repository config must be a mapping",
                     )
                 )
                 continue
 
-            name = repo.get("name")
-            label = name if isinstance(name, str) and name else str(idx)
+            label = str(name)
             if not isinstance(name, str) or not REPO_NAME_RE.match(name):
                 results.append(
                     RuleResult(
                         name=f"inventory:name:{rel}:{label}",
                         passed=False,
-                        detail="name must match ^[a-z][a-z0-9-]{0,99}$",
+                        detail="repository name must be 1-100 GitHub-safe characters",
                     )
                 )
             else:
@@ -269,7 +265,7 @@ def check_runner_inventory(repo_root: Path, yaml_mod) -> list[RuleResult]:
                     seen_names[name] = rel
 
             visibility = repo.get("visibility")
-            if visibility not in ALLOWED_VISIBILITIES:
+            if visibility is not None and visibility not in ALLOWED_VISIBILITIES:
                 results.append(
                     RuleResult(
                         name=f"inventory:visibility:{rel}:{label}",
@@ -357,11 +353,20 @@ def check_sync_drift(
                     detail=f"baseline manifest is not valid JSON: {exc}",
                 )
             ]
+        if not isinstance(spec, dict):
+            return [
+                RuleResult(
+                    name="sync_drift",
+                    passed=False,
+                    detail="baseline manifest must be a JSON object",
+                )
+            ]
         version = spec.get("version")
+        entry_key = None
         if version == "1":
-            entries = spec.get("files", [])
+            entry_key = "files"
         elif version == "2":
-            entries = spec.get("byte_identical", [])
+            entry_key = "byte_identical"
         else:
             return [
                 RuleResult(
@@ -374,6 +379,18 @@ def check_sync_drift(
                     ),
                 )
             ]
+        if entry_key not in spec:
+            return [
+                RuleResult(
+                    name="sync_drift",
+                    passed=False,
+                    detail=(
+                        f"baseline manifest version={version!r} must include "
+                        f"a {entry_key!r} list"
+                    ),
+                )
+            ]
+        entries = spec[entry_key]
         if not isinstance(entries, list):
             return [
                 RuleResult(

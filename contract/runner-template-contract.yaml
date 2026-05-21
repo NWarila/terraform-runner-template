@@ -27,8 +27,6 @@ universal:
     rationale: Local mirror of the org-owned security policy; drift-gated against NWarila/.github.
   - path: SUPPORT.md
     rationale: Local mirror of the org-owned support policy; drift-gated against NWarila/.github.
-  - path: Makefile
-    rationale: Thin local wrapper around `python tools/verify.py`.
   - path: .editorconfig
     rationale: Baseline editor consistency.
   - path: .gitignore
@@ -70,7 +68,7 @@ universal:
     type: directory
 types:
   runner:
-    rationale: "Data-only deployer. Owns repo inventory under terraform/{public,private}\nand consumes a pinned framework at runtime. Its pr-validation must check out\nthe framework at framework_ref, overlay the runner's inventory into the\nframework's terraform/repos/ runtime path, and run `make ci` against the\nassembled tree - true end-to-end coverage.\n"
+    rationale: "Data-only deployer. Owns repo inventory under terraform/{public,private}\nand consumes a pinned framework at runtime. Its local tree intentionally\nstays thin: no template-maintainer tools, local contract harness, OPA policy\nsuite, or integration fixture is required in runner repos. PR validation\nmust check out the framework at framework_ref, overlay the runner's inventory\ninto the framework's terraform/repos/ runtime path, and run the framework\nquality gate against the assembled tree - true end-to-end coverage.\n"
     required_paths:
     - path: terraform/public/
       rationale: 'Public repo definitions overlaid onto the framework at deploy time.
@@ -92,29 +90,8 @@ types:
         actual `terraform apply` workflow; pr-validation is plan-only.
 
         '
-    - path: policies/opa/repo_hygiene.rego
-      rationale: OPA policy enforcing workflow pinning and Terraform exact pins.
-    - path: policies/opa/repo_hygiene_test.rego
-      rationale: Unit tests for the OPA policy's pass/fail behavior.
-    - path: tools/build_opa_input.py
-      rationale: Builds real-repo OPA input for `make opa-policy`.
-    - path: policies/opa/terraform_plan.rego
-      rationale: Plan-aware OPA policy for Terraform resource invariants.
-    - path: policies/opa/terraform_plan_test.rego
-      rationale: Unit tests for plan-aware OPA policy.
-    - path: tools/build_plan_input.py
-      rationale: Normalizes `terraform show -json` plan output for plan-aware OPA checks.
-    - path: tools/ci/config.toml
-      rationale: Normalized CI harness config shared across Terraform repo types.
-    - path: tools/ci/run_integration.py
-      rationale: Builds and verifies the ephemeral integration workspace used by `make integration`.
-    - path: tools/verify.py
-      rationale: Cross-platform local verification entrypoint.
-    - path: fixtures/integration/basic/
-      rationale: Runner consumer fixture proving this repo can compose with a framework checkout.
-      type: directory
-    - path: tests/fixtures/
-      rationale: 'Public-safe fixtures used by pr-validation when the production
+    - path: tests/fixtures/terraform/private/
+      rationale: 'Public-safe private inventory fixtures used by pr-validation when the production
 
         private repos are sourced from S3 (which CI can''t reach without
 
@@ -140,6 +117,8 @@ types:
     required_paths:
     - path: baseline-manifest.json
       rationale: Template-tier drift-gate manifest consumed by downstream runners.
+    - path: Makefile
+      rationale: Template-local wrapper around `python tools/verify.py`.
     - path: release-please-config.json
       rationale: Optional release automation configuration inherited by consumers that publish releases.
     - path: .release-please-manifest.json
