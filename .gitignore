@@ -64,6 +64,12 @@
 !/tests/fixtures/contract/bad-deploy-missing-framework-reusable/
 !/tests/fixtures/contract/bad-deploy-missing-framework-reusable/.github/
 !/tests/fixtures/contract/bad-deploy-missing-framework-reusable/.github/workflows/
+!/tests/fixtures/contract/bad-local-reusable-workflow/
+!/tests/fixtures/contract/bad-local-reusable-workflow/.github/
+!/tests/fixtures/contract/bad-local-reusable-workflow/.github/workflows/
+!/tests/fixtures/contract/bad-security-local-reusables/
+!/tests/fixtures/contract/bad-security-local-reusables/.github/
+!/tests/fixtures/contract/bad-security-local-reusables/.github/workflows/
 !/tests/fixtures/contract/good/
 !/tests/fixtures/contract/good/.github/
 !/tests/fixtures/contract/good/.github/workflows/
@@ -143,6 +149,9 @@
 !/tests/fixtures/consumers/good/terraform/public/.gitkeep
 !/tests/fixtures/consumers/good/tests/fixtures/.gitkeep
 !/tests/fixtures/contract/bad-deploy-missing-framework-reusable/.github/workflows/terraform-deploy.yaml
+!/tests/fixtures/contract/bad-local-reusable-workflow/.github/workflows/reusable-codeql.yaml
+!/tests/fixtures/contract/bad-security-local-reusables/.github/workflows/security.yaml
+!/tests/fixtures/contract/good/.github/workflows/security.yaml
 !/tests/fixtures/contract/good/.github/workflows/terraform-deploy.yaml
 !/tests/fixtures/terraform/private/.gitkeep
 !/tests/fixtures/terraform/private/sample-private-environments.tfvars

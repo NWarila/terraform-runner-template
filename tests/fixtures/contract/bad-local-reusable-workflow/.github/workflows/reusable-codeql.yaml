@@ -1,0 +1,13 @@
+name: Local CodeQL
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: true

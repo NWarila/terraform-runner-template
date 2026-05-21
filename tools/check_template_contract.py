@@ -93,6 +93,27 @@ def check_path(repo_root: Path, entry: dict) -> RuleResult:
     )
 
 
+def check_forbidden_path(repo_root: Path, entry: dict) -> RuleResult:
+    allow = set(entry.get("allow", []))
+    if "path" in entry:
+        rel = entry["path"]
+        target = resolve_exact_path(repo_root, rel)
+        ok = target is None
+        detail = "" if ok else f"forbidden path exists: {rel}"
+        return RuleResult(name=f"forbidden:{rel}", passed=ok, detail=detail)
+
+    pattern = entry["glob"]
+    matches = []
+    for match in repo_root.glob(pattern):
+        rel = match.relative_to(repo_root).as_posix()
+        if rel not in allow:
+            matches.append(rel)
+
+    ok = not matches
+    detail = "" if ok else "matched forbidden path(s): " + ", ".join(sorted(matches))
+    return RuleResult(name=f"forbidden:{pattern}", passed=ok, detail=detail)
+
+
 def entry_applies(entry: dict, repo_type: str) -> bool:
     applies_to = entry.get("applies_to")
     if applies_to is not None:
@@ -124,7 +145,14 @@ def entry_applies(entry: dict, repo_type: str) -> bool:
 
 
 def entry_label(entry: dict) -> str:
-    return entry.get("path") or entry.get("file") or entry.get("name") or "<entry>"
+    return (
+        entry.get("path")
+        or entry.get("glob")
+        or entry.get("file")
+        or entry.get("name")
+        or "<entry>"
+    )
+
 
 
 def check_content_rule(repo_root: Path, rule: dict) -> RuleResult:
@@ -527,6 +555,10 @@ def main() -> int:
         if not entry_applies(rule, repo_type):
             continue
         results.append(check_content_rule(repo_root, rule))
+    for entry in type_block.get("forbidden_paths", []):
+        if not entry_applies(entry, repo_type):
+            continue
+        results.append(check_forbidden_path(repo_root, entry))
 
     pinning = contract.get("workflow_pinning")
     if pinning and pinning.get("enforce_sha_pin"):

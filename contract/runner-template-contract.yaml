@@ -110,6 +110,35 @@ types:
       pattern: AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY
       must_match: false
       rationale: Static AWS access keys are forbidden; OIDC is the only credential path.
+    - file: .github/workflows/security.yaml
+      pattern: 'NWarila/terraform-runner-template/.github/workflows/reusable-iac-security.yaml@[0-9a-f]{40}'
+      must_match: true
+      rationale: Runner security callers must consume the template-owned IaC reusable by immutable SHA.
+    - file: .github/workflows/security.yaml
+      pattern: 'NWarila/terraform-runner-template/.github/workflows/reusable-codeql.yaml@[0-9a-f]{40}'
+      must_match: true
+      rationale: Runner security callers must consume the template-owned CodeQL reusable by immutable SHA.
+    - file: .github/workflows/security.yaml
+      pattern: 'NWarila/terraform-runner-template/.github/workflows/reusable-scorecard.yaml@[0-9a-f]{40}'
+      must_match: true
+      rationale: Runner security callers must consume the template-owned Scorecard reusable by immutable SHA.
+    - file: .github/workflows/security.yaml
+      pattern: '\./\.github/workflows/reusable-(iac-security|codeql|scorecard)\.yaml'
+      must_match: false
+      rationale: Runner repos must not hide security implementation in local reusable workflow copies.
+    forbidden_paths:
+    - path: tools/
+      rationale: Runner repos are data-only deployers; template-maintainer tooling belongs in terraform-runner-template.
+    - path: policies/
+      rationale: Runner repos do not own local OPA policy suites; validation policy belongs in the template/framework layer.
+    - path: Makefile
+      rationale: Runner repos delegate validation and apply through reusable workflows instead of local make targets.
+    - glob: .github/workflows/reusable-*.yaml
+      allow:
+      - .github/workflows/reusable-auto-merge.yaml
+      rationale: 'Local reusable workflow implementations are template-owned, except
+        the privileged auto-merge reusable, which stays local so the
+        pull_request_target static analyzer can inspect the complete call graph.'
   template:
     rationale: 'Self-validation shape for this type-template repository. It owns
       reusable workflows, contract tooling, drift-gate metadata, and the seed
