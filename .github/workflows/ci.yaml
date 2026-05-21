@@ -85,6 +85,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: NWarila/terraform-framework-template
+          # renovate: depName=NWarila/terraform-framework-template packageName=https://github.com/NWarila/terraform-framework-template currentValue=main
           ref: db6b94c6e6f6d8bd77e721bfc48f241e2a60eff3
           path: terraform-framework-template
           fetch-depth: 1
@@ -95,9 +96,9 @@ jobs:
           python-version: "3.12"
 
       - name: Setup Terraform
-        # renovate: datasource=github-releases depName=hashicorp/terraform
         uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
         with:
+          # renovate: datasource=github-releases depName=hashicorp/terraform
           terraform_version: "1.15.1"
           terraform_wrapper: false
 
