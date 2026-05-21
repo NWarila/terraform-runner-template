@@ -160,12 +160,24 @@
       "target": "tests/fixtures/contract/bad-local-reusable-workflow/.github/workflows/reusable-codeql.yaml"
     },
     {
+      "source": "tests/fixtures/contract/bad-local-reusable-workflow-yml/.github/workflows/reusable-codeql.yml",
+      "target": "tests/fixtures/contract/bad-local-reusable-workflow-yml/.github/workflows/reusable-codeql.yml"
+    },
+    {
+      "source": "tests/fixtures/contract/bad-release-local-reusables/.github/workflows/release.yaml",
+      "target": "tests/fixtures/contract/bad-release-local-reusables/.github/workflows/release.yaml"
+    },
+    {
       "source": "tests/fixtures/contract/bad-security-local-reusables/.github/workflows/security.yaml",
       "target": "tests/fixtures/contract/bad-security-local-reusables/.github/workflows/security.yaml"
     },
     {
       "source": "tests/fixtures/contract/good/.github/workflows/terraform-deploy.yaml",
       "target": "tests/fixtures/contract/good/.github/workflows/terraform-deploy.yaml"
+    },
+    {
+      "source": "tests/fixtures/contract/good/.github/workflows/release.yaml",
+      "target": "tests/fixtures/contract/good/.github/workflows/release.yaml"
     },
     {
       "source": "tests/fixtures/contract/good/.github/workflows/security.yaml",

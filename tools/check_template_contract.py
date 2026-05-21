@@ -95,7 +95,16 @@ def check_path(repo_root: Path, entry: dict) -> RuleResult:
 
 def check_forbidden_path(repo_root: Path, entry: dict) -> RuleResult:
     allow = set(entry.get("allow", []))
-    if "path" in entry:
+    has_path = "path" in entry
+    has_glob = "glob" in entry
+    if has_path == has_glob:
+        return RuleResult(
+            name="forbidden:<malformed-entry>",
+            passed=False,
+            detail=f"entry must contain exactly one of path or glob: {entry!r}",
+        )
+
+    if has_path:
         rel = entry["path"]
         target = resolve_exact_path(repo_root, rel)
         ok = target is None
