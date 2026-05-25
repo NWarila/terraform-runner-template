@@ -310,8 +310,10 @@ TARGETS: dict[str, tuple[str, ...]] = {
     "policy": ("opa-test", "opa-policy", "opa-plan"),
     "ci": (
         "lint",
+        "actionlint",
         "workflow-helper-tests",
         "policy",
+        "markdownlint",
         "docs-check",
         "adr-schema",
         "manifest-check",

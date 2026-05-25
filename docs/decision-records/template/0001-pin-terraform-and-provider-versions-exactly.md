@@ -68,7 +68,7 @@ In every repository that adopts this baseline:
 
 - The `terraform { }` block in `versions.tf` MUST set `required_version = "= X.Y.Z"` using a single exact version. Range operators (`>=`, `~>`, etc.) MUST NOT be used.
 - Every `required_providers` entry MUST set `version = "= X.Y.Z"` using a single exact version.
-- This Terraform-runner template's own `.github/renovate.json5` sets `terraform.rangeStrategy: "pin"`. Every consumer of this template inherits that setting via `extends: ["github>NWarila/terraform-runner-template"]`. Repo-local Renovate configs MUST NOT override this to `"bump"`, `"replace"`, or `"widen"` without a superseding repo-level ADR.
+- This Terraform-runner template's own `.github/renovate.json5` sets `terraform.rangeStrategy: "pin"`. Every consumer of this template inherits that setting via `extends: ["github>NWarila/terraform-runner-template//.github/renovate.json5"]`. Repo-local Renovate configs MUST NOT override this to `"bump"`, `"replace"`, or `"widen"` without a superseding repo-level ADR.
 - The README's "Provider Requirements" or equivalent table MUST display the exact pinned versions and explain that consumers must run that exact CLI version.
 - When a repository updates either the Terraform CLI or a provider version, the update MUST be tested against the pinned version before merging the Renovate PR. A `terraform test` suite that runs on every PR satisfies this requirement.
 
