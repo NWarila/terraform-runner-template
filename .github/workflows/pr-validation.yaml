@@ -20,7 +20,7 @@ jobs:
     uses: NWarila/terraform-runner-template/.github/workflows/reusable-terraform-validation.yaml@a237c249e61de24383ccc6c1a9f0154e16fb56fe
     with:
       # renovate: datasource=github-releases depName=hashicorp/terraform extractVersion=^v(?<version>.*)$ versioning=hashicorp
-      terraform_version: "1.15.1"
+      terraform_version: "1.15.4"
       # renovate: depName=NWarila/terraform-runner-template packageName=https://github.com/NWarila/terraform-runner-template currentValue=main
       template_ref: a237c249e61de24383ccc6c1a9f0154e16fb56fe
       mode: runner

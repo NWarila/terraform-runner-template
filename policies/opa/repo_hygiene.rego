@@ -35,7 +35,7 @@ import rego.v1
 sha_re := `^[0-9a-f]{40}$`
 
 # Exact pin shape for terraform { required_version = "= X.Y.Z" }.
-# Matches `= 1.15.1` but rejects `>= 1.15.1`, `~> 1.15`, `1.15.1`, etc.
+# Matches `= 1.15.4` but rejects `>= 1.15.4`, `~> 1.15`, `1.15.4`, etc.
 exact_required_version_re := `^\s*required_version\s*=\s*"=\s*[0-9]+\.[0-9]+\.[0-9]+"\s*$`
 
 # Any provider version line — used to find candidates for further checks.

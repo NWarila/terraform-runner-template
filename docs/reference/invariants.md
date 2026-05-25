@@ -11,3 +11,18 @@ Non-negotiable rules for this template. Violating one of these is a breaking cha
 - **All `uses:` references are SHA-pinned to 40-character commit hashes** (or local `./...` references, or digest-pinned docker images). Tag/branch references are rejected by both the contract validator (`tools/check_template_contract.py`) and the OPA `repo_hygiene` policy.
 - **Runners contain no executable Terraform module of their own.** Runners are data-only deployers per the contract's `runner` type; local inventory lives under `terraform/{public,private}` and is overlaid onto the framework's `terraform/repos/` runtime path at validation/deploy time.
 - **Renovate keeps `uses:` SHAs and body ref inputs current.** GitHub Actions manager updates reusable workflow `uses:` pins; the custom `git-refs` regex manager updates `template_ref` and `framework_ref` SHA inputs. `tools/check_caller_workflows.py` now checks only that those refs are full SHAs.
+
+## Template-Family Conventions
+
+- Runner templates expose validation reusables as
+  `reusable-<tool>-validation.yaml`, not
+  `reusable-<tool>-framework-<verb>.yaml`. Frameworks own executable deploy
+  behavior; runners validate inventory and caller shape.
+- Runner `verify.py ci` keeps `contract-check` as a top-level target because
+  contract validation is the template's central product surface. ADR schema is
+  also explicit at the CI target level. `workflow-helper-tests` remains limited
+  to workflow helper and privileged-workflow checks.
+- Runner consumers do not own `verify.py`, OPA policy, contract fixtures, or
+  template-maintainer reusable workflows. They call this template by immutable
+  SHA and may keep only a local privileged `reusable-auto-merge.yaml` for
+  static analysis.

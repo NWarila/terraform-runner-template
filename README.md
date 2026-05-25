@@ -22,6 +22,8 @@ python tools/verify.py integration --framework-source ../terraform-framework-tem
 
 For a real runner derived from this template, update `terraform/public/`, the private inventory source, `.github/workflows/pr-validation.yaml`, `.github/workflows/terraform-deploy.yaml`, and any repo-local decisions under `docs/decision-records/repo/`. The mirroring rules live in [`docs/reference/mirroring.md`](docs/reference/mirroring.md); AWS bootstrap expectations live in [`docs/reference/aws-bootstrap-requirements.md`](docs/reference/aws-bootstrap-requirements.md).
 
+The complete gate inventory lives in [`docs/reference/quality-gates.md`](docs/reference/quality-gates.md).
+
 ## Normalized repo interface
 
 This repo uses the same validation command surface as the Terraform framework template:
