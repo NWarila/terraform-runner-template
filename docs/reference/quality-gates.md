@@ -18,7 +18,7 @@ role and explains the few places where `continue-on-error` is allowed.
 
 | Gate | Source | Role | Notes |
 | --- | --- | --- | --- |
-| workflow-helper-tests | `ci.yaml` job `workflow-helper-tests` (runs `verify.py workflow-helper-tests`) | Blocking | ShellCheck, `check_workflow_run_blocks.py`, `check_caller_workflows.py`, `check_privileged_workflows.py` + fixture runner, contract tests. |
+| workflow-helper-tests | `ci.yaml` job `workflow-helper-tests` (runs `verify.py workflow-helper-tests`) | Blocking | ShellCheck, `check_workflow_run_blocks.py`, `check_caller_workflows.py`, `check_privileged_workflows.py` + fixture runner. |
 | privileged-workflows | `verify.py workflow-helper-tests` (transitive) and `verify.py ci` (via `verify.py verify`) | Blocking | `check_privileged_workflows.py` + fixture-driven test runner. Rejects `actions/checkout` and PR-controlled refs in any `pull_request_target` workflow, transitively through local reusables. |
 | runner verify (`verify.py verify`) | `ci.yaml` job that runs `verify.py verify` | Blocking | Wraps lint, OPA (test + repo-hygiene + plan), manifest, contract checks (`check_template_contract.py`, `run_contract_tests.py`), docs, ADR schema, integration. |
 | consumer contract fixtures | `run_contract_tests.py` (via `contract-check`) | Blocking | `good/` and `bad-*/` consumer/contract fixtures under `tests/fixtures/`. Each `bad-*` must fail with documented `[FAIL]` markers. |

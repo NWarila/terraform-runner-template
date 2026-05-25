@@ -76,8 +76,16 @@
       "target": "contract/runner-template-contract.yaml"
     },
     {
+      "source": "docs/reference/invariants.md",
+      "target": "docs/reference/invariants.md"
+    },
+    {
       "source": "docs/reference/quality-gates.md",
       "target": "docs/reference/quality-gates.md"
+    },
+    {
+      "source": "docs/reference/release-gates.md",
+      "target": "docs/reference/release-gates.md"
     },
     {
       "source": "fixtures/integration/basic/main.tf",
@@ -318,6 +326,10 @@
     {
       "source": "docs/decision-records/template/.gitkeep",
       "target": "docs/decision-records/template/.gitkeep"
+    },
+    {
+      "source": "docs/decision-records/template/README.md",
+      "target": "docs/decision-records/template/README.md"
     },
     {
       "source": "docs/decision-records/template/0001-pin-terraform-and-provider-versions-exactly.md",

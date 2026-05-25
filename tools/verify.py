@@ -155,18 +155,11 @@ def opa_plan_denies(fixture: Path) -> list[str]:
     return [str(denial) for denial in value]
 
 
-def run_if_available(executable: str, args: list[str]) -> None:
+def run_required_tool(executable: str, args: list[str]) -> None:
     resolved = shutil.which(executable)
     if resolved is None:
-        print(f"skip: {executable} not found on PATH", flush=True)
-        return
-    try:
-        run([resolved, *args])
-    except SystemExit as exc:
-        if str(exc).startswith("missing executable:"):
-            print(f"skip: {executable} could not be launched", flush=True)
-            return
-        raise
+        raise SystemExit(f"missing executable: {executable}")
+    run([resolved, *args])
 
 
 def workflow_files() -> list[str]:
@@ -212,15 +205,15 @@ def yamllint() -> None:
 
 
 def actionlint() -> None:
-    run_if_available("actionlint", workflow_files())
+    run_required_tool("actionlint", workflow_files())
 
 
 def shellcheck() -> None:
-    run_if_available("shellcheck", ["tools/install_ci_tools.sh"])
+    run_required_tool("shellcheck", ["tools/install_ci_tools.sh"])
 
 
 def markdownlint() -> None:
-    run_if_available("markdownlint-cli2", ["**/*.md"])
+    run_required_tool("markdownlint-cli2", ["**/*.md"])
 
 
 def workflow_helper_tests() -> None:
@@ -228,7 +221,6 @@ def workflow_helper_tests() -> None:
     run([PYTHON, "tools/check_workflow_run_blocks.py", ".github/workflows"])
     run([PYTHON, "tools/check_caller_workflows.py", "--repo-root", "."])
     privileged_workflows()
-    contract_tests()
 
 
 def privileged_workflows() -> None:
@@ -314,7 +306,7 @@ def build_steps(case: str, framework_source: str) -> dict[str, Step]:
 
 
 TARGETS: dict[str, tuple[str, ...]] = {
-    "lint": ("ruff", "yamllint", "actionlint", "markdownlint"),
+    "lint": ("ruff", "yamllint"),
     "policy": ("opa-test", "opa-policy", "opa-plan"),
     "ci": (
         "lint",

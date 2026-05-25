@@ -55,5 +55,5 @@ jobs:
     uses: ./.github/workflows/reusable-release-evidence.yaml
     with:
       # renovate: datasource=github-releases depName=hashicorp/terraform extractVersion=^v(?<version>.*)$ versioning=hashicorp
-      terraform_version: "1.15.1"
+      terraform_version: "1.15.4"
       repo_type: template

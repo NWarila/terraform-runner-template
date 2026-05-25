@@ -9,7 +9,10 @@ PRs to `main` on this template must pass:
 - `org-baseline / verify` (drift-gate against `NWarila/.github` at pinned source-ref)
 - `Trivy (filesystem & secrets)`, `Gitleaks (secret scan)`, `zizmor (Actions security)` (security)
 - `CodeQL` (`security.yaml`)
-- `OpenSSF Scorecard` (`security.yaml`)
+
+OpenSSF Scorecard runs on push, branch-protection, schedule, and manual paths;
+it is skipped on PR and merge queue because private-repo Scorecard GraphQL
+access is not reliable.
 
 All gates run via the workflows in `.github/workflows/`. The drift-gate workflow is SHA-pinned to [`NWarila/drift-gate`](https://github.com/NWarila/drift-gate); required consumer validation and security flow through `pr-validation.yaml`, `terraform-deploy.yaml`, and `security.yaml`. Release automation lives behind optional `release.yaml`.
 
