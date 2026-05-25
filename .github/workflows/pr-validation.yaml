@@ -5,6 +5,8 @@ name: PR Validation
 # runner-owned data, and run the assembled framework gate.
 
 on:
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:

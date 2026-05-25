@@ -1,64 +1,33 @@
 # Architecture Decision Records
 
-This directory holds the Architecture Decision Records (ADRs) governing this
-Terraform-runner template and every repository derived from it.
+This directory holds the Architecture Decision Records (ADRs) governing this Terraform runner template. Per [org ADR-0001](org/0001-use-architecture-decision-records.md), ADRs are organized into three scopes:
 
-ADRs are organized into three scopes per
-[org ADR-0001](https://github.com/NWarila/.github/blob/main/docs/decision-records/0001-use-architecture-decision-records.md):
+- `org/` - byte-identical mirrors of org-baseline ADRs from [`NWarila/.github`](https://github.com/NWarila/.github). These apply to every repo in the org regardless of stack.
+- `template/` - Terraform-runner-template ADRs owned by this repository. Runner consumers may mirror these for local documentation, but template-tier ADRs are no longer part of the byte-identical runner drift gate.
+- `repo/` - repository-specific ADRs for one runner repository only. This template repo itself does not have repo-tier ADRs.
 
-- `docs/decision-records/template/` — **template-tier master copies.**
-  Decisions that apply to every repository derived from this Terraform-runner
-  template (but not necessarily to non-Terraform repos in the org). Runner
-  consumers may mirror these for local documentation, but template-tier ADRs
-  are no longer part of the byte-identical runner drift gate.
-- `docs/decision-records/org/` — byte-identical mirrors of org-baseline ADRs
-  from `NWarila/.github`. Apply to every repo in the org regardless
-  of stack.
-- `docs/decision-records/repo/` — repository-specific ADRs. Reserved for
-  decisions that apply only to a single consuming repo. This template repo
-  itself does not have repo-tier ADRs (every decision here is either
-  template-tier or org-mirrored).
+`terraform-runner-template` is itself a type-template: it owns the canonical runner command surface, consumer overlay contract, reusable validation workflow, and runner-tier decisions that derivative Terraform runner repositories inherit.
 
-## Template-tier index
+## Template ADRs
 
-| #                                                                  | Title                                          | Status   | Date       | Summary                                                                                          |
-| ------------------------------------------------------------------ | ---------------------------------------------- | -------- | ---------- | ------------------------------------------------------------------------------------------------ |
-| [template/0001](template/0001-pin-terraform-and-provider-versions-exactly.md) | Pin Terraform and Provider Versions Exactly | Accepted | 2026-05-05 | Every consumer of this template uses `=` exact-version constraints for Terraform and providers. |
-| [template/0002](template/0002-mandate-s3-state-backend.md)                    | Mandate S3 as the State Backend | Accepted (partial enforcement) | 2026-05-09 | S3 backend, native locking, OIDC-only auth, encryption, versioning, and access logging policy; caller auth is enforced, backend-block OPA remains follow-up work. |
-| [template/0004](template/0004-isolate-pull-request-target-triggers.md)        | Isolate Pull Request Target Triggers | Accepted | 2026-05-11 | `pull_request_target` stays isolated to trusted-bot auto-merge and is forbidden from release publishing. |
+| ADR | Status | Decision |
+| --- | --- | --- |
+| [ADR-template/0001](template/0001-pin-terraform-and-provider-versions-exactly.md) | Accepted | Pin the Terraform CLI and every provider to exact versions. |
+| [ADR-template/0002](template/0002-mandate-s3-state-backend.md) | Accepted (partial enforcement) | Mandate S3 backend, native locking, OIDC-only auth, encryption, versioning, and access logging policy for runner consumers. |
+| [ADR-template/0004](template/0004-isolate-pull-request-target-triggers.md) | Accepted | Keep `pull_request_target` isolated to trusted-bot auto-merge, never release publishing. |
 
-## Org-mirrored index
+ADR-template/0003 was withdrawn before release and is intentionally absent.
 
-These are byte-identical copies of decisions made in
-[`NWarila/.github`](https://github.com/NWarila/.github/tree/main/docs/decision-records).
-The authoritative copies and Index live there; this section reflects what
-this repo currently mirrors.
+## Org ADRs
 
-| #                                                            | Title                                                          | Status   | Date       |
-| ------------------------------------------------------------ | -------------------------------------------------------------- | -------- | ---------- |
-| [org/0001](org/0001-use-architecture-decision-records.md)    | Use Architecture Decision Records to Document Design Rationale | Accepted | 2026-04-22 |
-| [org/0002](org/0002-adopt-diataxis-documentation-framework.md) | Adopt Diátaxis as the Documentation Framework                | Accepted | 2026-04-24 |
-| [org/0003](org/0003-use-deny-all-gitignore-strategy.md)      | Use a Deny-All `.gitignore` Strategy                          | Accepted | 2026-04-25 |
-| [org/0004](org/0004-use-renovate-for-dependency-updates.md)  | Use Renovate for Dependency Updates with Per-Template Baselines | Accepted | 2026-05-05 |
-| [org/0005](org/0005-pin-terraform-and-provider-versions-exactly.md) | Pin Terraform and Provider Versions Exactly              | Accepted | 2026-05-05 |
+The `org/` scope is mirrored from `NWarila/.github` and enforced by the org drift gate.
 
-## How drift is enforced
+| ADR | Status | Decision |
+| --- | --- | --- |
+| [ADR-0001](org/0001-use-architecture-decision-records.md) | Accepted | Use ADRs to document design rationale. |
+| [ADR-0002](org/0002-adopt-diataxis-documentation-framework.md) | Accepted | Use Diátaxis for non-ADR documentation. |
+| [ADR-0003](org/0003-use-deny-all-gitignore-strategy.md) | Accepted | Use deny-all `.gitignore` allowlists. |
+| [ADR-0004](org/0004-use-renovate-for-dependency-updates.md) | Accepted | Use Renovate for dependency updates. |
+| [ADR-0005](org/0005-pin-terraform-and-provider-versions-exactly.md) | Accepted | Pin Terraform and provider versions exactly. |
 
-[`drift-gate`](https://github.com/NWarila/drift-gate) (a SHA-pinned composite
-GitHub Action) runs on every PR. It byte-compares this repo's mirrored copies
-against the canonical:
-
-- For org-tier mirrors: the source of truth is `NWarila/.github`.
-  The check reads that repo's `baseline-manifest.json` and compares each
-  listed file against the mirror in this repo. Configured in
-  [`.github/workflows/drift-gate.yaml`](../../.github/workflows/drift-gate.yaml).
-- For template-tier content: this repo is the source of truth. The
-  `baseline-manifest.json` at the root of this repo enumerates the
-  standardized runner scaffold. Only `byte_identical` entries are enforced
-  in consumers; `scaffold_starter` entries are seed content that consumers
-  may customize or omit.
-
-When a consumer is created from this template, it inherits the
-`drift-gate.yaml` and the layout skeleton automatically. Each consumer adds a
-**second** drift-gate invocation pinned to this template repo so the
-template-tier scaffold is also enforced.
+The `.gitkeep` placeholder in `repo/` keeps the directory skeleton complete until this repository has a repo-specific ADR.

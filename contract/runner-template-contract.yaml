@@ -104,6 +104,26 @@ types:
         '
       type: directory
     content_rules:
+    - file: .github/workflows/pr-validation.yaml
+      pattern: '(?m)^\s*pull_request:\s*$'
+      must_match: true
+      rationale: PR validation must run automatically on pull requests, not only by manual dispatch.
+    - file: .github/workflows/drift-gate.yaml
+      pattern: '(?m)^\s*source-repo:\s*NWarila/\.github\s*$'
+      must_match: true
+      rationale: Runner drift gates must verify org-baseline mirrors from NWarila/.github.
+    - file: .github/workflows/drift-gate.yaml
+      pattern: '(?m)^\s*source-repo:\s*NWarila/terraform-runner-template\s*$'
+      must_match: true
+      rationale: Runner drift gates must verify the Terraform runner template baseline.
+    - file: .github/renovate.json5
+      pattern: 'github>NWarila/terraform-runner-template//\.github/renovate\.json5'
+      must_match: true
+      rationale: Runner Renovate configs must inherit the Terraform runner template baseline by explicit preset file path.
+    - file: .github/renovate.json5
+      pattern: 'github>NWarila/\.github'
+      must_match: false
+      rationale: The org repo holds ADRs and policies, not a shared Renovate baseline.
     - file: .github/workflows/terraform-deploy.yaml
       pattern: '(?:NWarila|nwarila-platform)/[A-Za-z0-9_.-]+/.github/workflows/reusable-terraform-deploy.yaml@[0-9a-f]{40}'
       must_match: true

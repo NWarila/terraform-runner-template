@@ -1,0 +1,5 @@
+{
+  "extends": [
+    "github>NWarila/terraform-runner-template//.github/renovate.json5"
+  ]
+}

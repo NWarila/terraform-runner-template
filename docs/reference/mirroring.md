@@ -14,6 +14,14 @@ The contract validator checks the required paths and the caller-workflow wiring.
 The template-tier drift manifest mirrors only the stable scaffold files that
 should remain byte-identical across runners.
 
+Use `byte_identical` only for files a downstream runner should keep
+byte-for-byte with this template. Use `scaffold_starter` for template-maintainer
+fixtures, local validation machinery, and starter inventory that prove the
+pattern but should not become permanent mirrored content in data-only runner
+repos. This runner template has more `scaffold_starter` entries than the
+framework templates because consumers delegate tooling and policy execution to
+the pinned reusable workflow instead of carrying local copies.
+
 ## Repo-Owned Layer
 
 The runner owns `terraform/public/`, `terraform/private/`, deploy inputs, template pins,
