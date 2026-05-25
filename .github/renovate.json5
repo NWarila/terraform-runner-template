@@ -6,7 +6,7 @@
   // baseline for every Terraform-runner consumer in the portfolio. This
   // file is the single source of truth for Renovate behavior across every
   // Terraform repo under nwarila-platform; consumers extend it via
-  // `extends: ["github>NWarila/terraform-runner-template"]` (see org
+  // `extends: ["github>NWarila/terraform-runner-template//.github/renovate.json5"]` (see org
   // ADR-0004 in NWarila/.github for the per-template-baseline
   // model).
   //

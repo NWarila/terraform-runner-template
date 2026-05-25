@@ -29,7 +29,7 @@ role and explains the few places where `continue-on-error` is allowed.
 | CodeQL | `security.yaml` -> `reusable-codeql.yaml` | Blocking | Static analysis. SARIF upload is advisory. |
 | OpenSSF Scorecard | `security.yaml` -> `reusable-scorecard.yaml` | Scheduled / push / branch protection / manual; skipped on PR and merge queue | Posture telemetry; skipped on PR paths because Scorecard GraphQL is gated on private repos. |
 | reusable validation lint jobs | `reusable-terraform-validation.yaml` jobs `actionlint`, `shellcheck`, `yamllint`, `ruff`, `markdownlint` | Blocking by default | Caller-configurable via `inputs.lint_advisory` for transition-only consumers. |
-| pr-validation reference caller | `pr-validation.yaml` (`workflow_dispatch`) | Manual | Runner-mode validation reference. Not part of PR auto-gating; invoked manually to exercise the framework's reusable validation against this repo. |
+| pr-validation reference caller | `pr-validation.yaml` (`pull_request`, `workflow_dispatch`) | Blocking / manual | Runner-mode validation reference. Runs automatically on PRs and remains manually invokable to exercise the framework's reusable validation against this repo. |
 | terraform-deploy (golden runner) | `terraform-deploy.yaml` | Manual / push to main | Reference runner deploy (AWS OIDC, S3 backend). Not run on PRs. |
 | Release evidence + SBOM + attestations | `release.yaml` -> `reusable-release-evidence.yaml` | Release | Produces evidence bundle, SPDX SBOM, attestations for both. |
 | Auto-merge (trusted bots) | `auto-merge.yaml` -> `reusable-auto-merge.yaml` | Not a gate | Operates on `pull_request_target` with no PR checkout; must keep passing `privileged-workflows`. |
