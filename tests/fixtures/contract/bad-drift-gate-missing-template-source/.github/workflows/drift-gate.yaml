@@ -1,0 +1,22 @@
+name: Drift Gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  org-baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Drift gate (org baseline)
+        uses: NWarila/drift-gate@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        with:
+          source-repo: NWarila/.github
+          source-ref: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+          manifest: baseline-manifest.json
+          check-name: org-baseline / verify
