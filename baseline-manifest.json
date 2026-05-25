@@ -164,12 +164,24 @@
       "target": "tests/fixtures/contract/bad-deploy-missing-framework-reusable/.github/workflows/terraform-deploy.yaml"
     },
     {
+      "source": "tests/fixtures/contract/bad-drift-template-only/.github/workflows/drift-gate.yaml",
+      "target": "tests/fixtures/contract/bad-drift-template-only/.github/workflows/drift-gate.yaml"
+    },
+    {
       "source": "tests/fixtures/contract/bad-local-reusable-workflow/.github/workflows/reusable-codeql.yaml",
       "target": "tests/fixtures/contract/bad-local-reusable-workflow/.github/workflows/reusable-codeql.yaml"
     },
     {
       "source": "tests/fixtures/contract/bad-local-reusable-workflow-yml/.github/workflows/reusable-codeql.yml",
       "target": "tests/fixtures/contract/bad-local-reusable-workflow-yml/.github/workflows/reusable-codeql.yml"
+    },
+    {
+      "source": "tests/fixtures/contract/bad-pr-validation-manual-only/.github/workflows/pr-validation.yaml",
+      "target": "tests/fixtures/contract/bad-pr-validation-manual-only/.github/workflows/pr-validation.yaml"
+    },
+    {
+      "source": "tests/fixtures/contract/bad-renovate-org-baseline/.github/renovate.json5",
+      "target": "tests/fixtures/contract/bad-renovate-org-baseline/.github/renovate.json5"
     },
     {
       "source": "tests/fixtures/contract/bad-release-local-reusables/.github/workflows/release.yaml",
@@ -182,6 +194,14 @@
     {
       "source": "tests/fixtures/contract/good/.github/workflows/terraform-deploy.yaml",
       "target": "tests/fixtures/contract/good/.github/workflows/terraform-deploy.yaml"
+    },
+    {
+      "source": "tests/fixtures/contract/good/.github/workflows/drift-gate.yaml",
+      "target": "tests/fixtures/contract/good/.github/workflows/drift-gate.yaml"
+    },
+    {
+      "source": "tests/fixtures/contract/good/.github/renovate.json5",
+      "target": "tests/fixtures/contract/good/.github/renovate.json5"
     },
     {
       "source": "tests/fixtures/contract/good/.github/workflows/release.yaml",

@@ -25,8 +25,33 @@ EXPECTED_BAD_FAILURES: dict[str, tuple[Marker, ...]] = {
 }
 
 EXPECTED_BAD_CONTRACT_FAILURES: dict[str, tuple[Marker, ...]] = {
+    "bad-drift-template-only": (
+        (
+            "content:.github/workflows/drift-gate.yaml",
+            "NWarila/\\.github",
+            "required pattern not found",
+        ),
+    ),
     "bad-deploy-missing-framework-reusable": (
         ("content:.github/workflows/terraform-deploy.yaml", "required pattern not found"),
+    ),
+    "bad-pr-validation-manual-only": (
+        (
+            "content:.github/workflows/pr-validation.yaml",
+            "required pattern not found",
+        ),
+    ),
+    "bad-renovate-org-baseline": (
+        (
+            "content:.github/renovate.json5",
+            "github>NWarila/terraform-runner-template",
+            "required pattern not found",
+        ),
+        (
+            "content:.github/renovate.json5",
+            "github>NWarila/\\.github",
+            "forbidden pattern present",
+        ),
     ),
     "bad-local-reusable-workflow": (
         ("forbidden:.github/workflows/reusable-*.yaml", "reusable-codeql.yaml"),
