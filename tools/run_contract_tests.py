@@ -25,6 +25,20 @@ EXPECTED_BAD_FAILURES: dict[str, tuple[Marker, ...]] = {
 }
 
 EXPECTED_BAD_CONTRACT_FAILURES: dict[str, tuple[Marker, ...]] = {
+    "bad-drift-gate-missing-org-source": (
+        (
+            "content:.github/workflows/drift-gate.yaml",
+            "NWarila/\\.github",
+            "required pattern not found",
+        ),
+    ),
+    "bad-drift-gate-missing-template-source": (
+        (
+            "content:.github/workflows/drift-gate.yaml",
+            "NWarila/terraform-runner-template",
+            "required pattern not found",
+        ),
+    ),
     "bad-drift-template-only": (
         (
             "content:.github/workflows/drift-gate.yaml",
@@ -81,6 +95,20 @@ EXPECTED_BAD_CONTRACT_FAILURES: dict[str, tuple[Marker, ...]] = {
             "content:.github/workflows/security.yaml",
             "reusable-(iac-security|codeql|scorecard)",
             "forbidden pattern present",
+        ),
+    ),
+    "bad-security-uses-local-codeql": (
+        (
+            "content:.github/workflows/security.yaml",
+            "reusable-codeql",
+            "required pattern not found",
+        ),
+    ),
+    "bad-release-uses-local-release-please": (
+        (
+            "content:.github/workflows/release.yaml",
+            "reusable-release-please",
+            "required pattern not found",
         ),
     ),
 }
