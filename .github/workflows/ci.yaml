@@ -105,6 +105,8 @@ jobs:
       - name: Install pinned CI tools
         working-directory: terraform-runner-template
         env:
+          # renovate: datasource=github-releases depName=rhysd/actionlint
+          ACTIONLINT_VERSION: "1.7.12"
           # renovate: datasource=github-releases depName=terraform-linters/tflint
           TFLINT_VERSION: "0.62.0"
           # renovate: datasource=github-releases depName=terraform-docs/terraform-docs
