@@ -172,10 +172,6 @@
       "target": "tests/fixtures/contract/bad-drift-gate-missing-template-source/.github/workflows/drift-gate.yaml"
     },
     {
-      "source": "tests/fixtures/contract/bad-drift-template-only/.github/workflows/drift-gate.yaml",
-      "target": "tests/fixtures/contract/bad-drift-template-only/.github/workflows/drift-gate.yaml"
-    },
-    {
       "source": "tests/fixtures/contract/bad-local-reusable-workflow/.github/workflows/reusable-codeql.yaml",
       "target": "tests/fixtures/contract/bad-local-reusable-workflow/.github/workflows/reusable-codeql.yaml"
     },
