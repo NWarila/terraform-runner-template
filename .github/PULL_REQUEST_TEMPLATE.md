@@ -4,11 +4,19 @@
 
 ## Risk
 
-<!-- What could break? What did you test? Reference any incident drills. -->
+<!-- What could break? What automated evidence should the reviewer trust? -->
 
-## Test plan
+## Automated evidence
 
-- [ ] CI passes locally / in PR
-- [ ] If touching drift-gated files: confirm the source template manifest reflects the intended source of truth, or plan the upstream change before syncing forward
-- [ ] If touching contract: run `make contract-check` and update the existing consumer fixtures when expectations change
+- [ ] PR validation passes in GitHub
+- [ ] Drift Gate passes in GitHub (`org-baseline / verify` and `runner-template / verify`)
+- [ ] Security workflow passes, or advisory findings are reviewed and documented
+- [ ] Deploy plan evidence is present when Terraform inventory or deploy inputs change
 - [ ] Documentation reflects the change (when applicable)
+
+## Runner review notes
+
+- [ ] Template pin changes move workflow `uses`, `template_ref`, and drift `source-ref` together
+- [ ] Framework pin changes move PR validation `framework_ref`, deploy workflow SHA, and deploy `framework_ref` together
+- [ ] Private fixture changes explain the production private inventory shape represented
+- [ ] The diff keeps this repo data-only and does not add template-maintainer tooling
