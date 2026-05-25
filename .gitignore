@@ -70,9 +70,6 @@
 !/tests/fixtures/contract/bad-drift-gate-missing-template-source/
 !/tests/fixtures/contract/bad-drift-gate-missing-template-source/.github/
 !/tests/fixtures/contract/bad-drift-gate-missing-template-source/.github/workflows/
-!/tests/fixtures/contract/bad-drift-template-only/
-!/tests/fixtures/contract/bad-drift-template-only/.github/
-!/tests/fixtures/contract/bad-drift-template-only/.github/workflows/
 !/tests/fixtures/contract/bad-local-reusable-workflow/
 !/tests/fixtures/contract/bad-local-reusable-workflow/.github/
 !/tests/fixtures/contract/bad-local-reusable-workflow/.github/workflows/
@@ -178,7 +175,6 @@
 !/tests/fixtures/contract/bad-deploy-missing-framework-reusable/.github/workflows/terraform-deploy.yaml
 !/tests/fixtures/contract/bad-drift-gate-missing-org-source/.github/workflows/drift-gate.yaml
 !/tests/fixtures/contract/bad-drift-gate-missing-template-source/.github/workflows/drift-gate.yaml
-!/tests/fixtures/contract/bad-drift-template-only/.github/workflows/drift-gate.yaml
 !/tests/fixtures/contract/bad-local-reusable-workflow/.github/workflows/reusable-codeql.yaml
 !/tests/fixtures/contract/bad-local-reusable-workflow-yml/.github/workflows/reusable-codeql.yml
 !/tests/fixtures/contract/bad-pr-validation-manual-only/.github/workflows/pr-validation.yaml

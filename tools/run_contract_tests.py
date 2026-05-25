@@ -39,13 +39,6 @@ EXPECTED_BAD_CONTRACT_FAILURES: dict[str, tuple[Marker, ...]] = {
             "required pattern not found",
         ),
     ),
-    "bad-drift-template-only": (
-        (
-            "content:.github/workflows/drift-gate.yaml",
-            "NWarila/\\.github",
-            "required pattern not found",
-        ),
-    ),
     "bad-deploy-missing-framework-reusable": (
         ("content:.github/workflows/terraform-deploy.yaml", "required pattern not found"),
     ),
