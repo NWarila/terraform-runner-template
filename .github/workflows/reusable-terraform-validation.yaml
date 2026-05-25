@@ -27,7 +27,7 @@ on:
   workflow_call:
     inputs:
       terraform_version:
-        description: Exact Terraform version (e.g. "1.15.1").
+        description: Exact Terraform version (e.g. "1.15.4").
         required: true
         type: string
       template_ref:

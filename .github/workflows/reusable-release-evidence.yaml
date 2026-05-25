@@ -35,7 +35,7 @@ name: Reusable Release Evidence
 #     evidence:
 #       uses: NWarila/terraform-runner-template/.github/workflows/reusable-release-evidence.yaml@<sha>
 #       with:
-#         terraform_version: "1.15.1"
+#         terraform_version: "1.15.4"
 #         repo_type: runner
 
 on:
@@ -241,6 +241,17 @@ jobs:
               echo "| $gate | $result | \`$evidence\` |"
             done < "$OUT/.gate-results.tsv"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail failed framework evidence gates
+        if: steps.type.outputs.type == 'framework'
+        env:
+          OUT: release-evidence
+        run: |
+          set -euo pipefail
+          if [ -f "$OUT/.gate-results.tsv" ] && grep -q $'\tfail\t' "$OUT/.gate-results.tsv"; then
+            cat "$OUT/.gate-results.tsv"
+            exit 1
+          fi
 
       - name: Bundle evidence
         run: tar -czf release-evidence.tar.gz release-evidence/
