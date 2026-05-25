@@ -86,7 +86,7 @@ jobs:
         with:
           repository: NWarila/terraform-framework-template
           # renovate: depName=NWarila/terraform-framework-template packageName=https://github.com/NWarila/terraform-framework-template currentValue=main
-          ref: db6b94c6e6f6d8bd77e721bfc48f241e2a60eff3
+          ref: a0e1a519eb3e9229c494e1fbef50934434e5766c
           path: terraform-framework-template
           fetch-depth: 1
           persist-credentials: false
