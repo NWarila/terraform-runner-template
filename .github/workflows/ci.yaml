@@ -93,6 +93,32 @@ jobs:
           python -m mypy --ignore-missing-imports tools/ \
             || echo "::warning::Mypy advisory reported findings (does not block merge)"
 
+  cross-template-drift:
+    name: cross-template drift
+    # Enforces zero drift between this template's shape-shared regions
+    # (validator core + harness skeleton) and the sibling runner template's
+    # equivalent regions. Fails the job if a maintainer changed a shape-
+    # shared section in this template without changing it in the sibling.
+    # See docs/explanation/cross-template-sync.md.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      CROSS_TEMPLATE_SIBLING_REPO: NWarila/packer-runner-template
+      CROSS_TEMPLATE_SIBLING_REF: main
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+      - name: Check cross-template drift
+        run: python tools/check_cross_template_drift.py
+
   terraform-runner-verify:
     name: terraform runner verify
     runs-on: ubuntu-latest
