@@ -284,6 +284,10 @@
       "target": "tools/check_docs_layout.py"
     },
     {
+      "source": "tools/check_cross_template_drift.py",
+      "target": "tools/check_cross_template_drift.py"
+    },
+    {
       "source": "tools/check_privileged_workflows.py",
       "target": "tools/check_privileged_workflows.py"
     },
