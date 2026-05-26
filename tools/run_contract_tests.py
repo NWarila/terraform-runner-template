@@ -452,10 +452,10 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    # The caller-workflow validator is optional in this template. When absent,
+    # consumer-fixture discovery is skipped — only contract fixtures are run.
     validator = args.validator.resolve()
-    if not validator.is_file():
-        sys.stderr.write(f"error: validator not found: {validator}\n")
-        return 2
+    skip_consumer_fixtures = not validator.is_file()
     contract_validator = args.contract_validator.resolve()
     if not contract_validator.is_file():
         sys.stderr.write(f"error: contract validator not found: {contract_validator}\n")
@@ -465,13 +465,15 @@ def main() -> int:
         sys.stderr.write(f"error: contract not found: {contract}\n")
         return 2
 
-    fixtures, discovery_errors = discover_fixtures(
-        args.fixtures_root.resolve(), EXPECTED_BAD_FAILURES
-    )
-    if discovery_errors:
-        for error in discovery_errors:
-            sys.stderr.write(f"error: {error}\n")
-        return 2
+    fixtures: list[Fixture] = []
+    if not skip_consumer_fixtures:
+        fixtures, discovery_errors = discover_fixtures(
+            args.fixtures_root.resolve(), EXPECTED_BAD_FAILURES
+        )
+        if discovery_errors:
+            for error in discovery_errors:
+                sys.stderr.write(f"error: {error}\n")
+            return 2
     contract_fixtures, contract_discovery_errors = discover_fixtures(
         args.contract_fixtures_root.resolve(), EXPECTED_BAD_CONTRACT_FAILURES
     )
@@ -480,7 +482,7 @@ def main() -> int:
             sys.stderr.write(f"error: {error}\n")
         return 2
 
-    caller_rc = run_fixtures(fixtures, validator, repo_root)
+    caller_rc = 0 if skip_consumer_fixtures else run_fixtures(fixtures, validator, repo_root)
     contract_rc = run_contract_fixtures(
         contract_fixtures, contract_validator, contract, repo_root
     )

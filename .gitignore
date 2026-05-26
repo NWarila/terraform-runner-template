@@ -198,6 +198,7 @@
 !/tools/check_adr_schema.py
 !/tools/check_baseline_manifest.py
 !/tools/check_caller_workflows.py
+!/tools/check_cross_template_drift.py
 !/tools/check_docs_layout.py
 !/tools/check_template_contract.py
 !/tools/check_workflow_run_blocks.py
