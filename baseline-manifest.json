@@ -192,6 +192,10 @@
       "target": "tests/fixtures/contract/bad-release-uses-local-release-please/.github/workflows/release.yaml"
     },
     {
+      "source": "tests/fixtures/contract/bad-repo-hygiene-uses-local/.github/workflows/repo-hygiene.yaml",
+      "target": "tests/fixtures/contract/bad-repo-hygiene-uses-local/.github/workflows/repo-hygiene.yaml"
+    },
+    {
       "source": "tests/fixtures/contract/bad-security-local-reusables/.github/workflows/security.yaml",
       "target": "tests/fixtures/contract/bad-security-local-reusables/.github/workflows/security.yaml"
     },
