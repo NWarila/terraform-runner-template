@@ -55,6 +55,11 @@ universal:
   - path: .github/workflows/security.yaml
     applies_to: [runner]
     rationale: Calls the combined reusable security surface (IaC, CodeQL, Scorecard).
+  - path: .github/workflows/repo-hygiene.yaml
+    rationale: 'Calls the org reusable-repo-hygiene by SHA. Enforces SHA-pinned
+      uses:, exact pins, and pull_request_target safety (no PR-head reads in the
+      auto-merge caller) - the policy guardrail that lets auto-merge be a
+      centralized reusable instead of a local copy.'
   required_documentation:
   - path: docs/README.md
   - path: docs/explanation/architecture.md
@@ -133,25 +138,25 @@ types:
       must_match: false
       rationale: Static AWS access keys are forbidden; OIDC is the only credential path.
     - file: .github/workflows/security.yaml
-      pattern: 'NWarila/terraform-runner-template/.github/workflows/reusable-iac-security.yaml@[0-9a-f]{40}'
+      pattern: 'NWarila/.github/.github/workflows/reusable-iac-security.yaml@[0-9a-f]{40}'
       must_match: true
-      rationale: Runner security callers must consume the template-owned IaC reusable by immutable SHA.
+      rationale: Runner security callers must consume the org-owned IaC reusable (NWarila/.github) by immutable SHA.
     - file: .github/workflows/security.yaml
-      pattern: 'NWarila/terraform-runner-template/.github/workflows/reusable-codeql.yaml@[0-9a-f]{40}'
+      pattern: 'NWarila/.github/.github/workflows/reusable-codeql.yaml@[0-9a-f]{40}'
       must_match: true
-      rationale: Runner security callers must consume the template-owned CodeQL reusable by immutable SHA.
+      rationale: Runner security callers must consume the org-owned CodeQL reusable (NWarila/.github) by immutable SHA.
     - file: .github/workflows/security.yaml
-      pattern: 'NWarila/terraform-runner-template/.github/workflows/reusable-scorecard.yaml@[0-9a-f]{40}'
+      pattern: 'NWarila/.github/.github/workflows/reusable-scorecard.yaml@[0-9a-f]{40}'
       must_match: true
-      rationale: Runner security callers must consume the template-owned Scorecard reusable by immutable SHA.
+      rationale: Runner security callers must consume the org-owned Scorecard reusable (NWarila/.github) by immutable SHA.
     - file: .github/workflows/security.yaml
       pattern: '\./\.github/workflows/reusable-(iac-security|codeql|scorecard)\.yaml'
       must_match: false
       rationale: Runner repos must not hide security implementation in local reusable workflow copies.
     - file: .github/workflows/release.yaml
-      pattern: 'NWarila/terraform-runner-template/.github/workflows/reusable-release-please.yaml@[0-9a-f]{40}'
+      pattern: 'NWarila/.github/.github/workflows/reusable-release-please.yaml@[0-9a-f]{40}'
       must_match: true
-      rationale: Runner release callers must consume the template-owned release-please reusable by immutable SHA.
+      rationale: Runner release callers must consume the org-owned release-please reusable (NWarila/.github) by immutable SHA.
     - file: .github/workflows/release.yaml
       pattern: 'NWarila/terraform-runner-template/.github/workflows/reusable-release-evidence.yaml@[0-9a-f]{40}'
       must_match: true
@@ -160,6 +165,10 @@ types:
       pattern: '\./\.github/workflows/reusable-release-(please|evidence)\.ya?ml'
       must_match: false
       rationale: Runner repos must not hide release implementation in local reusable workflow copies.
+    - file: .github/workflows/repo-hygiene.yaml
+      pattern: 'NWarila/.github/.github/workflows/reusable-repo-hygiene.yaml@[0-9a-f]{40}'
+      must_match: true
+      rationale: Repo-hygiene callers must consume the org-owned reusable-repo-hygiene (NWarila/.github) by immutable SHA - the guardrail that enforces SHA-pinning, exact pins, and pull_request_target safety org-wide.
     forbidden_paths:
     - path: tools/
       rationale: Runner repos are data-only deployers; template-maintainer tooling belongs in terraform-runner-template.
@@ -168,13 +177,15 @@ types:
     - path: Makefile
       rationale: Runner repos delegate validation and apply through reusable workflows instead of local make targets.
     - glob: .github/workflows/reusable-*.yaml
-      allow:
-      - .github/workflows/reusable-auto-merge.yaml
-      rationale: 'Local reusable workflow implementations are template-owned, except
-        the privileged auto-merge reusable, which stays local so the
-        pull_request_target static analyzer can inspect the complete call graph.'
+      rationale: 'Runner repos own no local reusable workflows. Universal reusables
+        are called by SHA from NWarila/.github; type-specific ones from the
+        framework/runner template. auto-merge is centralized too: its
+        pull_request_target safety is enforced by the repo_hygiene policy (run
+        via the repo-hygiene.yaml caller), which denies PR-head reads in that
+        workflow - so it no longer needs to be a local copy for call-graph
+        analysis.'
     - glob: .github/workflows/reusable-*.yml
-      rationale: Non-auto local reusable workflow implementations are forbidden with either GitHub Actions extension.
+      rationale: Local reusable workflow implementations are forbidden with either GitHub Actions extension.
   template:
     rationale: 'Self-validation shape for this type-template repository. It owns
       reusable workflows, contract tooling, drift-gate metadata, and the seed
@@ -195,23 +206,15 @@ types:
     - path: .github/workflows/release.yaml
       rationale: Optional release and evidence caller.
     - path: .github/workflows/auto-merge.yaml
-      rationale: Isolated pull_request_target caller for trusted-bot auto-merge.
+      rationale: Isolated pull_request_target caller for trusted-bot auto-merge; calls the org reusable-auto-merge by SHA.
+    - path: .github/workflows/repo-hygiene.yaml
+      rationale: Caller for the org reusable-repo-hygiene; enforces SHA-pinning, exact pins, and pull_request_target safety on this repo (incl. the auto-merge caller).
     - path: .github/workflows/reusable-terraform-validation.yaml
-      rationale: Runner-mode reusable validation workflow consumed by runner repos.
-    - path: .github/workflows/reusable-codeql.yaml
-      rationale: Reusable CodeQL workflow consumed by runner repos.
-    - path: .github/workflows/reusable-iac-security.yaml
-      rationale: Reusable IaC security workflow consumed by runner repos.
-    - path: .github/workflows/reusable-scorecard.yaml
-      rationale: Reusable OpenSSF Scorecard workflow consumed by runner repos.
-    - path: .github/workflows/reusable-release-please.yaml
-      rationale: Reusable release-please workflow consumed by runner repos.
+      rationale: Runner-mode reusable validation workflow (type-specific) consumed by runner repos.
     - path: .github/workflows/reusable-release-evidence.yaml
-      rationale: Reusable release evidence workflow consumed by runner repos.
-    - path: .github/workflows/reusable-auto-merge.yaml
-      rationale: Reusable trusted-bot auto-merge workflow consumed by runner repos.
+      rationale: Reusable release evidence workflow (type-specific) consumed by runner repos.
     - path: .github/workflows/security.yaml
-      rationale: Canonical IaC security caller inherited by runner repos.
+      rationale: Canonical security caller; delegates to org reusables (iac-security, codeql, scorecard) by SHA.
     - path: .github/workflows/terraform-deploy.yaml
       rationale: Reference deploy caller proving the runner/framework wiring.
     - path: tools/check_template_contract.py
