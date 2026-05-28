@@ -22,7 +22,7 @@ jobs:
       pull-requests: write
       issues: write
       actions: write
-    uses: NWarila/terraform-runner-template/.github/workflows/reusable-release-please.yaml@4487471f0dc181a600ac6bf542eb0a90fd320979
+    uses: NWarila/.github/.github/workflows/reusable-release-please.yaml@e7456b0219e8750fbef8bd70a0f1ccf7d47f1c20
 
   evidence:
     if: ${{ inputs.task == 'release-evidence' }}

@@ -1,0 +1,15 @@
+name: Repo Hygiene
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  hygiene:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/reusable-repo-hygiene.yaml
+    with:
+      source_ref: e7456b0219e8750fbef8bd70a0f1ccf7d47f1c20
