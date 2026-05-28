@@ -1,5 +1,10 @@
 # terraform-runner-template
 
+[![CI](https://github.com/NWarila/terraform-runner-template/actions/workflows/ci.yaml/badge.svg)](https://github.com/NWarila/terraform-runner-template/actions/workflows/ci.yaml)
+[![Security](https://github.com/NWarila/terraform-runner-template/actions/workflows/security.yaml/badge.svg)](https://github.com/NWarila/terraform-runner-template/actions/workflows/security.yaml)
+[![Repo Hygiene](https://github.com/NWarila/terraform-runner-template/actions/workflows/repo-hygiene.yaml/badge.svg)](https://github.com/NWarila/terraform-runner-template/actions/workflows/repo-hygiene.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A template for Terraform repos that consume a framework: they own data (the
 inputs that describe what to deploy) but not the Terraform module itself. Use it
 to scaffold a new runner repo with CI, policy, drift-gate, and release evidence
