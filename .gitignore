@@ -87,6 +87,9 @@
 !/tests/fixtures/contract/bad-release-uses-local-release-please/
 !/tests/fixtures/contract/bad-release-uses-local-release-please/.github/
 !/tests/fixtures/contract/bad-release-uses-local-release-please/.github/workflows/
+!/tests/fixtures/contract/bad-repo-hygiene-uses-local/
+!/tests/fixtures/contract/bad-repo-hygiene-uses-local/.github/
+!/tests/fixtures/contract/bad-repo-hygiene-uses-local/.github/workflows/
 !/tests/fixtures/contract/bad-security-local-reusables/
 !/tests/fixtures/contract/bad-security-local-reusables/.github/
 !/tests/fixtures/contract/bad-security-local-reusables/.github/workflows/
@@ -112,12 +115,8 @@
 !/.github/workflows/drift-gate.yaml
 !/.github/workflows/pr-validation.yaml
 !/.github/workflows/release.yaml
-!/.github/workflows/reusable-auto-merge.yaml
-!/.github/workflows/reusable-codeql.yaml
-!/.github/workflows/reusable-iac-security.yaml
+!/.github/workflows/repo-hygiene.yaml
 !/.github/workflows/reusable-release-evidence.yaml
-!/.github/workflows/reusable-release-please.yaml
-!/.github/workflows/reusable-scorecard.yaml
 !/.github/workflows/reusable-terraform-validation.yaml
 !/.github/workflows/security.yaml
 !/.github/workflows/terraform-deploy.yaml
@@ -181,6 +180,7 @@
 !/tests/fixtures/contract/bad-renovate-org-baseline/.github/renovate.json5
 !/tests/fixtures/contract/bad-release-local-reusables/.github/workflows/release.yaml
 !/tests/fixtures/contract/bad-release-uses-local-release-please/.github/workflows/release.yaml
+!/tests/fixtures/contract/bad-repo-hygiene-uses-local/.github/workflows/repo-hygiene.yaml
 !/tests/fixtures/contract/bad-security-local-reusables/.github/workflows/security.yaml
 !/tests/fixtures/contract/bad-security-uses-local-codeql/.github/workflows/security.yaml
 !/tests/fixtures/contract/good/.github/renovate.json5
