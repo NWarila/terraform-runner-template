@@ -96,7 +96,7 @@ types:
 
         '
     - path: .github/workflows/release.yaml
-      rationale: Optional release entrypoint must delegate release automation and evidence to template-owned reusable workflows.
+      rationale: Release entrypoint; must delegate release automation and evidence to template-owned reusable workflows. Required for terraform runners by design (a release flow is mandatory here); packer runners content-gate release.yaml when present rather than requiring it.
     - path: tests/fixtures/terraform/private/
       rationale: 'Public-safe private inventory fixtures used by pr-validation when the production
 
