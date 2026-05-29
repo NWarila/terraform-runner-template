@@ -23,6 +23,12 @@ Non-negotiable rules for this template. Violating one of these is a breaking cha
   also explicit at the CI target level. `workflow-helper-tests` remains limited
   to workflow helper and privileged-workflow checks.
 - Runner consumers do not own `verify.py`, OPA policy, contract fixtures, or
-  template-maintainer reusable workflows. They call this template by immutable
-  SHA and may keep only a local privileged `reusable-auto-merge.yaml` for
-  static analysis.
+  reusable workflows of any kind. They call this template by immutable SHA.
+  Auto-merge is centralized too: `auto-merge.yaml` is a thin caller of the
+  org-owned `NWarila/.github/.github/workflows/reusable-auto-merge.yaml`,
+  pinned by SHA, and the contract's `forbidden_paths` rejects any local
+  `.github/workflows/reusable-*.yaml`. `pull_request_target` safety is enforced
+  by the org `repo_hygiene` policy (run via the `repo-hygiene.yaml` caller),
+  not by keeping the reusable local; the older "keep auto-merge local so the
+  static analyzer sees the full call graph" rationale predates centralized
+  `repo_hygiene` and is superseded.
