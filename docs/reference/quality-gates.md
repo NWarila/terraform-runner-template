@@ -31,7 +31,7 @@ role and explains the few places where `continue-on-error` is allowed.
 | reusable validation lint jobs | `reusable-terraform-validation.yaml` jobs `actionlint`, `shellcheck`, `yamllint`, `ruff`, `markdownlint` | Blocking by default | Caller-configurable via `inputs.lint_advisory` for transition-only consumers. |
 | pr-validation reference caller | `pr-validation.yaml` (`pull_request`, `workflow_dispatch`) | Blocking / manual | Runner-mode validation reference. Runs automatically on PRs and remains manually invokable to exercise the framework's reusable validation against this repo. |
 | terraform-deploy (golden runner) | `terraform-deploy.yaml` | Manual / push to main | Reference runner deploy (AWS OIDC, S3 backend). Not run on PRs. |
-| Release evidence + SBOM + attestations | `release.yaml` -> `reusable-release-evidence.yaml` | Release | Produces evidence bundle, SPDX SBOM, attestations for both. |
+| Release evidence + SBOM + attestations | `release.yaml` -> framework `reusable-release-evidence.yaml@<sha>` (`repo_type: runner`) | Release | Calls the Terraform framework template's reusable by SHA; runners own no local copy. Produces evidence bundle, SPDX SBOM, attestations. |
 | Auto-merge (trusted bots) | `auto-merge.yaml` -> `reusable-auto-merge.yaml` | Not a gate | Operates on `pull_request_target` with no PR checkout; must keep passing `privileged-workflows`. |
 
 ## When `continue-on-error: true` is allowed
