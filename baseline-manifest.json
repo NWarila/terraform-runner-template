@@ -32,8 +32,8 @@
       "target": ".github/renovate.json5"
     },
     {
-      "source": ".github/workflows/reusable-release-evidence.yaml",
-      "target": ".github/workflows/reusable-release-evidence.yaml"
+      "source": ".github/workflows/release.yaml",
+      "target": ".github/workflows/release.yaml"
     },
     {
       "source": ".github/workflows/reusable-terraform-validation.yaml",

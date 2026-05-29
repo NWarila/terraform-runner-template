@@ -158,9 +158,12 @@ types:
       must_match: true
       rationale: Runner release callers must consume the org-owned release-please reusable (NWarila/.github) by immutable SHA.
     - file: .github/workflows/release.yaml
-      pattern: 'NWarila/terraform-runner-template/.github/workflows/reusable-release-evidence.yaml@[0-9a-f]{40}'
+      pattern: 'NWarila/terraform-framework-template/.github/workflows/reusable-release-evidence.yaml@[0-9a-f]{40}'
       must_match: true
-      rationale: Runner release callers must consume the template-owned release evidence reusable by immutable SHA.
+      rationale: 'Runner release callers must consume the FRAMEWORK-owned release
+        evidence reusable (NWarila/terraform-framework-template) by immutable SHA
+        with repo_type=runner. release-evidence is type-specific to framework
+        templates; a runner owns no local copy. See AUDIT-2026-05-28.'
     - file: .github/workflows/release.yaml
       pattern: '\./\.github/workflows/reusable-release-(please|evidence)\.ya?ml'
       must_match: false
@@ -204,15 +207,17 @@ types:
     - path: .github/workflows/ci.yaml
       rationale: Self-validation workflow for this template repository.
     - path: .github/workflows/release.yaml
-      rationale: Optional release and evidence caller.
+      rationale: 'Seed release caller for runner consumers that publish versioned
+        releases. Runners own NO local reusable-*.yaml; release evidence is obtained
+        by CALLING the Terraform framework template''s reusable-release-evidence.yaml
+        by SHA (repo_type=runner), and release-please from the org reusable. See
+        AUDIT-2026-05-28.'
     - path: .github/workflows/auto-merge.yaml
       rationale: Isolated pull_request_target caller for trusted-bot auto-merge; calls the org reusable-auto-merge by SHA.
     - path: .github/workflows/repo-hygiene.yaml
       rationale: Caller for the org reusable-repo-hygiene; enforces SHA-pinning, exact pins, and pull_request_target safety on this repo (incl. the auto-merge caller).
     - path: .github/workflows/reusable-terraform-validation.yaml
       rationale: Runner-mode reusable validation workflow (type-specific) consumed by runner repos.
-    - path: .github/workflows/reusable-release-evidence.yaml
-      rationale: Reusable release evidence workflow (type-specific) consumed by runner repos.
     - path: .github/workflows/security.yaml
       rationale: Canonical security caller; delegates to org reusables (iac-security, codeql, scorecard) by SHA.
     - path: .github/workflows/terraform-deploy.yaml
