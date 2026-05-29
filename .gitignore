@@ -116,7 +116,6 @@
 !/.github/workflows/pr-validation.yaml
 !/.github/workflows/release.yaml
 !/.github/workflows/repo-hygiene.yaml
-!/.github/workflows/reusable-release-evidence.yaml
 !/.github/workflows/reusable-terraform-validation.yaml
 !/.github/workflows/security.yaml
 !/.github/workflows/terraform-deploy.yaml
