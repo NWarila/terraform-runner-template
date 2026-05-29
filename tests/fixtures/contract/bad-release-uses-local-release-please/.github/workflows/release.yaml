@@ -25,7 +25,7 @@ jobs:
       attestations: write
       contents: write
       id-token: write
-    uses: NWarila/terraform-runner-template/.github/workflows/reusable-release-evidence.yaml@4487471f0dc181a600ac6bf542eb0a90fd320979
+    uses: NWarila/terraform-framework-template/.github/workflows/reusable-release-evidence.yaml@4487471f0dc181a600ac6bf542eb0a90fd320979
     with:
       terraform_version: "1.15.1"
       repo_type: runner

@@ -3,6 +3,16 @@ name: Release
 # Optional release entrypoint for release-please and release evidence.
 # Trusted-bot auto-merge lives in auto-merge.yaml so pull_request_target
 # is isolated from release publishing paths.
+#
+# Taxonomy note: a Terraform RUNNER is a data-only deployer and owns NO local
+# `reusable-*.yaml`. Release evidence is therefore obtained by CALLING the
+# Terraform FRAMEWORK template's reusable
+# (NWarila/terraform-framework-template/.github/workflows/reusable-release-evidence.yaml)
+# by SHA, with repo_type=runner. The framework reusable's runner path captures
+# terraform/repos inventory + the pinned framework_ref and does NOT install or
+# run Terraform, so the required `terraform_version` input is ignored on this
+# path but must still be supplied to satisfy the workflow_call signature. See
+# AUDIT-2026-05-28 and docs/reference/mirroring.md.
 
 on:
   push:
@@ -43,7 +53,7 @@ jobs:
       pull-requests: write
       issues: write
       actions: write
-    uses: NWarila/.github/.github/workflows/reusable-release-please.yaml@e7456b0219e8750fbef8bd70a0f1ccf7d47f1c20
+    uses: NWarila/.github/.github/workflows/reusable-release-please.yaml@f45f8e6695d61af2f36ac37b72ef2dcfa05bc089
 
   evidence:
     name: Release Evidence
@@ -52,8 +62,12 @@ jobs:
       attestations: write
       contents: write
       id-token: write
-    uses: ./.github/workflows/reusable-release-evidence.yaml
+    # Call the FRAMEWORK template's reusable by SHA — runners own no local copy.
+    uses: NWarila/terraform-framework-template/.github/workflows/reusable-release-evidence.yaml@3b0a832f38e8057d8531e890a666242dc32cab21
     with:
+      # Ignored on the runner evidence path, but required by the reusable's
+      # workflow_call signature. Renovate keeps it current for parity with the
+      # framework's pinned Terraform version.
       # renovate: datasource=github-releases depName=hashicorp/terraform extractVersion=^v(?<version>.*)$ versioning=hashicorp
       terraform_version: "1.15.4"
-      repo_type: template
+      repo_type: runner
