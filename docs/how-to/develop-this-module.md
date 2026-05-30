@@ -5,8 +5,9 @@
 This template doesn't ship Terraform code itself — it's a meta-repo. Use
 the same tooling consumer runners use:
 
-- Terraform 1.15.4 (only needed if you're running cross-template sync
-  validation locally; the template doesn't run terraform itself).
+- Terraform 1.15.4 (only needed for the integration step
+  `python tools/verify.py integration`, which assembles the framework
+  at its pinned ref; the template doesn't run terraform itself).
 - Python 3.12 with `pyyaml`, `ruff`, `yamllint`, `zizmor`.
 - `markdownlint-cli2` (via npm or the action).
 
