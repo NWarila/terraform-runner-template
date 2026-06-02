@@ -28,9 +28,11 @@
 !/docs/decision-records/org/
 !/docs/decision-records/repo/
 !/docs/decision-records/template/
+!/docs/diagrams/
 !/docs/explanation/
 !/docs/how-to/
 !/docs/reference/
+!/docs/runbooks/
 !/docs/tutorials/
 !/fixtures/
 !/fixtures/integration/
@@ -246,5 +248,8 @@
 !/docs/reference/ci-validator-invocation.md
 !/docs/explanation/repo-type-taxonomy-and-ci-focus.md
 !/docs/diagrams/.gitkeep
+!/docs/diagrams/runner-framework-relationship.mmd
+!/docs/decision-records/repo/0001-use-do-nothing-framework-as-integration-reference.md
+!/docs/tutorials/create-your-first-runner.md
 !/docs/runbooks/.gitkeep
 !/docs/runbooks/purge-ai-attributed-history.md

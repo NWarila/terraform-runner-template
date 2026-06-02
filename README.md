@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/NWarila/terraform-runner-template/actions/workflows/ci.yaml/badge.svg)](https://github.com/NWarila/terraform-runner-template/actions/workflows/ci.yaml)
 [![Security](https://github.com/NWarila/terraform-runner-template/actions/workflows/security.yaml/badge.svg)](https://github.com/NWarila/terraform-runner-template/actions/workflows/security.yaml)
+[![Drift Gate](https://github.com/NWarila/terraform-runner-template/actions/workflows/drift-gate.yaml/badge.svg)](https://github.com/NWarila/terraform-runner-template/actions/workflows/drift-gate.yaml)
 [![Repo Hygiene](https://github.com/NWarila/terraform-runner-template/actions/workflows/repo-hygiene.yaml/badge.svg)](https://github.com/NWarila/terraform-runner-template/actions/workflows/repo-hygiene.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -124,6 +125,41 @@ S3 backend and OIDC settings from reviewed inputs and repository or environment
 secrets.
 
 ## Architecture
+
+Topology diagram: [docs/diagrams/runner-framework-relationship.mmd](docs/diagrams/runner-framework-relationship.mmd)
+
+```mermaid
+flowchart TD
+    subgraph template["terraform-runner-template (this repo)"]
+        contract["contract/runner-template-contract.yaml"]
+        scaffold["Standardised scaffold\n(tooling, OPA, reusable workflows,\ndrift-gate, baseline-manifest.json)"]
+        reusable["reusable-terraform-validation.yaml\n(mode: runner)"]
+        contract --> scaffold
+    end
+
+    subgraph runner["Consumer runner repo\n(e.g. github-terraform-runner)"]
+        callers["Caller workflows\n(pr-validation.yaml, terraform-deploy.yaml,\ndrift-gate.yaml)"]
+        inventory["Runner inventory\n(terraform/public/, terraform/private/)"]
+        callers --> inventory
+    end
+
+    subgraph framework["Framework repo\n(e.g. terraform-framework-template)"]
+        module["Terraform module\n(github_repository, rulesets, …)"]
+        deploy_reusable["reusable-terraform-deploy.yaml"]
+        module --> deploy_reusable
+    end
+
+    subgraph org_baseline[".github (org baseline)"]
+        org_policies["Org ADRs + policy files\n(byte-identical mirrors)"]
+        drift_gate_action["NWarila/drift-gate action"]
+    end
+
+    template -- "consumer pins template SHA\nvia Renovate" --> runner
+    reusable -- "checks out framework at\npinned framework_ref\nand overlays runner data" --> framework
+    callers -- "uses: framework reusable\nat pinned SHA" --> deploy_reusable
+    org_baseline -- "drift-gate enforces\nbyte-identical mirrors" --> runner
+    org_baseline -- "drift-gate enforces\nbyte-identical mirrors" --> template
+```
 
 This template participates in the three-tier ADR model formalised in [`NWarila/.github` ADR-0001](docs/decision-records/org/0001-use-architecture-decision-records.md):
 
