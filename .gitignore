@@ -135,6 +135,7 @@
 !/docs/decision-records/template/0001-pin-terraform-and-provider-versions-exactly.md
 !/docs/decision-records/template/0002-mandate-s3-state-backend.md
 !/docs/decision-records/template/0004-isolate-pull-request-target-triggers.md
+!/docs/decision-records/template/0005-enforce-thin-runner-deployer-shape.md
 !/docs/explanation/.gitkeep
 !/docs/explanation/architecture.md
 !/docs/explanation/testing-strategy.md

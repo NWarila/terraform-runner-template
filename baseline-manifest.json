@@ -88,6 +88,10 @@
       "target": "docs/decision-records/template/0004-isolate-pull-request-target-triggers.md"
     },
     {
+      "source": "docs/decision-records/template/0005-enforce-thin-runner-deployer-shape.md",
+      "target": "docs/decision-records/template/0005-enforce-thin-runner-deployer-shape.md"
+    },
+    {
       "source": "docs/decision-records/template/README.md",
       "target": "docs/decision-records/template/README.md"
     },

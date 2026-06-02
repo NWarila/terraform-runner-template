@@ -15,6 +15,7 @@ This directory holds the Architecture Decision Records (ADRs) governing this Ter
 | [ADR-template/0001](template/0001-pin-terraform-and-provider-versions-exactly.md) | Accepted | Pin the Terraform CLI and every provider to exact versions. |
 | [ADR-template/0002](template/0002-mandate-s3-state-backend.md) | Accepted (partial enforcement) | Mandate S3 backend, native locking, OIDC-only auth, encryption, versioning, and access logging policy for runner consumers. |
 | [ADR-template/0004](template/0004-isolate-pull-request-target-triggers.md) | Accepted | Keep `pull_request_target` isolated to trusted-bot auto-merge, never release publishing. |
+| [ADR-template/0005](template/0005-enforce-thin-runner-deployer-shape.md) | Accepted | Enforce Terraform runner consumers as thin data-only deployers. |
 | [ADR-0006](org/0006-keep-github-control-planes-namespace-local.md) | Accepted | Keep GitHub control planes namespace-local. |
 | [ADR-0007](org/0007-centralize-universal-ci-reusables-within-each-namespace.md) | Accepted | Centralize universal CI reusables within each namespace. |
 | [ADR-0008](org/0008-enforce-repo-hygiene-by-repo-type.md) | Accepted | Enforce repo hygiene by repo type. |
