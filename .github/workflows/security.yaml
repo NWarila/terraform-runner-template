@@ -1,7 +1,8 @@
 name: Security
 
-# One visible security entrypoint. The detailed implementations stay in local
-# reusable workflows so consumers can pin the same checks by SHA.
+# One visible security entrypoint. The detailed implementations live in the
+# SHA-pinned NWarila/.github org reusable workflows (no local copies; the
+# contract forbids local reusable-*.yaml and requires the org reusables).
 
 on:
   branch_protection_rule:
