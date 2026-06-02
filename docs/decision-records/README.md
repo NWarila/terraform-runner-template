@@ -36,4 +36,10 @@ The `org/` scope is mirrored from `NWarila/.github` and enforced by the org drif
 | [ADR-0004](org/0004-use-renovate-for-dependency-updates.md) | Accepted | Use Renovate for dependency updates. |
 | [ADR-0005](org/0005-pin-terraform-and-provider-versions-exactly.md) | Accepted | Pin Terraform and provider versions exactly. |
 
-The `.gitkeep` placeholder in `repo/` keeps the directory skeleton complete until this repository has a repo-specific ADR.
+## Repo ADRs
+
+ADRs specific to `NWarila/terraform-runner-template` as a repo (not rules imposed on consumers).
+
+| ADR | Status | Decision |
+| --- | --- | --- |
+| [ADR-repo/0001](repo/0001-use-do-nothing-framework-as-integration-reference.md) | Accepted | Use `terraform-framework-template` as the credential-free integration reference for this template's own CI. |

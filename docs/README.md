@@ -4,6 +4,7 @@ Documentation for this template follows the [Diátaxis framework](https://diatax
 
 | Quadrant     | Path                  | Purpose                              |
 | ------------ | --------------------- | ------------------------------------ |
+| Tutorials    | `tutorials/`          | Step-by-step learning guides         |
 | Explanation  | `explanation/`        | Architecture, threat model, testing  |
 | Reference    | `reference/`          | Invariants, release gates, mirroring, AWS bootstrap requirements |
 | How-to       | `how-to/`             | Task-oriented guides                 |
