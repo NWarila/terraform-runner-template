@@ -65,7 +65,9 @@ Runner consumers must keep the following local surface:
 - root community and governance files required by the contract;
 - `.github/workflows/pr-validation.yaml`, `drift-gate.yaml`, `security.yaml`,
   `repo-hygiene.yaml`, `terraform-deploy.yaml`, `release.yaml`, and
-  `auto-merge.yaml` as thin callers;
+  `auto-merge.yaml` as thin callers (a consumer that mirrors org ADRs may
+  additionally carry the scheduled `org-adr-auto-sync.yaml` caller; see
+  `docs/reference/mirroring.md`);
 - `terraform/public/` and `terraform/private/` inventory directories;
 - public-safe private fixtures under `tests/fixtures/terraform/private/`;
 - repository documentation and repo-scoped ADRs.
@@ -176,7 +178,8 @@ None (current).
   forbidden path shape.
 - `tools/check_template_contract.py` and `tools/run_contract_tests.py` verify
   the contract and fixture behavior in template CI.
-- This ADR records the rationale for the already-enforced thin runner shape.
+- PR #49 introduces this ADR, which records the rationale for the
+  already-enforced thin runner shape.
 
 ## Related ADRs
 

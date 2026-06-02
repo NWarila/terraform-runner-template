@@ -31,7 +31,7 @@ The `org/` scope is mirrored from `NWarila/.github` and enforced by the org drif
 | ADR | Status | Decision |
 | --- | --- | --- |
 | [ADR-0001](org/0001-use-architecture-decision-records.md) | Accepted | Use ADRs to document design rationale. |
-| [ADR-0002](org/0002-adopt-diataxis-documentation-framework.md) | Accepted | Use DiÃ¡taxis for non-ADR documentation. |
+| [ADR-0002](org/0002-adopt-diataxis-documentation-framework.md) | Accepted | Use Diátaxis for non-ADR documentation. |
 | [ADR-0003](org/0003-use-deny-all-gitignore-strategy.md) | Accepted | Use deny-all `.gitignore` allowlists. |
 | [ADR-0004](org/0004-use-renovate-for-dependency-updates.md) | Accepted | Use Renovate for dependency updates. |
 | [ADR-0005](org/0005-pin-terraform-and-provider-versions-exactly.md) | Accepted | Pin Terraform and provider versions exactly. |

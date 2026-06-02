@@ -163,7 +163,7 @@ types:
       rationale: 'Runner release callers must consume the FRAMEWORK-owned release
         evidence reusable (NWarila/terraform-framework-template) by immutable SHA
         with repo_type=runner. release-evidence is type-specific to framework
-        templates; a runner owns no local copy. See AUDIT-2026-05-28.'
+        templates; a runner owns no local copy.'
     - file: .github/workflows/release.yaml
       pattern: '\./\.github/workflows/reusable-release-(please|evidence)\.ya?ml'
       must_match: false
@@ -210,8 +210,7 @@ types:
       rationale: 'Seed release caller for runner consumers that publish versioned
         releases. Runners own NO local reusable-*.yaml; release evidence is obtained
         by CALLING the Terraform framework template''s reusable-release-evidence.yaml
-        by SHA (repo_type=runner), and release-please from the org reusable. See
-        AUDIT-2026-05-28.'
+        by SHA (repo_type=runner), and release-please from the org reusable.'
     - path: .github/workflows/auto-merge.yaml
       rationale: Isolated pull_request_target caller for trusted-bot auto-merge; calls the org reusable-auto-merge by SHA.
     - path: .github/workflows/repo-hygiene.yaml
