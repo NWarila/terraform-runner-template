@@ -12,7 +12,7 @@ name: Release
 # terraform/repos inventory + the pinned framework_ref and does NOT install or
 # run Terraform, so the required `terraform_version` input is ignored on this
 # path but must still be supplied to satisfy the workflow_call signature. See
-# AUDIT-2026-05-28 and docs/reference/mirroring.md.
+# docs/reference/mirroring.md.
 
 on:
   push:
