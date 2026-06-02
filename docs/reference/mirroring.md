@@ -1,61 +1,59 @@
-# Mirroring And Consumer Baseline
+# Mirroring Reference
 
-This template keeps the serious controls in one place while keeping downstream
-runner repos small enough to operate without ceremony.
+This reference describes how inherited files move from control-plane and template repositories into adopting repositories. It is governed by [ADR-0001](../decision-records/0001-use-architecture-decision-records.md), [ADR-0006](../decision-records/0006-keep-github-control-planes-namespace-local.md), and [ADR-0009](../decision-records/0009-classify-baseline-manifest-byte-identity.md).
 
-## Required Consumer Baseline
+## Core Rule
 
-A runner consumer must keep the contract-critical files: community health files,
-`.github/CODEOWNERS`, Renovate config, `pr-validation.yaml`, `drift-gate.yaml`,
-`security.yaml`, `terraform-deploy.yaml`, the docs skeleton, and the runner
-inventory directories.
+Consumers mirror what they inherit as governance or directly run in their own lifecycle. Templates keep files that only templates run. Repo-specific material stays local to the repository that owns it.
 
-The contract validator checks the required paths and the caller-workflow wiring.
-The template-tier drift manifest mirrors only the stable scaffold files that
-should remain byte-identical across runners.
+## Source Classes
 
-Use `byte_identical` only for files a downstream runner should keep
-byte-for-byte with this template. Use `scaffold_starter` for template-maintainer
-fixtures, local validation machinery, and starter inventory that prove the
-pattern but should not become permanent mirrored content in data-only runner
-repos. This runner template has more `scaffold_starter` entries than the
-framework templates because consumers delegate tooling and policy execution to
-the pinned reusable workflow instead of carrying local copies.
+| Source class | Master location | Consumer location | Byte identity |
+| ------------ | --------------- | ----------------- | ------------- |
+| Org ADRs | Owning namespace `.github/docs/decision-records/` | `docs/decision-records/org/` | Yes |
+| Org community files | Owning namespace `.github` | Repository root or `.github/` | Yes when uniform |
+| Type-template ADRs | Type template `docs/decision-records/template/` | `docs/decision-records/template/` | Yes |
+| Type-specific reusable workflows | Type template `.github/workflows/` | Called by `uses:` or mirrored only when directly run | Depends on contract |
+| Universal org reusable workflows | Owning namespace `.github/.github/workflows/` | Called by SHA-pinned thin callers | No local body copy |
+| Repo-specific ADRs | Owning repository `docs/decision-records/repo/` | Not mirrored | No |
+| Repo-specific docs and diagrams | Owning repository `docs/` | Not mirrored | No |
 
-## Repo-Owned Layer
+## Namespace Rule
 
-The runner owns `terraform/public/`, `terraform/private/`, deploy inputs, template pins,
-framework pins, and repo-specific ADRs. Those files are validated for shape and
-safety, not byte-mirrored.
+Org governance is namespace-local. A `NWarila/*` repository mirrors org ADRs and community files from `NWarila/.github`. A repository under another namespace mirrors the same categories from that namespace's `.github` control plane. Cross-namespace references remain valid for explicit type-template or tool dependencies, but not for org-control-plane governance.
 
-## Optional Release Layer
+## Org ADR Auto-Sync
 
-`release.yaml`, release-please config, release evidence, and trusted-bot
-auto-merge are supported by the template, but downstream runners do not have to
-carry them. Keep that layer for repos that publish versioned releases. Remove it
-for runners that only deploy inventory.
+Repositories that already mirror org ADRs should carry a scheduled caller for the namespace-local `reusable-org-adr-auto-sync.yaml`. The caller runs from the adopting repository, so its sync token can only update that repository. It fetches the owning namespace `.github` `org-adr-manifest.json`, copies only `docs/decision-records/org/` targets, removes stale mirrored ADR Markdown files, updates the adopting repository's ADR-only detector source pin when present, and opens or refreshes a PR.
 
-## Template-Maintainer Layer
+The reusable keeps `GITHUB_TOKEN` read-only. Real sync writes require the caller to pass an explicit `sync_token` secret with permission to push the sync branch and open the PR.
 
-The local contract validator, OPA policy tests, generated contract fixtures,
-integration fixture, and `tools/verify.py` are template-maintainer machinery.
-They are valuable in this template repo because `ci.yaml` executes them on
-every PR, but they are not required in runner repos. Runner PRs exercise the
-same controls through the pinned reusable validation workflow from this
-template checkout.
-Template-only self-validation workflows such as `ci.yaml` are not byte-mirrored
-into consumers. The normal `terraform-deploy.yaml` caller is mirrored because it
-is the regular runner deploy example: `pr-validation.yaml` plans locally, while
-trusted main/manual deploy runs prove the S3 backend against the repo's actual
-state key.
+This auto-sync supplements the drift-gate detector; it does not replace review. The detector stays responsible for byte-identity verification, while the auto-sync keeps the repair path small and namespace-scoped.
 
-## New Runner Checklist
+## Byte-Identity Rule
 
-1. Rewrite `README.md` for the real runner.
-2. Fill `terraform/public/` and configure how `terraform/private/` is sourced.
-3. Pin `pr-validation.yaml` and `terraform-deploy.yaml` to the intended template
-   and framework SHAs.
-4. Decide whether to keep the optional release layer.
-5. Run the runner's PR validation workflow, or run this template's
-   `reusable-terraform-validation.yaml` from a scratch branch pinned to the
-   candidate template SHA.
+Use byte identity when local edits would be drift. Do not use byte identity when local edits would be maturity.
+
+Byte-identical entries are appropriate for:
+
+- Org ADR mirrors.
+- Shared community-health files.
+- Stable org reference documents that are intentionally inherited.
+- Skeleton sentinels that preserve expected directories.
+
+Starter, scaffold, existence, or local entries are appropriate for:
+
+- Repo-customizable lint, hook, editor, or documentation configuration.
+- Workflow callers that embed namespace-specific `.github` paths across a multi-namespace target set.
+- Template-internal tools, tests, fixtures, and policies that consumers do not run.
+- Repo-specific diagrams, inventories, runtime evidence, and runbooks.
+
+## Review Checklist
+
+- Does the target repository inherit or run this file?
+- Would a local improvement be drift or maturity?
+- Does the file embed a namespace, repository name, branch, environment, or runtime-specific value?
+- Is the source an org control plane, a type template, or the repository itself?
+- Is the file body needed locally, or should the repository call it by `uses:`?
+
+When the answer is unclear, prefer a smaller byte-identical manifest and a separate starter or reference entry.
