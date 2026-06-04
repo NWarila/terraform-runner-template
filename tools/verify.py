@@ -4,11 +4,13 @@
 from __future__ import annotations
 
 import argparse
+import ctypes
 import json
 import os
 import shutil
 import subprocess
 import sys
+import time
 from collections.abc import Callable
 from pathlib import Path
 
@@ -38,6 +40,166 @@ def run(args: list[str], *, input_text: str | None = None) -> None:
         raise SystemExit(f"missing executable: {args[0]}") from exc
     if completed.returncode != 0:
         raise SystemExit(completed.returncode)
+
+
+class ProcessMemoryCountersEx(ctypes.Structure):
+    _fields_ = [
+        ("cb", ctypes.c_ulong),
+        ("PageFaultCount", ctypes.c_ulong),
+        ("PeakWorkingSetSize", ctypes.c_size_t),
+        ("WorkingSetSize", ctypes.c_size_t),
+        ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+        ("QuotaPagedPoolUsage", ctypes.c_size_t),
+        ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+        ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+        ("PagefileUsage", ctypes.c_size_t),
+        ("PeakPagefileUsage", ctypes.c_size_t),
+        ("PrivateUsage", ctypes.c_size_t),
+    ]
+
+
+def process_private_bytes(process: subprocess.Popen[str]) -> int | None:
+    if os.name != "nt":
+        return None
+    counters = ProcessMemoryCountersEx()
+    counters.cb = ctypes.sizeof(counters)
+    handle = getattr(process, "_handle", None)
+    if handle is None:
+        return None
+    ok = ctypes.windll.psapi.GetProcessMemoryInfo(
+        ctypes.c_void_p(handle), ctypes.byref(counters), counters.cb
+    )
+    if not ok:
+        return None
+    return int(counters.PrivateUsage)
+
+
+def run_opa(args: list[str], *, input_text: str | None = None) -> None:
+    """Run OPA under a wall-clock timeout and (on Windows) a private-memory cap.
+
+    A pathological Rego policy can drive ``opa eval`` to tens of GB of committed
+    memory and hang the host. This bounds it so OPA aborts with a clear error
+    instead of wedging the machine. Tunable via OPA_TIMEOUT_SECONDS and
+    OPA_MAX_PRIVATE_MB environment variables.
+    """
+    timeout_seconds = int(os.environ.get("OPA_TIMEOUT_SECONDS", "30"))
+    max_private_mb = int(os.environ.get("OPA_MAX_PRIVATE_MB", "1024"))
+    max_private_bytes = max_private_mb * 1024 * 1024
+
+    print("+ " + " ".join(args), flush=True)
+    try:
+        process = subprocess.Popen(
+            args,
+            cwd=ROOT,
+            stdin=subprocess.PIPE if input_text is not None else None,
+            text=True,
+        )
+    except FileNotFoundError as exc:
+        raise SystemExit(f"missing executable: {args[0]}") from exc
+
+    if input_text is not None and process.stdin is not None:
+        process.stdin.write(input_text)
+        process.stdin.close()
+
+    deadline = time.monotonic() + timeout_seconds
+    peak_private = 0
+    killed_reason: str | None = None
+    while process.poll() is None:
+        private_bytes = process_private_bytes(process)
+        if private_bytes is not None:
+            peak_private = max(peak_private, private_bytes)
+            if private_bytes > max_private_bytes:
+                killed_reason = (
+                    f"private memory exceeded {max_private_mb} MiB "
+                    f"(observed {private_bytes // (1024 * 1024)} MiB)"
+                )
+                process.kill()
+                break
+        if time.monotonic() > deadline:
+            killed_reason = f"timeout exceeded {timeout_seconds} seconds"
+            process.kill()
+            break
+        time.sleep(0.1)
+
+    returncode = process.wait()
+    if killed_reason is not None:
+        if peak_private:
+            print(f"opa peak private memory: {peak_private // (1024 * 1024)} MiB")
+        raise SystemExit(f"opa aborted: {killed_reason}")
+    if returncode != 0:
+        raise SystemExit(returncode)
+
+
+def capture_opa(args: list[str], *, input_text: str | None = None) -> str:
+    """Like capture(), but for OPA: bounded by the same timeout + memory cap as
+    run_opa so a pathological policy cannot exhaust host memory while we read its
+    output. Output is drained concurrently so a large result never deadlocks."""
+    import threading
+
+    timeout_seconds = int(os.environ.get("OPA_TIMEOUT_SECONDS", "30"))
+    max_private_mb = int(os.environ.get("OPA_MAX_PRIVATE_MB", "1024"))
+    max_private_bytes = max_private_mb * 1024 * 1024
+
+    print("+ " + " ".join(args), flush=True)
+    try:
+        process = subprocess.Popen(
+            args,
+            cwd=ROOT,
+            stdin=subprocess.PIPE if input_text is not None else None,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except FileNotFoundError as exc:
+        raise SystemExit(f"missing executable: {args[0]}") from exc
+
+    out_chunks: list[str] = []
+    err_chunks: list[str] = []
+    t_out = threading.Thread(target=lambda: out_chunks.append(process.stdout.read()), daemon=True)
+    t_err = threading.Thread(target=lambda: err_chunks.append(process.stderr.read()), daemon=True)
+    t_out.start()
+    t_err.start()
+    if input_text is not None and process.stdin is not None:
+        try:
+            process.stdin.write(input_text)
+            process.stdin.close()
+        except BrokenPipeError:
+            pass
+
+    deadline = time.monotonic() + timeout_seconds
+    peak_private = 0
+    killed_reason: str | None = None
+    while process.poll() is None:
+        private_bytes = process_private_bytes(process)
+        if private_bytes is not None:
+            peak_private = max(peak_private, private_bytes)
+            if private_bytes > max_private_bytes:
+                killed_reason = (
+                    f"private memory exceeded {max_private_mb} MiB "
+                    f"(observed {private_bytes // (1024 * 1024)} MiB)"
+                )
+                process.kill()
+                break
+        if time.monotonic() > deadline:
+            killed_reason = f"timeout exceeded {timeout_seconds} seconds"
+            process.kill()
+            break
+        time.sleep(0.1)
+
+    returncode = process.wait()
+    t_out.join(timeout=5)
+    t_err.join(timeout=5)
+    stdout = "".join(c for c in out_chunks if c)
+    stderr = "".join(c for c in err_chunks if c)
+    if killed_reason is not None:
+        if peak_private:
+            print(f"opa peak private memory: {peak_private // (1024 * 1024)} MiB")
+        raise SystemExit(f"opa aborted: {killed_reason}")
+    if returncode != 0:
+        sys.stdout.write(stdout)
+        sys.stderr.write(stderr)
+        raise SystemExit(returncode)
+    return stdout
 
 
 def capture(args: list[str], *, input_text: str | None = None) -> str:
@@ -70,7 +232,7 @@ def install(package: str) -> None:
 def opa_policy() -> None:
     install("pyyaml==6.0.3")
     opa_input = capture([PYTHON, "tools/build_opa_input.py"])
-    run(
+    run_opa(
         [
             "opa",
             "eval",
@@ -129,7 +291,7 @@ def opa_plan() -> None:
 
 def opa_plan_denies(fixture: Path) -> list[str]:
     opa_input = capture([PYTHON, "tools/build_plan_input.py", "--plan-json", str(fixture)])
-    output = capture(
+    output = capture_opa(
         [
             "opa",
             "eval",
@@ -230,7 +392,7 @@ def privileged_workflows() -> None:
 
 
 def opa_test() -> None:
-    run(["opa", "test", "policies/opa"])
+    run_opa(["opa", "test", "policies/opa"])
 
 
 def manifest_check() -> None:
