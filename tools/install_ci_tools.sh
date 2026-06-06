@@ -47,13 +47,22 @@ verify_sha256() {
   fi
 }
 
+fetch_url() {
+  local output="$1"
+  local url="$2"
+
+  curl --fail --silent --show-error --location \
+    --retry 5 --retry-all-errors --retry-delay 2 --connect-timeout 20 \
+    -o "$output" "$url"
+}
+
 install_actionlint() {
   local v="$ACTIONLINT_VERSION"
   local tar="actionlint_${v}_linux_amd64.tar.gz"
   local sums="actionlint_${v}_checksums.txt"
   local base="https://github.com/rhysd/actionlint/releases/download/v${v}"
-  curl --fail --silent --show-error --location -o "${workdir}/${tar}" "${base}/${tar}"
-  curl --fail --silent --show-error --location -o "${workdir}/${sums}" "${base}/${sums}"
+  fetch_url "${workdir}/${tar}" "${base}/${tar}"
+  fetch_url "${workdir}/${sums}" "${base}/${sums}"
   local expected
   expected="$(awk -v f="${tar}" '$2 == f {print $1}' "${workdir}/${sums}")"
   if [ -z "$expected" ]; then
@@ -80,8 +89,8 @@ install_tflint() {
   local v="$TFLINT_VERSION"
   local zip="tflint_linux_amd64.zip"
   local base="https://github.com/terraform-linters/tflint/releases/download/v${v}"
-  curl --fail --silent --show-error --location -o "${workdir}/${zip}" "${base}/${zip}"
-  curl --fail --silent --show-error --location -o "${workdir}/checksums.txt" "${base}/checksums.txt"
+  fetch_url "${workdir}/${zip}" "${base}/${zip}"
+  fetch_url "${workdir}/checksums.txt" "${base}/checksums.txt"
   local expected
   expected="$(awk -v f="${zip}" '$2 == f {print $1}' "${workdir}/checksums.txt")"
   if [ -z "$expected" ]; then
@@ -98,8 +107,8 @@ install_terraform_docs() {
   local v="$TERRAFORM_DOCS_VERSION"
   local tar="terraform-docs-v${v}-linux-amd64.tar.gz"
   local base="https://github.com/terraform-docs/terraform-docs/releases/download/v${v}"
-  curl --fail --silent --show-error --location -o "${workdir}/${tar}" "${base}/${tar}"
-  curl --fail --silent --show-error --location -o "${workdir}/terraform-docs.sha256sum" "${base}/terraform-docs-v${v}.sha256sum"
+  fetch_url "${workdir}/${tar}" "${base}/${tar}"
+  fetch_url "${workdir}/terraform-docs.sha256sum" "${base}/terraform-docs-v${v}.sha256sum"
   local expected
   expected="$(awk -v f="${tar}" '$2 == f {print $1}' "${workdir}/terraform-docs.sha256sum")"
   if [ -z "$expected" ]; then
@@ -116,8 +125,8 @@ install_opa() {
   local v="$OPA_VERSION"
   local bin="opa_linux_amd64_static"
   local base="https://github.com/open-policy-agent/opa/releases/download/v${v}"
-  curl --fail --silent --show-error --location -o "${workdir}/${bin}" "${base}/${bin}"
-  curl --fail --silent --show-error --location -o "${workdir}/${bin}.sha256" "${base}/${bin}.sha256"
+  fetch_url "${workdir}/${bin}" "${base}/${bin}"
+  fetch_url "${workdir}/${bin}.sha256" "${base}/${bin}.sha256"
   local expected
   expected="$(awk '{print $1}' "${workdir}/${bin}.sha256")"
   if [ -z "$expected" ]; then

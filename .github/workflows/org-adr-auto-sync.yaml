@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pull-requests: read
+  contents: read # required to inspect ADR mirror files
+  pull-requests: read # required to inspect existing sync pull requests
 
 concurrency:
   group: org-adr-auto-sync-${{ github.ref }}
@@ -17,9 +17,9 @@ jobs:
   sync:
     name: org ADR auto-sync
     permissions:
-      contents: read
-      pull-requests: read
-    uses: NWarila/.github/.github/workflows/reusable-org-adr-auto-sync.yaml@e8bc517828a9915a401096305124dff316b76644
+      contents: read # required by the reusable to inspect ADR mirror files
+      pull-requests: read # required by the reusable to inspect sync PRs
+    uses: NWarila/.github/.github/workflows/reusable-org-adr-auto-sync.yaml@16fc66816dea5a593c0d5fbb0574ce3b54b46991
     with:
       source_repo: NWarila/.github
       source_ref: main

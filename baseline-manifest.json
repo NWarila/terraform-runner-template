@@ -120,6 +120,10 @@
       "target": "docs/reference/release-gates.md"
     },
     {
+      "source": "docs/diagrams/example-flow.mmd",
+      "target": "docs/diagrams/example-flow.mmd"
+    },
+    {
       "source": "docs/tutorials/.gitkeep",
       "target": "docs/tutorials/.gitkeep"
     },

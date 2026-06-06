@@ -25,6 +25,6 @@ jobs:
     name: repo-hygiene
     permissions:
       contents: read
-    uses: NWarila/.github/.github/workflows/reusable-repo-hygiene.yaml@e7456b0219e8750fbef8bd70a0f1ccf7d47f1c20
+    uses: NWarila/.github/.github/workflows/reusable-repo-hygiene.yaml@16fc66816dea5a593c0d5fbb0574ce3b54b46991
     with:
-      source_ref: e7456b0219e8750fbef8bd70a0f1ccf7d47f1c20
+      source_ref: 16fc66816dea5a593c0d5fbb0574ce3b54b46991
