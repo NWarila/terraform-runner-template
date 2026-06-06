@@ -130,8 +130,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      contents: read
-      security-events: write
+      contents: read # required to check out and lint repository tooling
+      security-events: write # required to upload Ruff SARIF to GitHub Security
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
