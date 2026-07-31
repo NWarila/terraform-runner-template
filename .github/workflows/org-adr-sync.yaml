@@ -26,7 +26,7 @@ jobs:
         uses: NWarila/drift-gate@dac07c2b2a30a084b3577d4712549291ae99879c
         with:
           source-repo: NWarila/.github
-          # renovate: depName=NWarila/.github packageName=NWarila/.github
-          source-ref: e8bc517828a9915a401096305124dff316b76644
+          # renovate: depName=NWarila/.github packageName=https://github.com/NWarila/.github currentValue=main
+          source-ref: f25a0e36f0591687862ff78f9f7b9d94fe577bc7
           manifest: org-adr-manifest.json
           check-name: org-adr / verify

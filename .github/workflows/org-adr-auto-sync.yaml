@@ -19,7 +19,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-    uses: NWarila/.github/.github/workflows/reusable-org-adr-auto-sync.yaml@e8bc517828a9915a401096305124dff316b76644
+    uses: NWarila/.github/.github/workflows/reusable-org-adr-auto-sync.yaml@f25a0e36f0591687862ff78f9f7b9d94fe577bc7
     with:
       source_repo: NWarila/.github
       source_ref: main
