@@ -53,7 +53,7 @@ jobs:
       pull-requests: write
       issues: write
       actions: write
-    uses: NWarila/.github/.github/workflows/reusable-release-please.yaml@f45f8e6695d61af2f36ac37b72ef2dcfa05bc089
+    uses: NWarila/.github/.github/workflows/reusable-release-please.yaml@f25a0e36f0591687862ff78f9f7b9d94fe577bc7
 
   evidence:
     name: Release Evidence

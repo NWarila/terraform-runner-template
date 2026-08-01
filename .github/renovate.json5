@@ -83,7 +83,7 @@
       "datasourceTemplate": "git-refs",
       "versioningTemplate": "loose",
       "matchStrings": [
-        "# renovate: depName=(?<depName>[^\\s]+) packageName=(?<packageName>[^\\s]+) currentValue=(?<currentValue>[^\\s]+)\\s+(?:template_ref|framework_ref|source-ref|ref):\\s*(?<currentDigest>[0-9a-f]{40})"
+        "# renovate: depName=(?<depName>[^\\s]+) packageName=(?<packageName>[^\\s]+) currentValue=(?<currentValue>[^\\s]+)\\s+(?:template_ref|framework_ref|source-ref|source_ref|ref):\\s*(?<currentDigest>[0-9a-f]{40})"
       ]
     }
   ],
@@ -112,6 +112,16 @@
       "groupName": "actions/setup-python",
       "semanticCommitType": "ci",
       "semanticCommitScope": "deps"
+    },
+    {
+      // NWarila/.github reusable workflow pins and matching body refs are one
+      // lockstep update and always require maintainer review.
+      "matchManagers": ["github-actions", "custom.regex"],
+      "matchDepNames": ["NWarila/.github"],
+      "groupName": "NWarila/.github",
+      "semanticCommitType": "ci",
+      "semanticCommitScope": "deps",
+      "automerge": false
     },
     {
       // Bumps to NWarila/terraform-runner-template itself (when consumers
